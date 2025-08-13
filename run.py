@@ -78,8 +78,46 @@ def analyze_finances(transactions):
             analysis['categories'][t['category']] += t['amount']
             analysis['categories'][t['date']] += t['amount']
             analysis['daily_spending'][t['date']] += t['amount']
-            analysis['savings'] = analysis['total_income'] - analysis['total_expenses']
+            analysis['savings'] = analysis['total_income'] - \
+                analysis['total_expenses']
             return analysis
+
+
+def generate_ai_recomendations(analysis):
+    """Generate AI recommendations based on financial analysis."""
+    recomendations = []
+    biggest_category = max(analysis['categories'].items(), key=lambda x: x[1])
+    recomendations.append(
+        f"Consider reducing spending in {biggest_category[0]} category, which accounts for {biggest_category[1]:.2f} of your expenses.")
+
+    savings_rate = (analysis['savings'] / analysis['total_income']
+                    ) * 100 if analysis['total_income'] > 0 else 0
+    if savings_rate < 20:
+        recomendations.append(
+            f"Your savings rate is low at {savings_rate:.2f}%. Consider increasing your savings up to 20% of your income by reducing discretionary spending.")
+
+        expensive_day = max(
+            analysis['daily_spending'].items(), key=lambda x: x[1])
+        recomendations.append(
+            f"Your most expensive day was {expensive_day[0]} with a total spending of {expensive_day[1]:.2f}. Consider reviewing your expenses on that day. ")
+        return recomendations
+
+
+def visualize_data(analysis):
+    """Visualize financial data using matplotlib."""
+    # Making a bar chart for spending by category 10x5 inches size
+    plt.figure(figsize=(10, 5))
+    # categories = list(analysis['categories'].keys())
+    # amounts = list(analysis['categories'].values())
+
+    # plt.figure(figsize=(10, 6))
+    # plt.bar(categories, amounts, color='skyblue')
+    # plt.xlabel('Categories')
+    # plt.ylabel('Amount')
+    # plt.title('Spending by Category')
+    # plt.xticks(rotation=45)
+    # plt.tight_layout()
+    # plt.show()
 
 
 sa = gspread.service_account(filename='creds.json')
