@@ -70,6 +70,17 @@ def analyze_finances(transactions):
         'daily_spending': defaultdict(float)
     }
 
+    for t in transactions:
+        if t['type'] == 'income':
+            analysis['total_income'] += t['amount']
+        else:
+            analysis['total_expenses'] += t['amount']
+            analysis['categories'][t['category']] += t['amount']
+            analysis['categories'][t['date']] += t['amount']
+            analysis['daily_spending'][t['date']] += t['amount']
+            analysis['savings'] = analysis['total_income'] - analysis['total_expenses']
+            return analysis
+
 
 sa = gspread.service_account(filename='creds.json')
 sh = sa.open("Personal Finances")
