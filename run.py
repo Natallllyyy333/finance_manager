@@ -111,36 +111,45 @@ def tetrminal_visualization(data):
 def generate_daily_recommendations(data):
     """Generate daily category-specific recommendations."""
     recs = []
+    if not data or 'income' not in data:
+        return recs
+
     if data['income'] <= 0:
         return ["No income data - cannot generate recommendations."]
+    else:
 
-     # 1. Savings rate recommendation
-    savings_rate = (data['savings'] / data['income'] * 100)
-    if savings_rate < 20:
-        recs.append(f"Aim for 20% savings (current: {savings_rate:.1f}%)")
-        # 2. Daily category norms analysis
-    for day, categories in data['daily_categories'].items():
-        for cat, amount in categories.items():
-            if cat in DAILY_NORMS and amount > DAILY_NORMS[cat]*1.2:
-                recs.append(f"On {day}, {cat} spent {amount:.2f}€"
-                            f"norm: {DAILY_NORMS[cat]}€")
-        # 3.Monthly category averages vs daily norms
-    for cat, norm in DAILY_NORMS.items():
-        if cat in data['categories']:
-            avg_daily = data['categories'][cat] / data['days_count']
-            if avg_daily > norm * 1.1:  # 10% over norm
-                recs.append(
-                    f"Reduce daily{cat} spending "
-                    f"(current: {avg_daily:.2f}€, norm: {norm}€)")
+        # 1. Savings rate recommendation
+        savings_rate = (data['savings'] / data['income'] * 100)
+        if savings_rate < 20:
+            recs.append(f"Aim for 20% savings (current: {savings_rate:.1f}%)")
+            return recs[:5]  # Return only top 5 recommendations
+            # 2. Daily category norms analysis
+        for day, categories in data['daily_categories'].items():
+            for cat, amount in categories.items():
+                if cat in DAILY_NORMS and amount > DAILY_NORMS[cat]*1.2:
+                    recs.append(f"On {day}, {cat} spent {amount:.2f}€"
+                                f"norm: {DAILY_NORMS[cat]}€")
+                    return recs[:5]  # Return only top 5 recommendations
+            # 3.Monthly category averages vs daily norms
+        for cat, norm in DAILY_NORMS.items():
+            if cat in data['categories']:
+                avg_daily = data['categories'][cat] / data['days_count']
+                if avg_daily > norm * 1.1:  # 10% over norm
+                    recs.append(
+                        f"Reduce daily{cat} spending "
+                        f"(current: {avg_daily:.2f}€, norm: {norm}€)")
+                    return recs[:5]  # Return only top 5 recommendations
+            return recs[:5]  # Return only top 5 recommendations
 
-    # Ensure minimum recommendations
-    if len(recs) < 3:
-        recs.extend([
-            "Plan meals weekly to reduce grocery costs",
-            "Use public transport more frequently",
-            "Limit dining out to 2-3 times a week"
-        ])
-        return recs[:5]  # Return only top 5 recommendations
+        # Ensure minimum recommendations
+        if len(recs) < 3:
+            recs.extend([
+                "Plan meals weekly to reduce grocery costs",
+                "Use public transport more frequently",
+                "Limit dining out to 2-3 times a week"
+            ])
+            return recs[:5]  # Return only top 5 recommendations
+    return recs[:5]  # Return only top 5 recommendations
 
 
 def main():
