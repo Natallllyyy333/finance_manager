@@ -2,21 +2,22 @@
 import csv
 import gspread
 from collections import defaultdict
+import time
 from datetime import datetime
 
 DAILY_NORMS = {
-    'Rent': 30,
-    'Gym': 2,
-    'Groceries': 15,
+    'Rent': 1200,
+    'Gym': 45,
+    'Groceries': 90,
     'Transport': 8,
     'Entertainment': 5,
-    'Utilities': 3,
-    'Shopping': 10,
+    'Utilities': 20,
+    'Shopping': 100,
 }
 print("\n" + " PERSONAL FINANCE ANALYZER ".center(80, "="))
 MONTH = input(
-    "Enter the month (e.g., 'March', 'April', 'May'): ").strip().capitalize()
-FILE = f"hsbc_{MONTH.lower()}.csv"
+    "Enter the month (e.g., 'March', 'April', 'May'): ").strip().lower()
+FILE = f"hsbc_{MONTH}.csv"
 
 # file = f"hsbc_{MONTH}.csv"
 
@@ -58,11 +59,23 @@ def categorize(description):
     """Categorize transaction based on description."""
     desc = description.lower()
     categories = {
+        'Income': ['salary', 'bonus', 'income'],
         'Rent': ['rent', 'monthly rent'],
         'Groceries': ['supermarket', 'grocery', 'food'],
         'Dining': ['restaurant', 'cafe', 'coffee'],
         'Transport': ['bus', 'train', 'taxi', 'uber'],
         'Entertainment': ['movie', 'netflix', 'concert'],
+        'Utilities': ['electricity', 'water', 'gas', 'internet', 'phone'],
+        'Gym': ['gym', 'Gym Membership' 'fitness', 'yoga'],
+        'Shopping': ['clothing', 'electronics', 'shopping', 'Supermarket'],
+        'Health': ['pharmacy', 'doctor', 'health'],
+        'Insurance': ['insurance', 'health insurance', 'car insurance'],
+        'Education': ['tuition', 'books', 'courses', 'course'],
+        'Travel': ['flight', 'hotel', 'travel', 'airline'],
+        'Savings': ['savings', 'investment', 'stocks'],
+        'Bank Fees': ['bank fee', 'atm fee', 'service charge'],
+        'Charity': ['donation', 'charity', 'fundraiser'],
+        'Car': ['car', 'vehicle', 'fuel', 'maintenance'],
         'Other': []
     }
     for cat, terms in categories.items():
@@ -91,20 +104,25 @@ def analyze(transactions, daily_categories):
 def tetrminal_visualization(data):
     """Visualize financial data in terminal."""
     # Header
-    print(f"\n +{data['month'].upper()} FINANCIAL OVERVIEW ".center(80, "="))
+    print(
+        "\n" + f" {data['month'].upper()} FINANCIAL OVERVIEW ".center(80, "="))
     # Summary bars
-    print(f"\nIncome: {data['income']:10.2f}€ [" + "■" *
-          int(data['income'] / max(data['income'], 1) * 30) + "]")
-    print("fExpenses:{data['expenses']:10.2f}€ [" + "■" *
-          int(data['expenses'] / max(data['income'], 1) * 30) + "]")
+    expense_rate = (data['expenses'] / data['income']
+                    * 100) if data['income'] > 0 else 0
+    savings_rate = (data['savings'] / data['income']
+                    * 100) if data['income'] > 0 else 0
+    print(f"Income: {data['income']:10.2f}€ [" + "■" *
+          int(data['income'] / max(data['income'], 1) * 30) + "]" + " " + "100%")
+    print(f"\nExpenses: {data['expenses']:10.2f}€ [" + "■" *
+          int(data['expenses'] / max(data['income'], 1) * 30) + "]" + " " + f"{expense_rate:.1f}%")
     print(f"Savings: {data['savings']:10.2f}€ [" + "■" *
-          int(data['savings'] / max(data['income'], 1) * 30) + "]")
+          int(data['savings'] / max(data['income'], 1) * 30) + "]" + " " + f"{savings_rate:.1f}%")
 
     # Categories breakdown
-    print("\n EXPENSE CATEGORIES ".center(80, '-'))
+    print("\n" + f" EXPENSE CATEGORIES ".center(80, '-'))
     for cat, amount in sorted(data['categories'].items(), key=lambda x: x[1], reverse=True):
         pct = amount / data['expenses'] * 100 if data['expenses'] > 0 else 0
-        print(f"{cat:12}:<12 {amount:7.2f}€ " +
+        print(f"{cat:<12}{amount:7.2f}€ " +
               "■" * int(pct / 5) + f" {pct:.1f}%")
 
 
@@ -112,24 +130,25 @@ def generate_daily_recommendations(data):
     """Generate daily category-specific recommendations."""
     recs = []
     if not data or 'income' not in data:
-        return recs
+        return ["No financial data available for recommendations."]
 
     if data['income'] <= 0:
         return ["No income data - cannot generate recommendations."]
     else:
 
         # 1. Savings rate recommendation
+        expense_rate = (data['expenses'] / data['income'] * 100)
         savings_rate = (data['savings'] / data['income'] * 100)
         if savings_rate < 20:
             recs.append(f"Aim for 20% savings (current: {savings_rate:.1f}%)")
-            return recs[:5]  # Return only top 5 recommendations
+
             # 2. Daily category norms analysis
         for day, categories in data['daily_categories'].items():
             for cat, amount in categories.items():
                 if cat in DAILY_NORMS and amount > DAILY_NORMS[cat]*1.2:
-                    recs.append(f"On {day}, {cat} spent {amount:.2f}€"
-                                f"norm: {DAILY_NORMS[cat]}€")
-                    return recs[:5]  # Return only top 5 recommendations
+                    recs.append(f"On {day}, {cat} spent {amount:.2f}€. "
+                                f"Norm: {DAILY_NORMS[cat]}€")
+
             # 3.Monthly category averages vs daily norms
         for cat, norm in DAILY_NORMS.items():
             if cat in data['categories']:
@@ -138,8 +157,6 @@ def generate_daily_recommendations(data):
                     recs.append(
                         f"Reduce daily{cat} spending "
                         f"(current: {avg_daily:.2f}€, norm: {norm}€)")
-                    return recs[:5]  # Return only top 5 recommendations
-            return recs[:5]  # Return only top 5 recommendations
 
         # Ensure minimum recommendations
         if len(recs) < 3:
@@ -148,10 +165,81 @@ def generate_daily_recommendations(data):
                 "Use public transport more frequently",
                 "Limit dining out to 2-3 times a week"
             ])
-            return recs[:5]  # Return only top 5 recommendations
-    return recs[:5]  # Return only top 5 recommendations
+        return recs[:5]  # Return only top 5 recommendations
 
 
+# def main():
+#     transactions, daily_categories = load_transactions(FILE)
+#     if not transactions:
+#         print(f"No transactions found")
+#         return
+#     data = analyze(transactions, daily_categories)
+#     tetrminal_visualization(data)
+
+#     # Recommendations
+#     print("\n" + f" DAILY SPENDING RECOMMENDATIONS ".center(80, '='))
+#     for i, rec in enumerate(generate_daily_recommendations(data), 1):
+#         print(f"{i}. {rec}")
+
+#     # Optional Google Sheets update
+#     try:
+#         # Authenticate and open Google Sheets
+#         gs = gspread.service_account('creds.json')
+#         sh = gs.open("Personal Finances")
+#         worksheet = None
+#         try:
+#             worksheet = sh.worksheet(MONTH)
+#             print(f"\nUpdating Google Sheets for {MONTH}...")
+#         except gspread.WorksheetNotFound:
+#             print(f"\nWorksheet for {MONTH} not found. Creating a new one...")
+
+#             worksheet = sh.add_worksheet(title=MONTH, rows="100", cols="5")
+#             print(f"New worksheet '{MONTH}' created.")
+
+#          # Now we're sure worksheet exists
+#         if worksheet is None:
+#             raise Exception("Failed to create or access worksheet")
+
+#         # Clear existing data (keep headers if they exist)
+#         all_values = worksheet.get_all_values()
+
+#         # Clear existing data and set headers
+#         # Clear existing data (except headers)
+#         if len(worksheet.get_all_values()) > 1:
+#             worksheet.delete_rows(2, len(worksheet.get_all_values()))
+#             print(f"Worksheet '{MONTH}' already exists. Using it...")
+#             # worksheet = sh.worksheet(MONTH)
+#             # else:
+#             #     raise e
+
+#             # Set headers
+#         headers = ["Date", "Description", "Amount", "Type", "Category"]
+#         worksheet.append_row(headers)
+#         # Append transactions
+#         rows = []
+#         for t in transactions:
+#             rows.append(
+#                 [t['date'], t['desc'], str(
+#                     t['amount']), t['type'], t['category']]
+#             )
+
+#             # Append all rows at once
+#         if rows:
+#             # worksheet.append_rows(rows)
+#             for i in range(0, len(rows), 100):
+#                 batch = rows[i:i+100]
+#                 worksheet.append_rows(batch)
+#                 time.sleep(1)  # Brief pause between batches
+#                 print("\nData saved to Google Sheets")
+#         else:
+#             print("\nNo transactions to save to Google Sheets")
+#     except gspread.exceptions.APIError as e:
+#         print(f"\nGoogle Sheets API Error: {str(e)}")
+#         print("Possible solutions:")
+#         print("1. Check if the sheet name contains invalid characters")
+#         print("2. Verify your service account has proper permissions")
+#     except Exception as e:
+#         print(f"\nGeneral error: {str(e)}")
 def main():
     transactions, daily_categories = load_transactions(FILE)
     if not transactions:
@@ -161,24 +249,115 @@ def main():
     tetrminal_visualization(data)
 
     # Recommendations
-    print("\n DAILY SPENDING RECOMMENDATIONS ".center(80, '='))
+    print("\n" + f" DAILY SPENDING RECOMMENDATIONS ".center(80, '='))
     for i, rec in enumerate(generate_daily_recommendations(data), 1):
         print(f"{i}. {rec}")
 
     # Optional Google Sheets update
     try:
+        # Authenticate and open Google Sheets
         gs = gspread.service_account('creds.json')
-        sheet = gs.open("Personal Finances").worksheet(MONTH)
-        sheet.clear()
-        sheet.append_row(["Date", "Description", "Amount", "Type", "Category"])
-        rows = [
-            [t['date'], t['desc'], t['amount'], t['type'], t['category']]
-            for t in transactions
-        ]
-        sheet.insert_rows(rows)
-        print("\nData saved to Google Sheets")
-    except Exception:
-        pass  # Skip if no credentials
+        sh = gs.open("Personal Finances")
+
+        # Check if worksheet exists
+        worksheet = None
+        try:
+            worksheet = sh.worksheet(MONTH)
+            print(f"\nWorksheet '{MONTH}' found. Updating...")
+        except gspread.WorksheetNotFound:
+            print(f"\nWorksheet for {MONTH} not found. Creating a new one...")
+            # First check if we've reached the sheet limit (max 200 sheets)
+            if len(sh.worksheets()) >= 200:
+                raise Exception("Maximum number of sheets (200) reached")
+
+            # Check if sheet exists but with different case (e.g. "march" vs "March")
+            existing_sheets = [ws.title for ws in sh.worksheets()]
+            if MONTH.lower() in [sheet.lower() for sheet in existing_sheets]:
+                # Find the existing sheet with case-insensitive match
+                for sheet in sh.worksheets():
+                    if sheet.title.lower() == MONTH.lower():
+                        worksheet = sheet
+                        print(
+                            f"Using existing worksheet '{sheet.title}' (case difference)")
+                        break
+            else:
+                # Create new worksheet with unique name if needed
+                try:
+                    worksheet = sh.add_worksheet(
+                        title=MONTH, rows="100", cols="20")
+                    print(f"New worksheet '{MONTH}' created successfully.")
+                except gspread.exceptions.APIError as e:
+                    if "already exists" in str(e):
+                        # If we get here, it means the sheet exists but wasn't found earlier
+                        worksheet = sh.worksheet(MONTH)
+                        print(f"Worksheet '{MONTH}' exists. Using it.")
+                    else:
+                        raise e
+
+        if worksheet is None:
+            raise Exception("Failed to access or create worksheet")
+
+        # Clear existing data (keep headers)
+        all_values = worksheet.get_all_values()
+        if len(all_values) > 1:
+            worksheet.delete_rows(7, len(all_values)+7)
+
+            headers = ["Date", "Description", "Amount", "Type", "Category"]
+            worksheet.insert_row(headers, 7)
+
+        # Add transactions in batches
+        if transactions:
+            batch_size = 1
+            for i in range(0, len(transactions), batch_size):
+                batch = [
+                    [
+                        t['date'],
+                        t['desc'][:50],
+                        t['amount'],
+                        t['type'],
+                        t['category']
+                    ] for t in transactions[i:i+batch_size]
+                ]
+                worksheet.append_rows(batch)
+
+                # No sleep after last batch
+                if i + batch_size < len(transactions):
+                    time.sleep(1)
+
+            total_income = sum(t['amount']
+                               for t in transactions if t['type'] == 'income')
+            total_expense = sum(t['amount']
+                                for t in transactions if t['type'] == 'expense')
+            savings = total_income - total_expense
+            expense_rate = (
+                total_expense / total_income) if total_income > 0 else 0
+            savings_rate = (
+                savings / total_income) if total_income > 0 else 0
+
+            worksheet.format('B2:B4', {'numberFormat': {
+                             'type': 'CURRENCY', 'pattern': '€#,##0.00'}, "textFormat": {'bold': True, 'fontSize': 12}})
+            worksheet.format('C8:C31', {'numberFormat': {
+                             'type': 'CURRENCY', 'pattern': '€#,##0.00'}})
+            worksheet.format('A7:E7', {"textFormat": {
+                'bold': True, 'fontSize': 12}})
+
+            worksheet.update('A2:A4', [['Total Income:'], [
+                             'Total Expenses:'], ['Savings:']])
+            worksheet.update('B2:B4', [[total_income], [
+                             total_expense], [savings]])
+            worksheet.update('C2:C4', [[1], [
+                             expense_rate], [savings_rate]])
+            worksheet.format('C2:C4', {'numberFormat': {
+                'type': 'PERCENT',
+                'pattern': '0%'}})
+
+            print(
+                f"\nSuccessfully updated {len(transactions)} transactions in Google Sheets")
+        else:
+            print("\nNo transactions to update in Google Sheets")
+
+    except Exception as e:
+        print(f"\nError in Google Sheets operation: {str(e)}")
 
 
 if __name__ == "__main__":
