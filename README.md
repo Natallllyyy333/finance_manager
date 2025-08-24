@@ -189,7 +189,7 @@ VSCode was used to write the project code using Code Institute template
 <details>
     <summary>Intelligent Categorization Screenshot</summary>
 
-![Terminal Visualization](docs/features/intelligent_сategorization.jpg)
+![Terminal Visualization](docs/features/terminal_expense_categories.jpg)
 </details>
 
 ### Terminal Visualization - Financial Daily Spending Analysis
@@ -254,6 +254,68 @@ VSCode was used to write the project code using Code Institute template
     <summary>Google Sheets Financial Transactions Table</summary>
 
 ![Worksheet Found, Updating](docs/features/month_worksheet_financial_overview.jpg)
+</details>
+
+### Google Sheets Financial Summary & Categorization
+
+- A dashboard widget that provides a high-level financial summary and a detailed breakdown of income and expenses by category.
+- Financial Summary: Displays three key metrics: Total Income, Total Expenses, and Savings (Income - Expenses), both as amounts and as a percentage of income.
+- Categorization: Breaks down all transactions into predefined income and expense categories.
+- Visual Data: Shows the amount spent/earned in each category and its percentage contribution to the total income or total expenses.
+- Empty States: Handles categories with no transactions (e.g., Dining, Transport) by showing €0.00 and 0.00%.
+- Purpose: To give users a quick, clear overview of their financial health and spending patterns at a glance.
+- User stories covered: 5, 12, 13, 14
+
+<details>
+    <summary>Google Sheets Financial Summary & Categorization</summary>
+
+![Google Sheets Financial Summary & Categorization](docs/features/month_worksheet_transaction_categories.jpg)
+</details>
+
+### Google Sheets Financial Health Summary Bar
+- A compact, at-a-glance component that displays the user's key financial metrics for a given period.
+- Core Metrics: Clearly shows three vital numbers: Total Income, Total Expenses, and Savings (calculated as Income - Expenses).
+- Percentage Context: Each value is accompanied by a percentage, showing expenses and savings as a proportion of total income, providing immediate context.
+- Compact Design: Presents all critical financial health information in a single, easy-to-read bar format, ideal for dashboards and summaries.
+- Automatic Calculation: The "Savings" value and all percentages are automatically calculated from the provided income and expense data.
+- Purpose: To give users an instant snapshot of their financial outcome (deficit, surplus, or break-even) for the selected period.
+- User stories covered: 5, 12, 13, 14
+
+<details>
+    <summary>Google Sheets Financial Health Summary Bar</summary>
+
+![Google Sheets Financial Health Summary Bar](docs/features/worksheet_totals.jpg)
+</details>
+
+### Google Sheets Personalized Financial Recommendations
+- A smart component that analyzes a user's spending habits and provides actionable, prioritized recommendations to improve their financial health.
+- Priority-Based List: Displays recommendations in a numbered list, ordered by importance and potential impact.
+- Data-Driven Insights: Generates advice by comparing the user's actual spending (e.g., daily averages) against predefined financial norms or goals.
+- Clear Metrics: Provides specific, quantifiable data to show the user where they stand versus their target (e.g., "current: 5.1%", "overspent: 6.22€ vs norm: 3.00€").
+- Goal-Oriented: Focuses on key financial objectives like achieving a target savings rate (e.g., 20%) and controlling daily spending in specific categories.
+- Purpose: To act as a personalized financial coach, helping users understand their spending patterns and offering clear steps to optimize their budget.
+- User stories covered: 5, 12, 13, 14
+
+<details>
+    <summary>Google Sheets Personalized Financial Recommendations</summary>
+
+![Google Sheets Personalized Financial Recommendations](docs/features/worksheet_month_daily_recommendations.jpg)
+</details>
+
+### Google Sheets Multi-Month Financial Summary
+- A comparative financial dashboard that displays income, expenses, and savings across multiple months in a single view.
+- Multi-Period View: Shows financial data side-by-side for different months (e.g., January, February, March) for easy comparison.
+- Structured Layout: Uses a table format with columns for each month, containing both monetary sums and percentage breakdowns.
+- Key Metrics: Total Income, Total Expenses, and Savings for each period.
+- Detailed Categorization: A full list of income sources and expense categories with their respective amounts and percentages of the total.
+- Percentage Context: Every sum is accompanied by its percentage relative to the total income (for income and savings) or total expenses (for expense categories), providing immediate insight into spending distribution.
+- Purpose: To allow users to track their financial progress and spending trends over time, identifying patterns and changes in their financial behavior.
+- User stories covered: 5, 12, 13, 14
+
+<details>
+    <summary>Google Sheets Multi-Month Financial Summary</summary>
+
+![Google Sheets Multi-Month Financial Summary](docs/features/worksheet_month_summary.jpg)
 </details>
 
 ### Data Validation
