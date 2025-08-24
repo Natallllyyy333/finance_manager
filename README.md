@@ -180,7 +180,7 @@ VSCode was used to write the project code using Code Institute template
 ![Terminal Visualization](docs/features/month_financial_overview.jpg)
 </details>
 
-### Intelligent Categorization Terminal Visualization
+### Terminal Visualization - Intelligent Categorization 
 - Automatic categorization of transactions based on description patterns
 - Comprehensive category system covering common expense types
 - Customizable category definitions
@@ -192,7 +192,7 @@ VSCode was used to write the project code using Code Institute template
 ![Terminal Visualization](docs/features/intelligent_сategorization.jpg)
 </details>
 
-### Financial Daily Spending Analysis
+### Terminal Visualization - Financial Daily Spending Analysis
 - Income vs expense calculation
 - Savings rate analysis
 - Daily average spending per category
@@ -203,6 +203,17 @@ VSCode was used to write the project code using Code Institute template
     <summary>Daily Spending Analysis</summary>
 
 ![Daily Spending Analysis](docs/features/daily_spending_analysis.jpg)
+</details>
+
+### Terminal Personalized Recommendations
+- Actionable financial advice
+- Specific spending recommendations
+- User stories covered: 4, 5, 12, 13, 14
+
+<details>
+    <summary>Personalized Recommendations</summary>
+
+![Personalized Recommendations](docs/features/daily_spending_recommendations.jpg)
 </details>
 
 ### Google Sheets Integration
@@ -230,15 +241,19 @@ VSCode was used to write the project code using Code Institute template
 ![Data written to SUMMARY worksheet](docs/features/data_written_to_summary_sheet.jpg)
 </details>
 
-### Personalized Recommendations
-- Actionable financial advice
-- Specific spending recommendations
-- User stories covered: 4, 5, 12, 13, 14
+### Google Sheets Financial Transactions Table
+- A clean, sortable table component that displays a user's monthly income and expenses.
+- Data Display: Shows transactions in a table with columns for Date, Description, Amount, Type (Income/Expense), and Category.
+- Default Sorting: Transactions are sorted by date in descending order (newest first).
+- Styling: Uses color-coding (e.g., red for expenses, green for income) to enhance readability.
+- Data Structure: Accepts an array of transaction objects with id, date, description, amount, type, and category properties.
+- Currency: Formats amounts in Euros (€) with proper thousand separators and decimals.
+- User stories covered: 5, 12, 13, 14
 
 <details>
-    <summary>Personalized Recommendations</summary>
+    <summary>Google Sheets Financial Transactions Table</summary>
 
-![Personalized Recommendations](docs/features/daily_spending_recommendations.jpg)
+![Worksheet Found, Updating](docs/features/month_worksheet_financial_overview.jpg)
 </details>
 
 ### Data Validation
