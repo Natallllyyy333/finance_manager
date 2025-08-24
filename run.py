@@ -22,16 +22,17 @@ DAILY_NORMS = {
 
 print("\n" + " PERSONAL FINANCE ANALYZER ".center(80, "="))
 MONTH = input(
-    "Enter the month ('April'): ").strip().lower()
+    "Enter the month (e.g. 'March, April, May'): ").strip().lower()
 FILE = f"hsbc_{MONTH}.csv"
+print(f"Loading file: {FILE}")
 
-# file = f"hsbc_{MONTH}.csv"
+
 
 
 def load_transactions(filename):
-    # with open(file, mode='r', encoding='utf-8') as csv_file:
+   
     """Load and categorize transactions with daily tracking"""
-    # csv_reader = csv.reader(csv_file)
+    
     transactions = []
     daily_categories = defaultdict(lambda: defaultdict(float))
     try:
@@ -127,7 +128,7 @@ def terminal_visualization(data):
     """Visualize financial data in terminal."""
     # Header
     print(
-        "\n" + f" {data['month'].upper()} FINANCIAL OVERVIEW ".center(80, "="))
+        f" {data['month'].upper()} FINANCIAL OVERVIEW ".center(80, "="))
     # Summary bars
     expense_rate = (data['expenses'] / data['income']
                     * 100) if data['income'] > 0 else 0
@@ -135,27 +136,26 @@ def terminal_visualization(data):
                     * 100) if data['income'] > 0 else 0
     print(f"Income: {data['income']:10.2f}€ [" + "■" *
           int(data['income'] / max(data['income'], 1) * 20) + "]" + " " + "100%")
-    print(f"\nExpenses: {data['expenses']:9.2f}€ [" + "■" *
+    print(f"Expenses: {data['expenses']:9.2f}€ [" + "■" *
           int(data['expenses'] / max(data['income'], 1) * 20) + "]" + " " + f"{expense_rate:.1f}%")
     print(f"Savings: {data['savings']:10.2f}€ [" + "■" *
           int(data['savings'] / max(data['income'], 1) * 20) + "]" + " " + f"{savings_rate:.1f}%")
 
     # Categories breakdown
-    print("\n" + f" EXPENSE CATEGORIES ".center(80, '-'))
-    # for cat, amount in sorted(data['categories'].items(), key=lambda x: x[1], reverse=True)[:10]:
-    #     pct = amount / data['expenses'] * 100 if data['expenses'] > 0 else 0
+    print(f" EXPENSE CATEGORIES ".center(80, '-'))
+   
     top_categories = sorted(data['categories'].items(),
                             key=lambda x: x[1], reverse=True)[:10]
     left_col = top_categories[:5]
     right_col = top_categories[5:]
-    # Выводим две колонки с гистограммами (5 строк)
+    # Displaying two columns with histograms (5 rows)
     for (left_cat, left_amt), (right_cat, right_amt) in zip_longest(
             left_col, right_col, fillvalue=(None, 0)):
         left_line = ""
         if left_cat:
             left_pct = left_amt/data['expenses'] * \
                 100 if data['expenses'] > 0 else 0
-            left_bar = "■" * int(left_pct/5)  # 1 символ ■ на 5%
+            left_bar = "■" * int(left_pct/5)  # 1 symbol ■ represents 5%
             left_line = f"{left_cat[:10]:<10} {left_amt:6.2f}€ {left_bar}"
 
             right_line = ""
@@ -166,7 +166,7 @@ def terminal_visualization(data):
             right_line = f"{right_cat[:10]:<10} {right_amt:6.2f}€ {right_bar}"
             print(f"{left_line:<38}  {right_line}")
 
-    print("\n" + f" DAILY SPENDING and NORMS ".center(80, '='))
+    print(f" DAILY SPENDING and NORMS ".center(80, '='))
 
     sorted_categories = sorted([(cat, avg) for cat, avg in data['daily_averages'].items(
     ) if cat in DAILY_NORMS], key=lambda x: x[1] - DAILY_NORMS.get(x[0], 0), reverse=True)[:5]
@@ -204,22 +204,22 @@ def generate_daily_recommendations(data):
                 "Use public transport more frequently",
 
             ])
-        return recs[:5]  # Return only top 5 recommendations
+        return recs[:3]  # Return only top 5 recommendations
 
 
 def prepare_summary_data(data, transactions):
-    """Подготовить данные для записи в SUMMARY - все категории + итоги"""
-    # Определяем ВСЕ возможные категории которые должны быть в SUMMARY
+    """Prepare the data for the SUMMARY section - all categories and totals."""
+    #
     all_categories = [
         'TOTAL INCOME',
         'TOTAL EXPENSES',
         'SAVINGS',
-        '',  # пустая строка разделитель
+        '', 
         'INCOME CATEGORIES:',
         'Salary',
         'Bonus',
         'Other Income',
-        '',  # пустая строка разделитель
+        '',  
         'EXPENSE CATEGORIES:',
         'Rent',
         'Groceries',
@@ -341,7 +341,7 @@ def write_to_target_sheet(table_data, month_name):
 
         # 3. Получить текущие заголовки
         headers = summary_sheet.row_values(2)
-        print(f"Заголовки в SUMMARY: {headers}")
+        print(f"Headers SUMMARY: {headers}")
 
         # 4. Нормализуем название месяца для сравнения
         normalized_month = month_name.capitalize()
@@ -352,7 +352,7 @@ def write_to_target_sheet(table_data, month_name):
             if header == normalized_month:
                 month_col = i
                 print(
-                    f"Найден столбец для месяца {normalized_month}: {header} (столбец {i})")
+                    f"Found a column for the month {normalized_month}: {header} (column {i})")
                 break
 
         if month_col is None:
@@ -379,7 +379,7 @@ def write_to_target_sheet(table_data, month_name):
             time.sleep(2)
 
         print(
-            f"Столбец {normalized_month} найден/создан в позиции: {month_col}")
+            f"Column {normalized_month} found/created in position: {month_col}")
 
         # 5. Подготовить данные для записи
         update_data = []
@@ -443,8 +443,54 @@ def write_to_target_sheet(table_data, month_name):
                     time.sleep(2)  # Пауза между пакетами
 
             print(
-                f"✓ Данные за {normalized_month} записаны: {num_rows} строк")
+                f"✓ Data of {normalized_month} written: {num_rows} rows")
             time.sleep(5)
+            
+                
+
+            try:
+                # Определяем диапазон для форматирования (от 4 строки до конца данных)
+                percent_col = month_col + 1
+                start_row = 4
+                end_row = start_row + len(table_data) - 1
+
+                # percent_range = f"{gspread.utils.rowcol_to_a1(start_row, percent_col)}:" \
+                #                f"{gspread.utils.rowcol_to_a1(end_row, percent_col)}"
+                for row in range(start_row, end_row + 1):
+                    cell_address = f"{gspread.utils.rowcol_to_a1(row, percent_col)}"
+                    summary_sheet.format(cell_address, {
+                        "numberFormat": {
+                        "type": "PERCENT",
+                        "pattern": "0.00%"
+                        },
+                    "horizontalAlignment": "CENTER"
+                        })
+                    time.sleep(0.1) 
+
+            
+
+
+                # percent_format = {
+                #     "numberFormat": {
+                #         "type": "PERCENT",
+                #         "pattern": "0.00%"
+                #     },
+                #     "horizontalAlignment": "CENTER"
+                # }
+
+                # format_cell_range(summary_sheet, percent_range, percent_format)
+                    print(f"✓ Percent column formated: {percent_col}")
+            
+            except Exception as format_error:
+                print(f"⚠️ Percent column formating error: {format_error}")
+                
+            
+            time.sleep(2)
+
+
+
+
+
 
         return True
     except Exception as e:
@@ -461,7 +507,7 @@ def main():
     terminal_visualization(data)
 
     # Recommendations
-    print("\n" + f" DAILY SPENDING RECOMMENDATIONS ".center(80, '='))
+    print(f" DAILY SPENDING RECOMMENDATIONS ".center(80, '='))
     for i, rec in enumerate(generate_daily_recommendations(data), 1):
         print(f"{i}. {rec}")
 
@@ -612,13 +658,13 @@ def main():
             time.sleep(2)
 
             # После подготовки table_data в main()
-            print(f"Подготовлено строк данных: {len(table_data)}")
+            print(f"Prepared 5 data rows: {len(table_data)}")
             # Проверяем, что у нас достаточно строк в таблице
             if last_row < 7 + len(table_data):
                 # Добавляем нужное количество строк
                 rows_to_add = (7 + len(table_data)) - last_row
                 worksheet.add_rows(rows_to_add)
-                print(f"Добавлено {rows_to_add} строк в таблицу")
+                print(f"Added  {rows_to_add} rows to the table")
                 time.sleep(2)
 
             MONTH_NORMALIZED = get_month_column_name(
@@ -627,9 +673,9 @@ def main():
             time.sleep(2)
             if success:
                 print(
-                    f"✓ Данные за {MONTH_NORMALIZED} успешно записаны в SUMMARY")
+                    f"✓ Data of {MONTH_NORMALIZED} successsfully written in SUMMARY")
             else:
-                print(f"✗ Ошибка при записи в SUMMARY")
+                print(f"✗ Error writing to SUMMARY")
 
             # range_str = 'G8:I{}'.format(last_row)
             # worksheet.update(range_str, category_data)
@@ -922,9 +968,9 @@ def main():
             MONTH_NORMALIZED = get_month_column_name(MONTH)
             success = write_to_target_sheet(table_data, MONTH_NORMALIZED)
             if success:
-                print(f"✓ Данные за {MONTH} успешно записаны в SUMMARY")
+                print(f"✓ {MONTH} data successfully written into SUMMARY")
             else:
-                print(f"✗ Ошибка при записи в SUMMARY")
+                print(f"✗ Error writing to SUMMARY")
 
 
 # Authenticate and open Google Sheets
