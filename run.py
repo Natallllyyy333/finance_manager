@@ -67,7 +67,9 @@ def categorize(description):
     """Categorize transaction based on description."""
     desc = description.lower()
     categories = {
-        'Income': ['salary', 'bonus', 'income'],
+        'Salary': ['salary','wages'],
+        'Bonus': ['bonus', 'tip', 'reward'],
+        'Other income': ['stocks', 'exchange', 'earnings', 'prize'],
         'Rent': ['rent', 'monthly rent'],
         'Groceries': ['supermarket', 'grocery', 'food'],
         'Dining': ['restaurant', 'cafe', 'coffee'],
@@ -814,7 +816,7 @@ def main():
             MONTH_NORMALIZED = get_month_column_name(MONTH)
             success = write_to_target_sheet(table_data, MONTH_NORMALIZED)
             print(
-                f" Successfully updated {len(transactions)} "
+                f"Successfully updated {len(transactions)} "
                 f"transactions in Google Sheets")
         else:
             print("\nNo transactions to update in Google Sheets")

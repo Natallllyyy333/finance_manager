@@ -366,7 +366,7 @@ File Loading and Transaction Processing
 | **Feature**   | **Action**                    | **Expected Result**          | **Actual Result** |
 | ------------- | ----------------------------- | ---------------------------- | ----------------- |
 | Income detection | Process transactions with 'Credit' type | Correctly categorized as income | Works as expected |
-| Expense categorization | Process various transaction descriptions | Correct category assignment based on keywords | Works as expected |
+| Expense and income categorization | Process various transaction descriptions | Correct category assignment based on keywords | Works as expected |
 | Unknown categories | Process transactions without matching keywords | Categorized as 'Other' | Works as expected |
 
 <details><summary>Screenshot</summary>
@@ -389,7 +389,10 @@ File Loading and Transaction Processing
 <img src="docs/testing/month_financial_overview_.jpg">
 </details>
 <details><summary>Screenshot</summary>
-<img src="docs/testing/daily_spending_analysis.jpg>
+<img src="docs/testing/daily_spending_analysis.jpg">
+</details>
+<details><summary>Screenshot</summary>
+<img src="docs/testing/terminal_expenses_categorised.jpg">
 </details>
 
 4. I want to visualize my finances with clear charts and graphs
@@ -404,7 +407,7 @@ File Loading and Transaction Processing
 <img src="docs/testing/month_financial_overview__.jpg">
 </details>
 <details><summary>Screenshot</summary>
-<img src="docs/testing/terminal_expense_categories_.jpg">
+<img src="docs/testing/terminal_expenses_categorised.jpg">
 </details>
 <details><summary>Screenshot</summary>
 <img src="docs/testing/daily_spending_analysis.jpg">
@@ -420,9 +423,9 @@ File Loading and Transaction Processing
 
 <details><summary>Screenshots</summary>
 <img src="docs//testing/daily_spending_recommendations.jpg">
-<img src="docs/testing/user-story-5-b.JPG">
-<img src="docs/testing/user-story-5-c.JPG">
-<img src="docs/testing/user-story-5-d.JPG">
+</details>
+<details><summary>Screenshots</summary>
+<img src="docs//testing/daily_fallback_recommendations.jpg">
 </details>
 
 6. I want to export my data to Google Sheets automatically
@@ -435,8 +438,16 @@ File Loading and Transaction Processing
 | Error handling | Simulate API connectivity issues	 | Graceful error messages, continued local operation | Works as expected |
 
 <details><summary>Screenshots</summary>
-<img src="docs/testing/user-story-6-a.JPG">
-<img src="docs/testing/user-story-6-b.JPG">
+<img src="docs/testing/new_month_sheet_created_notification.jpg">
+</details>
+<details><summary>Screenshots</summary>
+<img src="docs/testing/new_month_sheet_created.jpg">
+</details>
+<details><summary>Screenshots</summary>
+<img src="docs/testing/summary_worksheet_update.jpg">
+</details>
+<details><summary>Screenshots</summary>
+<img src="docs/testing/file_not_found_error.jpg">
 </details>
 
 7. I want the program to handle errors gracefully
@@ -448,7 +459,7 @@ File Loading and Transaction Processing
 | API rate limiting | Make multiple rapid API requests  | Sleep intervals prevent rate limiting | Works as expected |
 
 <details><summary>Screenshot</summary>
-<img src="docs/testing/user-story-7.jpg">
+<img src="docs/testing/file_not_found_error.jpg">
 </details>
 
 8. I want my exported data to be professionally formatted
@@ -461,8 +472,10 @@ File Loading and Transaction Processing
 | Format preservation | Apply cell formatting in Google Sheets  | Currency, percentages, colors maintained | Works as expected |
 
 <details><summary>Screenshots</summary>
-<img src="docs/testing/user-story-8-a.JPG">
-<img src="docs/testing/user-story-8-b.JPG">
+<img src="docs/testing/income_detection-expense_categories.JPG">
+</details>
+<details><summary>Screenshots</summary>
+<img src="docs/testing/summary_worksheet_update.JPG">
 </details>
 
 9. I want a user-friendly experience with clear feedback
@@ -474,7 +487,22 @@ File Loading and Transaction Processing
 | Recommendation clarity | Generate financial advice	  | Specific, measurable suggestions | Works as expected |
 
 <details><summary>Screenshots</summary>
-<img src="docs/testing/user-story-9.jpg">
+<img src="docs/testing/loading_file_message.jpg">
+</details>
+<details><summary>Screenshots</summary>
+<img src="docs/testing/worksheet_found_updating_message.jpg">
+</details>
+<details><summary>Screenshots</summary>
+<img src="docs/testing/summary_worksheet_update.jpg">
+</details>
+<details><summary>Screenshots</summary>
+<img src="docs/testing/new_month_sheet_created.jpg">
+</details>
+<details><summary>Screenshots</summary>
+<img src="docs/testing/terminal_recommendations.jpg">
+</details>
+<details><summary>Screenshots</summary>
+<img src="docs/testing/worksheet_daily_spending_recommendations.jpg">
 </details>
 
 10. I want to track my finances across multiple months
@@ -486,9 +514,13 @@ File Loading and Transaction Processing
 | Data separation | Handle monthly data  | Isolation between different months' data | Works as expected |
 
 <details><summary>Screenshots</summary>
-<img src="docs/testing/user-story-10-a.jpg">
-<img src="docs/testing/user-story-10-b.jpg">
-<img src="docs/testing/user-story-10-c.jpg">
+<img src="docs/testing/summary_worksheet_update.jpg">
+</details>
+<details><summary>Screenshots</summary>
+<img src="docs/testing/loading_file_message.jpg">
+</details>
+<details><summary>Screenshots</summary>
+<img src="docs/testing/normalization_file_name.jpg">
 </details>
 
 Test Data Used:
@@ -536,257 +568,26 @@ The application meets all functional requirements and provides valuable financia
 - Share the sheet with the service account email from your credentials `creds.json` file, giving it editor permissions.
 - User stories covered: 9
 
-<details>
-    <summary>See your statistics Screenshot</summary>
-
-![Statistics](docs/features/statistics.jpg)
-</details>
-
 #### Credits
 - HSBC for CSV export format
 - Google for Sheets API documentation
 - Python community for extensive library support
 
-<details>
-    <summary>Quit game Screenshot</summary>
-
-![Quit Game](docs/features/quit-game.JPG)
-</details>
-
-### User Input Validation
-- Displays an error message if user input is not in a form that was expected
-- Asks for a new input and provides guidance to user on how to correctly format the input
-- User stories covered: 5, 13, 14
-
-<details>
-    <summary>Username validation Screenshot</summary>
-
-![Username validation](docs/features/validation-username.JPG)
-</details>
-
-<details>
-    <summary>Email validation Screenshot</summary>
-
-![Email validation](docs/features/validation-email.JPG)
-</details>
-
-<details>
-    <summary>Validation of input during the game Screenshot</summary>
-
-![Moves validation](docs/features/game-screen-move-validation.JPG)
-</details>
-
-[Back to Table Of Contents](#table-of-contents)
 
 ## Validation
 
 [PEP8 Validation Service](http://pep8online.com/) was used to check the code for PEP8 requirements. All the code passes with no errors and no warnings to show.
 
 <details><summary>PEP3 check for run.py</summary>
-<img src="docs/validation/pep8-validation-run.JPG">
+<img src="docs/validation/validator_pep8_testing.jpg">
 </details>
 
-<details><summary>PEP3 check for validation.py</summary>
-<img src="docs/validation/pep8-validation-validation.JPG">
-</details>
-
-<details><summary>PEP3 check for colors.py</summary>
-<img src="docs/validation/pep8-validation-colors.JPG">
-</details>
-
-<details><summary>PEP3 check for test_validation.py</summary>
-<img src="docs/validation/pep8-validation-test-validation.JPG">
-</details>
 
 ## Testing
-
-The testing approach is as follows:
-1. Manual testing of user stories
-2. Automated unit testing using the Python unittest library
-
 ### Manual Testing
 <details><summary>See user stories testing</summary>
 
-1. I want to have clear options to select in the main menu
 
-| **Feature**   | **Action**                    | **Expected Result**          | **Actual Result** |
-| ------------- | ----------------------------- | ---------------------------- | ----------------- |
-| Main menu | Select option 1 | Users are presented with game rules | Works as expected |
-| Main menu | Select option 2 | Users are asked if they played the game before | Works as expected |
-
-<details><summary>Screenshot</summary>
-<img src="docs/testing/user-story-1.jpg">
-</details>
-
-2. I want to be able to read the rules of the game
-
-| **Feature**   | **Action**                    | **Expected Result**          | **Actual Result** |
-| ------------- | ----------------------------- | ---------------------------- | ----------------- |
-| Main menu | Select option 1 | Users are presented with game rules | Works as expected |
-
-<details><summary>Screenshot</summary>
-<img src="docs/testing/user-story-2.jpg">
-</details>
-
-3. I want to personalise the game and enter my name
-
-| **Feature**   | **Action**                    | **Expected Result**          | **Actual Result** |
-| ------------- | ----------------------------- | ---------------------------- | ----------------- |
-| Play game options | Select option 1 (log-in) | Users are asked to input their email addresses, and once validated, a greeting message with their name is displayed. Names are displayed during the game | Works as expected |
-| Play game options | Select option 2 (sign-up) | Users are asked to input their names, once validated the names are saved and greeting message displayed. Names are displayed during the game | Works as expected |
-
-<details><summary>Screenshot</summary>
-<img src="docs/testing/user-story-3-a.jpg">
-</details>
-<details><summary>Screenshot</summary>
-<img src="docs/testing/user-story-3-b.jpg">
-</details>
-
-4. I want to be able to log-in if I return to the game
-
-| **Feature**   | **Action**                    | **Expected Result**          | **Actual Result** |
-| ------------- | ----------------------------- | ---------------------------- | ----------------- |
-| Play game options | Select option 1 (log-in) | Returning users are asked to input the email address they registered before and once validated, a greeting message with their name is displayed | Works as expected |
-
-<details><summary>Screenshot</summary>
-<img src="docs/testing/user-story-4.jpg">
-</details>
-
-5. I want to receive a real time feedback throughout the game
-
-| **Feature**   | **Action**                    | **Expected Result**          | **Actual Result** |
-| ------------- | ----------------------------- | ---------------------------- | ----------------- |
-| User Input Validation & Feedback through game play | Players will be informed if their input is invalid | Error messages displayed | Works as expected |
-
-<details><summary>Screenshots</summary>
-<img src="docs/testing/user-story-5-a.JPG">
-<img src="docs/testing/user-story-5-b.JPG">
-<img src="docs/testing/user-story-5-c.JPG">
-<img src="docs/testing/user-story-5-d.JPG">
-</details>
-
-6. I want to get a feedback when I win the game
-
-| **Feature**   | **Action**                    | **Expected Result**          | **Actual Result** |
-| ------------- | ----------------------------- | ---------------------------- | ----------------- |
-| Game screen | Player has connected 4 pieces in a row | Message is displayed with the winning player's name | Works as expected |
-
-<details><summary>Screenshots</summary>
-<img src="docs/testing/user-story-6-a.JPG">
-<img src="docs/testing/user-story-6-b.JPG">
-</details>
-
-7. I want to be able to play multiple games when I'm logged in
-
-| **Feature**   | **Action**                    | **Expected Result**          | **Actual Result** |
-| ------------- | ----------------------------- | ---------------------------- | ----------------- |
-| Finished Game options | User selects play again option  | The game restarts for the same players | Works as expected |
-
-<details><summary>Screenshot</summary>
-<img src="docs/testing/user-story-7.jpg">
-</details>
-
-8. I want a random selection of the player to start a new game
-
-| **Feature**   | **Action**                    | **Expected Result**          | **Actual Result** |
-| ------------- | ----------------------------- | ---------------------------- | ----------------- |
-| Game screen | Once players have logged-in or signed-up the game is loaded  | Different user names display | Works as expected |
-
-<details><summary>Screenshots</summary>
-<img src="docs/testing/user-story-8-a.JPG">
-<img src="docs/testing/user-story-8-b.JPG">
-</details>
-
-9. I want to see how many games I've won so far
-
-| **Feature**   | **Action**                    | **Expected Result**          | **Actual Result** |
-| ------------- | ----------------------------- | ---------------------------- | ----------------- |
-| Finished Game options | Select option 3  | Display number of games won for Player1 & Player2 | Works as expected |
-
-<details><summary>Screenshots</summary>
-<img src="docs/testing/user-story-9.jpg">
-</details>
-
-10. I want users to have a positive experience whilst playing the game
-
-| **Feature**   | **Action**                    | **Expected Result**          | **Actual Result** |
-| ------------- | ----------------------------- | ---------------------------- | ----------------- |
-| Across all screen | Simple navigation and game play  | Colored messages and straightforward instructions | Works as expected |
-
-<details><summary>Screenshots</summary>
-<img src="docs/testing/user-story-10-a.jpg">
-<img src="docs/testing/user-story-10-b.jpg">
-<img src="docs/testing/user-story-10-c.jpg">
-</details>
-
-11.  I want users to easily select options from the menu
-
-| **Feature**   | **Action**                    | **Expected Result**          | **Actual Result** |
-| ------------- | ----------------------------- | ---------------------------- | ----------------- |
-| Across all screen | User inputs invalid numeric value | Users are asked to try again between available options from the menu | Works as expected |
-
-<details><summary>Screenshots</summary>
-<img src="docs/testing/user-story-11-a.jpg">
-<img src="docs/testing/user-story-11-b.jpg">
-<img src="docs/testing/user-story-11-c.jpg">
-</details>
-
-12.  I want user names and emails to be saved to Google Spreadsheet
-
-| **Feature**   | **Action**                    | **Expected Result**          | **Actual Result** |
-| ------------- | ----------------------------- | ---------------------------- | ----------------- |
-| Log-in | Both users input their names and email address which has not been previously registered  | Username and email addresses are saved to Google Spreadsheet to the next available rows in columns 1 & 2 respectively | Works as expected |
-
-<details><summary>Screenshot</summary>
-<img src="docs/testing/user-story-12.jpg">
-</details>
-
-13.  I want the user to get feedback in case of wrong input
-
-| **Feature**   | **Action**                    | **Expected Result**          | **Actual Result** |
-| ------------- | ----------------------------- | ---------------------------- | ----------------- |
-| Across all screen | User inputs invalid numeric value in the menu or game. User inputs invalid value during log-in or sign-up | Feedback message displayed to the user | Works as expected |
-
-<details><summary>Screenshots</summary>
-<img src="docs/testing/user-story-13-a.jpg">
-<img src="docs/testing/user-story-13-b.jpg">
-</details>
-
-14.  I want data entry to be validated, to guide the user on how to correctly format the input
-
-| **Feature**   | **Action**                    | **Expected Result**          | **Actual Result** |
-| ------------- | ----------------------------- | ---------------------------- | ----------------- |
-| Across all screen | User inputs invalid data | Feedback message with instructions diplayed to the user | Works as expected |
-
-<details><summary>Screenshots</summary>
-<img src="docs/testing/user-story-14-a.jpg">
-<img src="docs/testing/user-story-14-b.jpg">
-</details>
-
-</details>
-
-### Automated Testing
-<details><summary>See unit testing</summary>
-
-- I wrote unit tests using Python unittest library
-- I tested separate functions to verify correct user input:
-  - validation of user email and user name input
-
-I needed to amend the function and add 'Try Except' blocks to handle TypeError.
-Initial error called - 'TypeError: object of type 'int' has no len()'
-
-
-![User email unit test](docs/testing/unit-tests/email-validation-test.jpg)
-![User name unit test](docs/testing/unit-tests/username-validation-test.jpg)
-
-  - validation of data in log_in_players and register_new_players
-
-When running the test initially, there was a TypeError called - 'TypeError: 'int' object is not iterable'. I handled this error by adding 'Try Except' blocks to both functions. This resulted with passed test.
-
-![Log-in unit test](docs/testing/unit-tests/log-in-validation-test.jpg)
-![Registration unit test](docs/testing/unit-tests/registeration-test.jpg)
-
-</details>
 
 [Back to Table Of Contents](#table-of-contents)
 ## Bugs
