@@ -6,8 +6,15 @@ import time
 from datetime import datetime
 from itertools import zip_longest
 from gspread_formatting import *
-from gspread_formatting import cellFormat, format_cell_range, Padding, set_column_width
-
+from gspread_formatting import (
+    cellFormat,
+    format_cell_range,
+    Padding,
+    set_column_width
+)
+from gspread.utils import rowcol_to_a1
+import warnings
+warnings.filterwarnings('ignore', category=DeprecationWarning)
 
 DAILY_NORMS = {
     'Rent': 50.0,
@@ -19,20 +26,15 @@ DAILY_NORMS = {
     'Shopping': 3.33,  # 100 / 30
     'Dining': 10.00
 }
-
-print("\n" + " PERSONAL FINANCE ANALYZER ".center(80, "="))
+print(f" PERSONAL FINANCE ANALYZER ".center(77, "="))
 MONTH = input(
     "Enter the month (e.g. 'March, April, May'): ").strip().lower()
 FILE = f"hsbc_{MONTH}.csv"
 print(f"Loading file: {FILE}")
 
 
-
-
 def load_transactions(filename):
-   
     """Load and categorize transactions with daily tracking"""
-    
     transactions = []
     daily_categories = defaultdict(lambda: defaultdict(float))
     try:
@@ -44,7 +46,6 @@ def load_transactions(filename):
                     amount = float(row[2])
                     category = categorize(row[1])
                     date = row[0]
-
                     transactions.append({
                         'date': date,
                         'desc': row[1][:30],
@@ -57,7 +58,7 @@ def load_transactions(filename):
                 except ValueError:
                     continue  # Skip rows with invalid data
     except FileNotFoundError:
-        print(f"\nError: File '{filename}' not found")
+        print(f"Error: File '{filename}' not found")
         exit()
     return transactions, daily_categories
 
@@ -75,7 +76,7 @@ def categorize(description):
         'Utilities': ['electricity', 'water', 'gas', 'internet', 'phone'],
         'Gym': ['gym', 'Gym Membership' 'fitness', 'yoga'],
         'Shopping': ['clothing', 'electronics', 'shopping', 'Supermarket'],
-        'Health': ['pharmacy', 'doctor', 'health'],
+        'Health': ['pharmacy', 'doctor', 'health', 'dentist'],
         'Insurance': ['insurance', 'health insurance', 'car insurance'],
         'Education': ['tuition', 'books', 'courses', 'course'],
         'Travel': ['flight', 'hotel', 'travel', 'airline'],
@@ -113,13 +114,13 @@ def analyze(transactions, daily_categories):
     for category, total in analysis['categories'].items():
         daily_avg = total / analysis['days_count']
         analysis['daily_averages'][category] = daily_avg
-
         if category in DAILY_NORMS:
             if daily_avg > DAILY_NORMS[category] * 1.1:  # 10% over norm
                 analysis['norms_violations'].append(
-                    f"Daily average for {category} overspent: {daily_avg:.2f}€ vs norm: {DAILY_NORMS[category]:.2f}€"
+                    f"Daily average for {category}"
+                    f" overspent: {daily_avg:.2f}€ "
+                    f"vs norm: {DAILY_NORMS[category]:.2f}€"
                 )
-
     analysis['savings'] = analysis['income'] - analysis['expenses']
     return analysis
 
@@ -128,49 +129,81 @@ def terminal_visualization(data):
     """Visualize financial data in terminal."""
     # Header
     print(
-        f" {data['month'].upper()} FINANCIAL OVERVIEW ".center(80, "="))
+        f" {data['month'].upper()} FINANCIAL OVERVIEW ".center(77, "="))
     # Summary bars
     expense_rate = (data['expenses'] / data['income']
                     * 100) if data['income'] > 0 else 0
     savings_rate = (data['savings'] / data['income']
                     * 100) if data['income'] > 0 else 0
-    print(f"Income: {data['income']:10.2f}€ [" + "■" *
-          int(data['income'] / max(data['income'], 1) * 20) + "]" + " " + "100%")
-    print(f"Expenses: {data['expenses']:9.2f}€ [" + "■" *
-          int(data['expenses'] / max(data['income'], 1) * 20) + "]" + " " + f"{expense_rate:.1f}%")
-    print(f"Savings: {data['savings']:10.2f}€ [" + "■" *
-          int(data['savings'] / max(data['income'], 1) * 20) + "]" + " " + f"{savings_rate:.1f}%")
-
+    income_bar = "■" * int(data['income'] / max(data['income'], 1) * 20)
+    print(f"Income: {data['income']:8.2f}€ [{income_bar}] 100%")
+    expense_bar = "■" * int(data['expenses'] / max(data['income'], 1) * 20)
+    print(f"Expenses: {data['expenses']:8.2f}€ ["
+          f"{expense_bar}] {expense_rate:.1f}%")
+    savings_bar = "■" * int(data['savings'] / max(data['income'], 1) * 20)
+    print(f"Savings: {data['savings']:8.2f}€ ["
+          f"{savings_bar}] {savings_rate:.1f}%")
     # Categories breakdown
-    print(f" EXPENSE CATEGORIES ".center(80, '-'))
-   
+    print(f" EXPENSE CATEGORIES ".center(77, '-'))
     top_categories = sorted(data['categories'].items(),
-                            key=lambda x: x[1], reverse=True)[:10]
-    left_col = top_categories[:5]
-    right_col = top_categories[5:]
-    # Displaying two columns with histograms (5 rows)
-    for (left_cat, left_amt), (right_cat, right_amt) in zip_longest(
-            left_col, right_col, fillvalue=(None, 0)):
-        left_line = ""
-        if left_cat:
-            left_pct = left_amt/data['expenses'] * \
-                100 if data['expenses'] > 0 else 0
-            left_bar = "■" * int(left_pct/5)  # 1 symbol ■ represents 5%
-            left_line = f"{left_cat[:10]:<10} {left_amt:6.2f}€ {left_bar}"
+                            key=lambda x: x[1], reverse=True)[:9]  # 9 for 3 columns
+    # Split into three columns
+    col1 = top_categories[0:3]
+    col2 = top_categories[3:6]
+    col3 = top_categories[6:9]
 
-            right_line = ""
-        if right_cat:
-            right_pct = right_amt/data['expenses'] * \
-                100 if data['expenses'] > 0 else 0
-            right_bar = "■" * int(right_pct/5)
-            right_line = f"{right_cat[:10]:<10} {right_amt:6.2f}€ {right_bar}"
-            print(f"{left_line:<38}  {right_line}")
+    # Fixed width for each column component
+    NAME_WIDTH = 10    # Category name
+    AMOUNT_WIDTH = 9   # Amount (6.2f + € + space)
+    BAR_WIDTH = 6      # Bar visualization
+    
+    # Total column width including spacing
+    COLUMN_WIDTH = NAME_WIDTH + 1 + AMOUNT_WIDTH + 1 + BAR_WIDTH  # +2 for spaces
 
-    print(f" DAILY SPENDING and NORMS ".center(80, '='))
+   # Display three columns
+    for (cat1, amt1), (cat2, amt2), (cat3, amt3) in zip_longest(col1, col2, col3, fillvalue=(None, 0)):
+        line = ""
+        if cat1:
+            pct1 = (amt1 / data['expenses'] * 100) if data['expenses'] > 0 else 0
+            bar1 = "■" * min(int(pct1 / 1), BAR_WIDTH)
 
-    sorted_categories = sorted([(cat, avg) for cat, avg in data['daily_averages'].items(
-    ) if cat in DAILY_NORMS], key=lambda x: x[1] - DAILY_NORMS.get(x[0], 0), reverse=True)[:5]
-
+            col1_text = f"{cat1[:NAME_WIDTH]:<{NAME_WIDTH}} {amt1:6.2f}€ {bar1:<{BAR_WIDTH}}"
+            line += col1_text.ljust(COLUMN_WIDTH)
+            
+        else:
+            line += " " *  COLUMN_WIDTH
+        line += ""
+                
+        if cat2:
+            
+            pct2 = (amt2 / data['expenses'] * 100) if data['expenses'] > 0 else 0
+            bar2 = "■" * min(int(pct2 / 1), BAR_WIDTH)
+            col2_text = f"{cat2[:NAME_WIDTH]:<{NAME_WIDTH}} {amt2:6.2f}€ {bar2:<{BAR_WIDTH}}"
+            line += col2_text.ljust(COLUMN_WIDTH)
+            
+        else:
+            line += " " * COLUMN_WIDTH 
+        line += ""
+        
+  
+        if cat3:
+            
+            pct3 = (amt3 / data['expenses'] * 100) if data['expenses'] > 0 else 0
+            bar3 = "■" * min(int(pct3 / 1), BAR_WIDTH)
+            col3_text = f"{cat3[:NAME_WIDTH]:<{NAME_WIDTH}} {amt3:6.2f}€ {bar3:<{BAR_WIDTH}}"
+            line += col3_text.ljust(COLUMN_WIDTH)
+        
+        print(line)
+    print(f" DAILY SPENDING and NORMS ".center(77, '='))
+    sorted_categories = sorted(
+        [
+            (cat, avg)
+            for cat, avg in data['daily_averages'].items()
+            if cat in DAILY_NORMS
+        ],
+        key=lambda x: x[1] - DAILY_NORMS.get(x[0], 0),
+        reverse=True
+    )[:3]
     for category, avg in sorted_categories:
         norm = DAILY_NORMS.get(category, 0)
         diff = avg - norm
@@ -184,11 +217,9 @@ def generate_daily_recommendations(data):
     recs = []
     if not data or 'income' not in data:
         return ["No financial data available for recommendations."]
-
     if data['income'] <= 0:
         return ["No income data - cannot generate recommendations."]
     else:
-
         # 1. Savings rate recommendation
         expense_rate = (data['expenses'] / data['income'] * 100)
         savings_rate = (data['savings'] / data['income'] * 100)
@@ -196,7 +227,6 @@ def generate_daily_recommendations(data):
             recs.append(f"Aim for 20% savings (current: {savings_rate:.1f}%)")
             # Add top 3 norms violations
             recs.extend(data['norms_violations'][:3])
-
         # Ensure minimum recommendations
         if len(recs) < 3:
             recs.extend([
@@ -214,12 +244,12 @@ def prepare_summary_data(data, transactions):
         'TOTAL INCOME',
         'TOTAL EXPENSES',
         'SAVINGS',
-        '', 
+        '',
         'INCOME CATEGORIES:',
         'Salary',
         'Bonus',
         'Other Income',
-        '',  
+        '',
         'EXPENSE CATEGORIES:',
         'Rent',
         'Groceries',
@@ -236,79 +266,70 @@ def prepare_summary_data(data, transactions):
         'Car',
         'Other'
     ]
-
-    # Собираем данные по доходам
+    # Collecting data by income
     income_by_category = defaultdict(float)
     for t in transactions:
         if t['type'] == 'income':
             income_by_category[t['category']] += t['amount']
 
-    # Собираем данные по расходам
+    # Colleciting data by expense
     expenses_by_category = defaultdict(float)
     for t in transactions:
         if t['type'] == 'expense':
             expenses_by_category[t['category']] += t['amount']
 
-    # Подготавливаем итоговые данные
+    # Preparing totals
     table_data = []
     for category in all_categories:
         if category == 'TOTAL INCOME':
             table_data.append([category, data['income'], 1.0])
         elif category == 'TOTAL EXPENSES':
-            percentage = data['expenses'] / data['income'] if data['income'] > 0 else 0
+            percentage = (data['expenses'] / data['income']
+                          if data['income'] > 0 else 0)
             table_data.append([category, data['expenses'], percentage])
-            # table_data.append([category, data['expenses'], 0])
+
         elif category == 'SAVINGS':
-            percentage = data['savings'] / data['income'] if data['income'] > 0 else 0
+            percentage = (data['savings'] / data['income']
+                          if data['income'] > 0 else 0)
             table_data.append([category, data['savings'], percentage])
-            # table_data.append([category, data['savings'], 0])
+
         elif category in ['', 'INCOME CATEGORIES:', 'EXPENSE CATEGORIES:']:
-            # table_data.append([category, 0, 0])  # заголовки и разделители
-            table_data.append([category, '', ''])  # заголовки и разделители
+
+            table_data.append([category, '', ''])
         elif category in income_by_category:
             amount = income_by_category[category]
-            percentage = amount / data['income'] if data['income'] > 0 else 0
+            percentage = (amount / data['income']
+                          if data['income'] > 0 else 0)
             table_data.append([category, amount, percentage])
         elif category == 'Salary':
             matched = False
             for income_cat in income_by_category:
                 amount = income_by_category[income_cat]
-                percentage = amount / data['income'] if data['income'] > 0 else 0
+                percentage = (amount / data['income']
+                              if data['income'] > 0 else 0)
                 table_data.append([category, amount, percentage])
                 matched = True
                 break
             if not matched:
                 if category == 'Salary':
                     for income_cat in income_by_category:
-                        if 'salary' in income_cat.lower() or 'income' in income_cat.lower():
-                             amount = income_by_category[income_cat]
-                             percentage = amount / data['income'] if data['income'] > 0 else 0
-                             table_data.append([category, amount, percentage])
-                             matched = True
-                             break
+                        if ('salary' in income_cat.lower() or
+                                'income' in income_cat.lower()):
+                            amount = income_by_category[income_cat]
+                            percentage = (amount / data['income']
+                                          if data['income'] > 0 else 0)
+                        table_data.append([category, amount, percentage])
+                        matched = True
+                        break
             if not matched:
                 table_data.append([category, 0, 0])
-        
-
-                             
-
-
-
-
-
-
-
-        
-
         elif category in expenses_by_category:
             amount = expenses_by_category[category]
-            percentage = amount / data['expenses'] if data['expenses'] > 0 else 0
+            percentage = amount / \
+                data['expenses'] if data['expenses'] > 0 else 0
             table_data.append([category, amount, percentage])
-        
-            # table_data.append([category, amount, 0])
         else:
-            # table_data.append([category, 0, 0])  # для категорий без операций
-            table_data.append([category, 0, 0])  # для категорий без операций
+            table_data.append([category, 0, 0])
     return table_data
 
 
@@ -321,54 +342,49 @@ def get_month_column_name(month_input):
         'Jul': 'July', 'Aug': 'August', 'Sep': 'September',
         'Oct': 'October', 'Nov': 'November', 'Dec': 'December'
     }
-    # Если короткое название - преобразовать в полное
     return month_mapping.get(month, month)
-    # if month in month_mapping:
-    #     return month_mapping[month]
-    # return month
 
 
 def write_to_target_sheet(table_data, month_name):
     """Записать данные в целевую таблицу SUMMARY"""
     try:
-        # 1. Аутентификация
+        # 1. Authentification
         gs = gspread.service_account('creds.json')
 
-        # 2. Открыть целевую таблицу по ID
+        # 2. Open target table by ID
         target_spreadsheet = gs.open_by_key(
             '1US65_F99qrkqbl2oVkMa4DGUiLacEDRoNz_J9hr2bbQ')
         summary_sheet = target_spreadsheet.worksheet('SUMMARY')
 
-        # 3. Получить текущие заголовки
+        # 3. Get current headers
         headers = summary_sheet.row_values(2)
-        print(f"Headers SUMMARY: {headers}")
 
-        # 4. Нормализуем название месяца для сравнения
+        # 4. Normalizing month name for comparison
         normalized_month = month_name.capitalize()
 
-        # 4. Найти столбец для месяца
+        # 4. Find the month column
         month_col = None
         for i, header in enumerate(headers, 1):  # Начинаем с 1 столбца
             if header == normalized_month:
                 month_col = i
-                print(
-                    f"Found a column for the month {normalized_month}: {header} (column {i})")
                 break
 
         if month_col is None:
-            # Найти первый пустой столбец
+            # Find first empty column
             for i, header in enumerate(headers, 1):
-                if not header.strip():  # Пустой столбец
+                if not header.strip():  # Empty column
                     month_col = i
-                    # Записать название месяца в вторую строку в ячейку номер month_col
+                    """Write the name of the month
+                    into the second row in the cell number month_col"""
                     summary_sheet.update_cell(2, month_col, normalized_month)
                     summary_sheet.update_cell(
                         3, month_col + 1, f"{normalized_month} %")
                     print(
-                        f"Создан новый столбец для {normalized_month} в позиции: {month_col}")
+                        f"Создан новый столбец для "
+                        f"{normalized_month} в позиции: {month_col}")
                     break
         if month_col is None:
-            # Добавить новые столбцы в конец
+            # Add new columns at the end
             month_col = len(headers) + 1
             if month_col > 37:  # Проверка ограничения Google Sheets
                 print("✗ Достигнут лимит столбцов (37)")
@@ -377,121 +393,52 @@ def write_to_target_sheet(table_data, month_name):
             summary_sheet.update_cell(
                 3, month_col + 1, f"{normalized_month} %")
             time.sleep(2)
-
-        print(
-            f"Column {normalized_month} found/created in position: {month_col}")
-
-        # 5. Подготовить данные для записи
+        # 5. Prepare data to be written
         update_data = []
         num_rows = len(table_data)
-        # Начинаем с 2 строки в SUMMARY записываем данные из table_data которую получили из analyze
-        # for i, (category, amount) in enumerate(table_data, start=4):
-        #      update_data.append({
-        #         'range': f"{gspread.utils.rowcol_to_a1(i, 1)}",
-        #         'values': [[category]]
-        #     })
-
-        # for i, (category, amount, percentage) in enumerate(table_data, start=4):
-
         for i, row_data in enumerate(table_data, start=4):
             if len(row_data) == 3:
                 category, amount, percentage = row_data
             elif len(row_data) == 2:
                 category, amount = row_data
-                percentage = 0  # или None, или пустая строка
+                percentage = 0
             else:
-                continue  # пропускаем некорректные строки
-
-            # Запись категорий (только один раз)
-
-            # update_data.append({
-            #         'range': f'{gspread.utils.rowcol_to_a1(i, month_col +1)}',
-            #         'values': [[percentage]]
-            #     })
-
-            # Запись суммы и процента
+                continue
             update_data.append({
                 'range': f"{gspread.utils.rowcol_to_a1(i, month_col)}",
                 'values': [[amount]]
             })
-
-            # update_data.append({
-            #     'range': f"{gspread.utils.rowcol_to_a1(i, month_col+1)}",
-            #     'values': [[percentage]]
-            # })
             update_data.append({
                 'range': f"{gspread.utils.rowcol_to_a1(i, month_col + 1)}",
                 'values': [[percentage]]
             })
 
-            # 6. Выполнить batch-запрос
+            # 6. batch-query
         if update_data:
             batch_size = 10
             for i in range(0, len(update_data), batch_size):
                 batch = update_data[i:i+batch_size]
-            #     batch = [
-            #         [
-            #             t['category'],
-            #             t['amount'],
-            #             t['percentage']
-
-            #         ] for t in table_data[i:i+batch_size]
-            #     ]
-
                 summary_sheet.batch_update(batch)
                 if i + batch_size < len(update_data):
-                    time.sleep(2)  # Пауза между пакетами
-
-            print(
-                f"✓ Data of {normalized_month} written: {num_rows} rows")
+                    time.sleep(2)
             time.sleep(5)
-            
-                
-
             try:
-                # Определяем диапазон для форматирования (от 4 строки до конца данных)
                 percent_col = month_col + 1
                 start_row = 4
                 end_row = start_row + len(table_data) - 1
-
-                # percent_range = f"{gspread.utils.rowcol_to_a1(start_row, percent_col)}:" \
-                #                f"{gspread.utils.rowcol_to_a1(end_row, percent_col)}"
                 for row in range(start_row, end_row + 1):
-                    cell_address = f"{gspread.utils.rowcol_to_a1(row, percent_col)}"
+                    cell_address = f"{rowcol_to_a1(row, percent_col)}"
                     summary_sheet.format(cell_address, {
                         "numberFormat": {
-                        "type": "PERCENT",
-                        "pattern": "0.00%"
+                            "type": "PERCENT",
+                            "pattern": "0.00%"
                         },
-                    "horizontalAlignment": "CENTER"
-                        })
-                    time.sleep(0.1) 
-
-            
-
-
-                # percent_format = {
-                #     "numberFormat": {
-                #         "type": "PERCENT",
-                #         "pattern": "0.00%"
-                #     },
-                #     "horizontalAlignment": "CENTER"
-                # }
-
-                # format_cell_range(summary_sheet, percent_range, percent_format)
-                    print(f"✓ Percent column formated: {percent_col}")
-            
+                        "horizontalAlignment": "CENTER"
+                    })
+                    time.sleep(0.1)
             except Exception as format_error:
                 print(f"⚠️ Percent column formating error: {format_error}")
-                
-            
             time.sleep(2)
-
-
-
-
-
-
         return True
     except Exception as e:
         print(f"✗ Ошибка записи в SUMMARY: {e}")
@@ -505,30 +452,27 @@ def main():
         return
     data = analyze(transactions, daily_categories)
     terminal_visualization(data)
-
     # Recommendations
-    print(f" DAILY SPENDING RECOMMENDATIONS ".center(80, '='))
+    print(f" DAILY SPENDING RECOMMENDATIONS ".center(77, '='))
     for i, rec in enumerate(generate_daily_recommendations(data), 1):
         print(f"{i}. {rec}")
-
     # Optional Google Sheets update
     try:
         # Authenticate and open Google Sheets
         gs = gspread.service_account('creds.json')
         sh = gs.open("Personal Finances")
-
         # Check if worksheet exists
         worksheet = None
         try:
             worksheet = sh.worksheet(MONTH)
-            print(f"\nWorksheet '{MONTH}' found. Updating...")
+            print(f"\n"+ f"Worksheet '{MONTH}' found. Updating...")
         except gspread.WorksheetNotFound:
-            print(f"\nWorksheet for {MONTH} not found. Creating a new one...")
+            print(f"Worksheet for {MONTH} not found. Creating a new one...")
             # First check if we've reached the sheet limit (max 200 sheets)
             if len(sh.worksheets()) >= 200:
                 raise Exception("Maximum number of sheets (200) reached")
-
-            # Check if sheet exists but with different case (e.g. "march" vs "March")
+            """Check if sheet exists but with
+            different case (e.g. "march" vs "March")"""
             existing_sheets = [ws.title for ws in sh.worksheets()]
             if MONTH.lower() in [sheet.lower() for sheet in existing_sheets]:
                 # Find the existing sheet with case-insensitive match
@@ -536,7 +480,8 @@ def main():
                     if sheet.title.lower() == MONTH.lower():
                         worksheet = sheet
                         print(
-                            f"Using existing worksheet '{sheet.title}' (case difference)")
+                            f"Using existing worksheet '{sheet.title}'"
+                            f"(case difference)")
                         break
             else:
                 # Create new worksheet with unique name if needed
@@ -546,53 +491,25 @@ def main():
                     print(f"New worksheet '{MONTH}' created successfully.")
                 except gspread.exceptions.APIError as e:
                     if "already exists" in str(e):
-                        # If we get here, it means the sheet exists but wasn't found earlier
+                        """If we get here, it means the sheet
+                         exists but wasn't found earlier"""
                         worksheet = sh.worksheet(MONTH)
                         print(f"Worksheet '{MONTH}' exists. Using it.")
                     else:
                         raise e
-
         if worksheet is None:
             raise Exception("Failed to access or create worksheet")
-
         # Clear existing data (keep headers)
         all_values = worksheet.get_all_values()
         if len(all_values) > 1:
             worksheet.delete_rows(1, len(all_values)+1)
-        # worksheet.clear()
         time.sleep(2)
-
-        # headers = ["Date", "Description", "Amount", "Type", "Category"]
-        # worksheet.insert_row(headers, 7)
-
-        # # Add transactions in batches
-        # if transactions:
-        #     batch_size = 9
-        #     for i in range(0, len(transactions), batch_size):
-        #         batch = [
-        #             [
-        #                 t['date'],
-        #                 t['desc'][:50],
-        #                 t['amount'],
-        #                 t['type'],
-        #                 t['category']
-        #             ] for t in transactions[i:i+batch_size]
-        #         ]
-        #         worksheet.append_rows(batch)
-
-        #         # No sleep after last batch
-        #         if i + batch_size < len(transactions):
-        #             time.sleep(10)
-        # Подготовить все данные
         all_data = [["Date", "Description", "Amount", "Type", "Category"]]
         for t in transactions:
             all_data.append([t['date'], t['desc'][:50],
                             t['amount'], t['type'], t['category']])
-
-        # Записать все данные одним запросом
         worksheet.update('A7', all_data)
         time.sleep(3)
-
         total_income = sum(t['amount']
                            for t in transactions if t['type'] == 'income')
         total_expense = sum(t['amount']
@@ -602,9 +519,15 @@ def main():
             total_expense / total_income) if total_income > 0 else 0
         savings_rate = (
             savings / total_income) if total_income > 0 else 0
-
-        worksheet.format('B2:B4', {'numberFormat': {
-            'type': 'CURRENCY', 'pattern': '€#,##0.00'}, "textFormat": {'bold': True, 'fontSize': 12}})
+        worksheet.format('B2:B4', {
+            'numberFormat': {
+                'type': 'CURRENCY',
+                'pattern': '€#,##0.00'},
+            "textFormat": {
+                'bold': True,
+                'fontSize': 12
+                }
+                })
         time.sleep(2)
         worksheet.format('C8:C31', {'numberFormat': {
             'type': 'CURRENCY', 'pattern': '€#,##0.00'}})
@@ -613,7 +536,6 @@ def main():
             'bold': True, 'fontSize': 12},
             "backgroundColor": {"red": 0.9, "green": 0.9, "blue": 0.9}})
         time.sleep(2)
-
         worksheet.update('A2:A4', [['Total Income:'], [
             'Total Expenses:'], ['Savings:']])
         time.sleep(2)
@@ -622,13 +544,11 @@ def main():
         time.sleep(2)
         worksheet.update('C2:C4', [[1], [
             expense_rate], [savings_rate]])
-
         time.sleep(2)
         worksheet.format('C2:C4', {'numberFormat': {
             'type': 'PERCENT',
             'pattern': '0%'}})
         time.sleep(2)
-
         if transactions:
             expenses_by_category = defaultdict(float)
             for t in transactions:
@@ -644,100 +564,56 @@ def main():
             category_data.append([
                 f"{category}: {amount:.2f}€ ({percentage:.1f}%)"])
             time.sleep(2)
-
         if category_data:
-
             last_row = 7 + len(category_data)
             last_row_transactions = 7 + len(transactions)
             table_data = []
-            # for category, amount in sorted_categories:
-            # percentage = (amount / total_expenses *
-            #               100) if total_expenses > 0 else 0
-            # table_data.append([category, amount, percentage/100])
             table_data = prepare_summary_data(data, transactions)
             time.sleep(2)
-
-            # После подготовки table_data в main()
-            print(f"Prepared 5 data rows: {len(table_data)}")
-            # Проверяем, что у нас достаточно строк в таблице
             if last_row < 7 + len(table_data):
-                # Добавляем нужное количество строк
                 rows_to_add = (7 + len(table_data)) - last_row
                 worksheet.add_rows(rows_to_add)
-                print(f"Added  {rows_to_add} rows to the table")
                 time.sleep(2)
-
             MONTH_NORMALIZED = get_month_column_name(
-                MONTH)  # Нормализуем название месяца
+                MONTH)
             success = write_to_target_sheet(table_data, MONTH_NORMALIZED)
             time.sleep(2)
-            if success:
-                print(
-                    f"✓ Data of {MONTH_NORMALIZED} successsfully written in SUMMARY")
-            else:
-                print(f"✗ Error writing to SUMMARY")
-
-            # range_str = 'G8:I{}'.format(last_row)
-            # worksheet.update(range_str, category_data)
-
             category_headers = [['Category', 'Amount', 'Percentage']]
             worksheet.update('G7:I7', category_headers)
             time.sleep(2)
-            # Подготавливаем данные для записи в правильном формате
             category_table_data = []
             for category, amount, percentage in table_data:
-                if isinstance(percentage,(int, float)):
+                if isinstance(percentage, (int, float)):
                     category_table_data.append([category, amount, percentage])
                 else:
                     category_table_data.append([category, amount, 0])
-
-            # Определяем правильный диапазон для записи
             end_row = 7 + len(category_table_data)
-            # worksheet.update(f'G8:I{end_row}', category_table_data)
-            # time.sleep(2)
-
-            # Проверяем, достаточно ли строк в таблице
             current_rows = worksheet.row_count
             if end_row > current_rows:
-                # Добавляем недостающие строки
                 rows_to_add = end_row - current_rows
                 worksheet.add_rows(rows_to_add)
-                print(f"Добавлено {rows_to_add} строк в таблицу")
                 time.sleep(2)
-
-            # Записываем данные
             worksheet.update(f'G8:I{end_row}', category_table_data)
             time.sleep(2)
-
-            # worksheet.update('G8:I7}', category_data)
-            # worksheet.update(f'G8:I{last_row}', table_data)
-            # time.sleep(2)
-
-            # Определяем правильный диапазон для таблицы категорий
             category_end_row = 7 + len(table_data)
-
-            # Проверяем, достаточно ли строк
             if category_end_row > worksheet.row_count:
                 rows_to_add = category_end_row - worksheet.row_count
                 worksheet.add_rows(rows_to_add)
-                print(f"Добавлено {rows_to_add} строк для таблицы категорий")
                 time.sleep(2)
-
             worksheet.update(f'G8:I{category_end_row}', table_data)
             time.sleep(2)
-
             worksheet.format('G7:I7', {
                 "textFormat": {"bold": True, "fontSize": 12},
                 "backgroundColor": {"red": 0.9, "green": 0.9, "blue": 0.9}
             })
-            worksheet.format(f'H8:H{end_row}',
-                             {
-                "numberFormat": {
-                    "type": "CURRENCY",
-                    "pattern": "€#,##0.00"
-                }
-
-            })
+            worksheet.format(
+                f'H8:H{end_row}',
+                {
+                    "numberFormat": {
+                        "type": "CURRENCY",
+                        "pattern": "€#,##0.00"
+                                    }
+                })
             time.sleep(2)
             worksheet.format(f'I8:I{end_row}', {
                 "numberFormat": {
@@ -745,16 +621,10 @@ def main():
                     "pattern": "0.00%"
                 }
             })
-            # worksheet.format(f'I9', {
-            #     "numberFormat": {
-            #         "type": "PERCENT",
-            #         "pattern": "0.00%"
-            #     }
-            # })
             time.sleep(2)
             column_formats = [
                 (f'A8:A{last_row_transactions}', {"backgroundColor": {
-                 "red": 0.90, "green": 0.90, "blue": 0.90}}),  # Очень светло-серый
+                 "red": 0.90, "green": 0.90, "blue": 0.90}}),
                 (f'B8:B{last_row_transactions}', {"backgroundColor": {
                  "red": 0.96, "green": 0.96, "blue": 0.96}}),
                 (f'C8:C{last_row_transactions}', {"backgroundColor": {
@@ -762,10 +632,8 @@ def main():
                 (f'D8:D{last_row_transactions}', {"backgroundColor": {
                  "red": 0.92, "green": 0.92, "blue": 0.92}}),
                 (f'E8:E{last_row_transactions}', {"backgroundColor": {
-                 "red": 0.90, "green": 0.90, "blue": 0.90}})  # Более темный серый
+                 "red": 0.90, "green": 0.90, "blue": 0.90}})
             ]
-            # Применяем форматирование заголовков
-            # worksheet.format('A8:E8', header_format)
             for range_, format_ in column_formats:
                 worksheet.format(range_, format_)
             time.sleep(2)
@@ -780,11 +648,9 @@ def main():
             for range_, format_ in category_column_formats:
                 worksheet.format(range_, format_)
             time.sleep(2)
-
             worksheet.update('A2:A4', [['Total Income:'], [
                              'Total Expenses:'], ['Savings:']])
             time.sleep(2)
-
             worksheet.update('B2:B4', [[total_income], [
                              total_expense], [savings]])
             time.sleep(2)
@@ -794,13 +660,11 @@ def main():
             worksheet.format('C2:C4', {'numberFormat': {
                 'type': 'PERCENT',
                 'pattern': '0%'}})
-
             border_style = {
                 "style": "SOLID",
                 "width": 1,
                 "color": {"red": 0.6, "green": 0.6, "blue": 0.6}
             }
-
             border_format = {
                 "borders": {
                     "top": border_style,
@@ -809,7 +673,6 @@ def main():
                     "right": border_style
                 }
             }
-
             tables = [
                 f'A7:E{7 + len(transactions)}',  # Основная таблица транзакций
                 f'G7:I{end_row}',  # Таблица категорий
@@ -818,7 +681,6 @@ def main():
             for table_range in tables:
                 worksheet.format(table_range, border_format)
             time.sleep(2)
-
             header_bottom_border = {
                 "borders": {
                     "bottom": {
@@ -854,30 +716,22 @@ def main():
             time.sleep(2)
             worksheet.format('A2:C4', border_format)
             time.sleep(2)
-            # worksheet.format('A2:C2', header_bottom_border)
             worksheet.format('A1:C1', header_bottom_border)
             time.sleep(2)
             worksheet.format('A4:C4', border_format)
             time.sleep(2)
             worksheet.format('A5:C5', header_top_border)
             time.sleep(2)
-
             recommendations = generate_daily_recommendations(data)
             time.sleep(2)
-
             rec_headers = ["Priority", "Recommendation"]
             rec_data = [[f"{i+1}.", rec]
                         for i, rec in enumerate(recommendations)]
-
             rec_start_row = 7
             rec_start_col = 11
-
             worksheet.update(
                 values=[rec_headers],
-                # range_name = f"{gspread.utils.rowcol_to_a1(rec_start_row, rec_start_col)}:{gspread.utils.rowcol_to_a1(rec_start_row, rec_start_col + 1)}"
                 range_name=f"K{rec_start_row}:L{rec_start_row}"
-
-
             )
             time.sleep(2)
             for i, row in enumerate(rec_data, start=rec_start_row+1):
@@ -903,10 +757,8 @@ def main():
                 }
             )
             time.sleep(2)
-
             worksheet.format(
                 f"K{rec_start_row + 1}:L{rec_start_row + len(rec_data)}",
-
                 {
                     "borders": {
                         "top": {"style": "SOLID", "width": 1},
@@ -930,7 +782,6 @@ def main():
             set_column_width(worksheet, 'F', 30)
             set_column_width(worksheet, 'J', 30)
             time.sleep(2)
-
             worksheet.update(f"K6", [['DAILY RECOMMENDATIONS']])
             time.sleep(2)
             worksheet.format("K6", {
@@ -940,7 +791,6 @@ def main():
             time.sleep(2)
             worksheet.merge_cells(f"K6:L6")
             time.sleep(2)
-
             worksheet.update(f"A6", [['FINANCIAL OVERVIEW']])
             time.sleep(2)
             worksheet.format("A6", {
@@ -959,102 +809,15 @@ def main():
             time.sleep(2)
             worksheet.merge_cells(f"G6:I6")
             time.sleep(2)
-            print(
-                f"Added {len(recommendations)} recommendations to Google Sheets")
             worksheet.format("A1:Z100", {"horizontalAlignment": "CENTER"})
             time.sleep(2)
-
-            # Записать данные
             MONTH_NORMALIZED = get_month_column_name(MONTH)
             success = write_to_target_sheet(table_data, MONTH_NORMALIZED)
-            if success:
-                print(f"✓ {MONTH} data successfully written into SUMMARY")
-            else:
-                print(f"✗ Error writing to SUMMARY")
-
-
-# Authenticate and open Google Sheets
-        # gs = gspread.service_account('creds.json')
-        # target_spreadsheet = gspread.service_account('creds.json').open_by_key(
-        #     '1US65_F99qrkqbl2oVkMa4DGUiLacEDRoNz_J9hr2bbQ')
-
-        # # Check if worksheet exists
-        # worksheet = None
-        # try:
-        #     worksheet = target_spreadsheet.worksheet(MONTH)
-        #     print(f"\nWorksheet '{MONTH}' found. Updating...")
-        # except gspread.WorksheetNotFound:
-        #     print(f"\nWorksheet for {MONTH} not found. Creating a new one...")
-        #     # First check if we've reached the sheet limit (max 200 sheets)
-        #     if len(sh.worksheets()) >= 200:
-        #         raise Exception("Maximum number of sheets (200) reached")
-
-        #     # Check if sheet exists but with different case (e.g. "march" vs "March")
-        #     existing_sheets = [ws.title for ws in sh.worksheets()]
-        #     if MONTH.lower() in [sheet.lower() for sheet in existing_sheets]:
-        #         # Find the existing sheet with case-insensitive match
-        #         for sheet in sh.worksheets():
-        #             if sheet.title.lower() == MONTH.lower():
-        #                 worksheet = sheet
-        #                 print(
-        #                     f"Using existing worksheet '{sheet.title}' (case difference)")
-        #                 break
-        #     else:
-        #         # Create new worksheet with unique name if needed
-        #         try:
-        #             worksheet = target_spreadsheet.add_worksheet(
-        #                 title=MONTH, rows="100", cols="20")
-        #             print(f"New worksheet '{MONTH}' created successfully.")
-        #         except gspread.exceptions.APIError as e:
-        #             if "already exists" in str(e):
-        #                 # If we get here, it means the sheet exists but wasn't found earlier
-        #                 worksheet = target_spreadsheet.worksheet(MONTH)
-        #                 print(f"Worksheet '{MONTH}' exists. Using it.")
-        #             else:
-        #                 raise e
-
-        # if worksheet is None:
-        #     raise Exception("Failed to access or create worksheet")
-
-        # Clear existing data (keep headers)
-        # all_values = worksheet.get_all_values()
-        # if len(all_values) > 1:
-        #     worksheet.delete_rows(1, len(all_values)+1)
-
-        #     headers = ["Date", "Description", "Amount", "Type", "Category"]
-        #     worksheet.insert_row(headers, 7)
-
-        # Add transactions in batches
-
-        # if transactions:
-        #     batch_size = 12
-        #     for i in range(0, len(transactions), batch_size):
-        #         batch = [
-        #             [
-        #                 t['date'],
-        #                 t['desc'][:50],
-        #                 t['amount'],
-        #                 t['type'],
-        #                 t['category']
-        #             ] for t in transactions[i:i+batch_size]
-        #         ]
-        #         worksheet.append_rows(batch)
-
-        #         # No sleep after last batch
-        #         if i + batch_size < len(transactions):
-        #             time.sleep(3)
-
-        #     total_income = sum(t['amount']
-        #                        for t in transactions if t['type'] == 'income')
-        #     total_expense = sum(t['amount']
-        #                         for t in transactions if t['type'] == 'expense')
-        #     savings = total_income - total_expense
-
             print(
-                f"\nSuccessfully updated {len(transactions)} transactions in Google Sheets")
+                f" Successfully updated {len(transactions)} "
+                f"transactions in Google Sheets")
         else:
             print("\nNo transactions to update in Google Sheets")
-
     except Exception as e:
         print(f"\nError in Google Sheets operation: {str(e)}")
 

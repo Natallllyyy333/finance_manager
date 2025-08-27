@@ -164,7 +164,7 @@ VSCode was used to write the project code using Code Institute template
 <details>
     <summary>CSV Transaction Loading Screenshot</summary>
 
-![CSV Transaction Loading](docs/features/csv_transaction_processing.jpg)
+![CSV Transaction Loading](docs/features/csv_transaction_loading.jpg)
 </details>
 
 
@@ -318,71 +318,209 @@ VSCode was used to write the project code using Code Institute template
 ![Google Sheets Multi-Month Financial Summary](docs/features/worksheet_month_summary.jpg)
 </details>
 
-### Data Validation
-- File existence checking
-- Transaction data validation
-- Error handling for API connectivity issues
-- Graceful degradation when services unavailable
-- User stories covered: 3, 10
+### Validation & Error Handling
+The code includes basic error handling for:
+- Missing transaction files (`FileNotFoundError`)
+- Invalid data formats in CSV rows (`ValueError`)
+- General exceptions during Google Sheets operations (`Exception`)
 
-<details>
-    <summary>Greeting Screenshot</summary>
-
-![User greeting](docs/features/user-greeting.JPG)
-</details>
-
-### Validation
-The code follows PEP8 standards and includes comprehensive error handling for:
-- File I/O operations
-- API connectivity issues
-- Data formatting problems
-- User input validation
 - User stories covered: 3, 5, 6, 13, 14
 
 <details>
-    <summary>Game Screenshot</summary>
+    <summary>Validation & Error Handling</summary>
 
-![Game screen](docs/features/game-screen.JPG)
+![Validation & Error Handling](docs/features/file_not_found_error.jpg)
 </details>
 
-<details>
-    <summary>Incorrect Move in Game Screenshot</summary>
-
-![Move validation in Game screen](docs/features/game-screen-move-validation.JPG)
-</details>
-
-<details>
-    <summary>Winner Message Screenshot</summary>
-
-![Winner Message](docs/features/game-screen-winner-message.JPG)
-</details>
-
-### Finished Game options
-
-<details>
-    <summary>Finished Game options Screenshot</summary>
-
-![Finished Game options](docs/features/finished-game-options.JPG)
-</details>
 
 #### Testing 
-## The application includes:
-- Input validation testing
-- File handling robustness testing
-- Google Sheets API integration testing
-- Categorization accuracy verification
-- Visualization formatting checks
-- User stories covered: 7
-## Manual testing should cover:
-- Various CSV formats and structures
-- Network connectivity scenarios
-- Google Sheets permission configurations
-- Different monthly data patterns
-<details>
-    <summary>Restart game Screenshot</summary>
+## Manual testing:
+The testing approach is as follows:
+1. Manual testing of core functionality
+2. Data validation and error handling testing
+3. Google Sheets integration testing
 
-![Restart Game](docs/features/restart-game.JPG)
+<details><summary>See functionality testing</summary>
+File Loading and Transaction Processing
+
+1. I want to analyze my monthly spending from HSBC bank exports
+
+| **Feature**   | **Action**                    | **Expected Result**          | **Actual Result** |
+| ------------- | ----------------------------- | ---------------------------- | ----------------- |
+| CSV file loading	 | Provide valid HSBC CSV file | Transactions loaded and categorized correctly | Works as expected |
+| File not found | Provide non-existent filename | Error message displayed, program exits gracefully | Works as expected |
+| Invalid data rows	 | Process CSV with malformed rows | Invalid rows skipped, valid rows processed | Works as expected |
+
+<details><summary>Screenshot</summary>
+<img src="docs/testing/csv_transaction_loading.jpg">
 </details>
+<details><summary>Screenshot</summary>
+<img src="docs/testing/file_not_found_error.jpg">
+</details>
+<details><summary>Screenshot</summary>
+<img src="docs/testing/invalid_data_rows.jpg">
+</details>
+
+2. I want my transactions to be automatically categorized intelligently
+
+| **Feature**   | **Action**                    | **Expected Result**          | **Actual Result** |
+| ------------- | ----------------------------- | ---------------------------- | ----------------- |
+| Income detection | Process transactions with 'Credit' type | Correctly categorized as income | Works as expected |
+| Expense categorization | Process various transaction descriptions | Correct category assignment based on keywords | Works as expected |
+| Unknown categories | Process transactions without matching keywords | Categorized as 'Other' | Works as expected |
+
+<details><summary>Screenshot</summary>
+<img src="docs/testing/income_detection.jpg">
+</details>
+<details><summary>Screenshot</summary>
+<img src="docs/testing/income_detection-expense_categories.jpg">
+</details>
+
+3. I want to see clear financial summaries with calculations
+
+| **Feature**   | **Action**                    | **Expected Result**          | **Actual Result** |
+| ------------- | ----------------------------- | ---------------------------- | ----------------- |
+| Income calculation | Process multiple income transactions | Total income correctly summed | Works as expected |
+| Expense calculation | Process multiple expense transactions | Total expenses correctly summed | Works as expected |
+| Savings calculation | Calculate savings from income and expenses | Savings = Income - Expenses | Works as expected |
+| Daily averages | Calculate daily avirage expenses | Correct daily average calculation | Works as expected |
+
+<details><summary>Screenshot</summary>
+<img src="docs/testing/month_financial_overview_.jpg">
+</details>
+<details><summary>Screenshot</summary>
+<img src="docs/testing/daily_spending_analysis.jpg>
+</details>
+
+4. I want to visualize my finances with clear charts and graphs
+
+| **Feature**   | **Action**                    | **Expected Result**          | **Actual Result** |
+| ------------- | ----------------------------- | ---------------------------- | ----------------- |
+| Summary display | Process and display transactions | Income, expenses, savings shown with visual bars | Works as expected |
+| Category breakdown | Display multiple expense categories | Top categories displayed with visual bars | Works as expected |
+| Daily norms comparison | Compare spending vs daily norms | Visual comparison with arrows and differences | Works as expected |
+
+<details><summary>Screenshot</summary>
+<img src="docs/testing/month_financial_overview__.jpg">
+</details>
+<details><summary>Screenshot</summary>
+<img src="docs/testing/terminal_expense_categories_.jpg">
+</details>
+<details><summary>Screenshot</summary>
+<img src="docs/testing/daily_spending_analysis.jpg">
+</details>
+
+5. I want to receive personalized financial recommendations
+
+| **Feature**   | **Action**                    | **Expected Result**          | **Actual Result** |
+| ------------- | ----------------------------- | ---------------------------- | ----------------- |
+| Savings recommendations | Detect low savings rate | Suggestion to aim for 20% savings | Works as expected |
+| Overspending alerts | Identify categories over daily norms | Specific recommendations for 10% over norm overspent categories	 | Works as expected |
+| Fallback recommendations | Handle cases with no specific issues | General money-saving tips	 | Works as expected |
+
+<details><summary>Screenshots</summary>
+<img src="docs//testing/daily_spending_recommendations.jpg">
+<img src="docs/testing/user-story-5-b.JPG">
+<img src="docs/testing/user-story-5-c.JPG">
+<img src="docs/testing/user-story-5-d.JPG">
+</details>
+
+6. I want to export my data to Google Sheets automatically
+
+| **Feature**   | **Action**                    | **Expected Result**          | **Actual Result** |
+| ------------- | ----------------------------- | ---------------------------- | ----------------- |
+| Worksheet creation | Process data for new month	 | New worksheet created automatically | Works as expected |
+| Data formatting | Export transactions to Google Sheets	 | Proper currency and percentage formatting | Works as expected |
+| Summary update | Update monthly data in SUMMARY sheet	 | Data written to SUMMARY sheet with proper columns | Works as expected |
+| Error handling | Simulate API connectivity issues	 | Graceful error messages, continued local operation | Works as expected |
+
+<details><summary>Screenshots</summary>
+<img src="docs/testing/user-story-6-a.JPG">
+<img src="docs/testing/user-story-6-b.JPG">
+</details>
+
+7. I want the program to handle errors gracefully
+
+| **Feature**   | **Action**                    | **Expected Result**          | **Actual Result** |
+| ------------- | ----------------------------- | ---------------------------- | ----------------- |
+| Invalid user input | Enter non-existent month  | File not found error handled gracefully | Works as expected |
+| Division by zero | Process data with no income  | Handled with default values (0) | Works as expected |
+| API rate limiting | Make multiple rapid API requests  | Sleep intervals prevent rate limiting | Works as expected |
+
+<details><summary>Screenshot</summary>
+<img src="docs/testing/user-story-7.jpg">
+</details>
+
+8. I want my exported data to be professionally formatted
+
+
+| **Feature**   | **Action**                    | **Expected Result**          | **Actual Result** |
+| ------------- | ----------------------------- | ---------------------------- | ----------------- |
+| Transaction export | Update Google Sheets with transactions  | All transactions exported with categories | Works as expected |
+| Financial summary | Update SUMMARY sheet with totals  | Totals and percentages calculated correctly | Works as expected |
+| Format preservation | Apply cell formatting in Google Sheets  | Currency, percentages, colors maintained | Works as expected |
+
+<details><summary>Screenshots</summary>
+<img src="docs/testing/user-story-8-a.JPG">
+<img src="docs/testing/user-story-8-b.JPG">
+</details>
+
+9. I want a user-friendly experience with clear feedback
+
+| **Feature**   | **Action**                    | **Expected Result**          | **Actual Result** |
+| ------------- | ----------------------------- | ---------------------------- | ----------------- |
+| Progress feedback | Monitor long operations  | Status messages during processing | Works as expected |
+| Visual appeal | View terminal output  | Clean formatting with centered headers | Works as expected |
+| Recommendation clarity | Generate financial advice	  | Specific, measurable suggestions | Works as expected |
+
+<details><summary>Screenshots</summary>
+<img src="docs/testing/user-story-9.jpg">
+</details>
+
+10. I want to track my finances across multiple months
+
+| **Feature**   | **Action**                    | **Expected Result**          | **Actual Result** |
+| ------------- | ----------------------------- | ---------------------------- | ----------------- |
+| Month handling | Process different month names  | Proper normalization and processing | Works as expected |
+| Column management | Organize SUMMARY sheet data  | New columns created for new months | Works as expected |
+| Data separation | Handle monthly data  | Isolation between different months' data | Works as expected |
+
+<details><summary>Screenshots</summary>
+<img src="docs/testing/user-story-10-a.jpg">
+<img src="docs/testing/user-story-10-b.jpg">
+<img src="docs/testing/user-story-10-c.jpg">
+</details>
+
+Test Data Used:
+- Sample HSBC CSV files for multiple months
+- Various transaction types and amounts
+- Edge cases (no income, high expenses, zero transactions)
+- Different category combinations
+
+Testing Environment:
+- Python 3.8+
+- Google Sheets API with valid credentials
+- HSBC CSV format samples
+- Both valid and invalid input scenarios
+
+Results:
+All core functionality tested successfully with expected results.
+
+The application handles:
+
+- File I/O operations robustly
+
+- Data validation and error handling
+
+- Google Sheets integration
+
+- Financial calculations accurately
+
+- User-friendly terminal output
+
+- Edge cases and error conditions
+
+The application meets all functional requirements and provides valuable financial insights through both terminal output and Google Sheets integration.
 
 ####  Deployment
 ## Local Deployment
@@ -395,7 +533,7 @@ The code follows PEP8 standards and includes comprehensive error handling for:
 #### Google Sheets Setup
 - Create a Google Sheet with ID
 - Add a worksheet named "SUMMARY"
-- Share the sheet with the service account email from your credentia
+- Share the sheet with the service account email from your credentials `creds.json` file, giving it editor permissions.
 - User stories covered: 9
 
 <details>
