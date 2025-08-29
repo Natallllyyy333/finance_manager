@@ -36,23 +36,21 @@ DAILY_NORMS = {
 def get_google_credentials():
     """Get Google credentials from environment variables or file"""
     if "DYNO" in os.environ:
-        # На Heroku - используем переменные окружения
-        creds_dict = {
-            "type": os.environ.get('GOOGLE_TYPE'),
-            "project_id": os.environ.get('GOOGLE_PROJECT_ID'),
-            "private_key_id": os.environ.get('GOOGLE_PRIVATE_KEY_ID'),
-            "private_key": os.environ.get('GOOGLE_PRIVATE_KEY').replace('\\n', '\n'),
-            "client_email": os.environ.get('GOOGLE_CLIENT_EMAIL'),
-            "client_id": os.environ.get('GOOGLE_CLIENT_ID'),
-            "auth_uri": os.environ.get('GOOGLE_AUTH_URI'),
-            "token_uri": os.environ.get('GOOGLE_TOKEN_URI'),
-            "auth_provider_x509_cert_url": os.environ.get('GOOGLE_AUTH_PROVIDER_CERT_URL'),
-            "client_x509_cert_url": os.environ.get('GOOGLE_CLIENT_CERT_URL')
-        }
-        return service_account.Credentials.from_service_account_info(creds_dict)
+        import json
+        service_account_json = os.environ.get('GOOGLE_SERVICE_ACCOUNT_JSON')
+        if service_account_json:
+            try:
+                creds_dict = json.loads(service_account_json)
+                from google.oauth2 import service_account
+                return service_account.Credentials.from_service_account_info(creds_dict)
+            except json.JSONDecodeError:
+                raise Exception("Invalid JSON in GOOGLE_SERVICE_ACCOUNT_JSON")
+        else:
+            raise Exception("GOOGLE_SERVICE_ACCOUNT_JSON environment variable not found")
     else:
-        # Локально - используем файл
-        return gspread.service_account('creds.json')
+        # Locally from file
+        from google.oauth2 import service_account
+        return service_account.Credentials.from_service_account_file('creds.json')
 
 
 def load_transactions(filename):
