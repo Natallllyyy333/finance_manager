@@ -164,9 +164,11 @@ def async_google_sheets_operation(month_name, table_data):
 def get_google_credentials():
     """Get Google credentials from environment variables or file"""
     if "DYNO" in os.environ:
-        import json
+        print("🔑 Using environment credentials from Heroku")
+        # import json
         service_account_json = os.environ.get('GOOGLE_SERVICE_ACCOUNT_JSON')
         if service_account_json:
+            print("✅ GOOGLE_SERVICE_ACCOUNT_JSON found")
             try:
                 creds_dict = json.loads(service_account_json)
                 from google.oauth2 import service_account
@@ -176,11 +178,16 @@ def get_google_credentials():
             except json.JSONDecodeError:
                 raise Exception("Invalid JSON in GOOGLE_SERVICE_ACCOUNT_JSON")
         else:
+            print("❌ GOOGLE_SERVICE_ACCOUNT_JSON not found")
+            
             raise Exception("GOOGLE_SERVICE_ACCOUNT_JSON environment variable not found")
+            
     else:
         # Locally from file
+        print("🔑 Using local credentials file")
         from google.oauth2 import service_account
         return service_account.Credentials.from_service_account_file('creds.json')
+    
 
 
 def load_transactions(filename):
