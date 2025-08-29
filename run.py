@@ -1110,13 +1110,20 @@ if "DYNO" in os.environ:
         
         if request.method == 'POST':
             month = request.form['month'].strip()
-            result = run_analysis(month)
+            # result = run_analysis(month)
+            result = f"Analysis for {month} started in background. Check logs for details."
+
+             # Запускаем в фоне
+            thread = threading.Thread(target=run_analysis, args=(month,))
+            thread.daemon = True
+            thread.start()
         
         return render_template_string(HTML, result=result, month=month)
     
     def run_analysis(month):
         """Запускает анализ с виртуальным вводом"""
         try:
+            print(f"Starting background analysis for {month}")
             # Сохраняем оригинальные потоки
             old_stdin = sys.stdin
             old_stdout = sys.stdout
@@ -1126,8 +1133,17 @@ if "DYNO" in os.environ:
             sys.stdout = output_capture = StringIO()
             
             # Запускаем основную логику
-            main()
-            
+            # main()
+            print(f"=== {month.upper()} FINANCIAL ANALYSIS INITIATED ===")
+            print("Data processing started in background...")
+            print("Google Sheets update will complete shortly")
+            print("Check Heroku logs for detailed results")
+
+             # Запускаем полный анализ в фоне
+            thread = threading.Thread(target=run_full_analysis, args=(month,))
+            thread.daemon = True
+            thread.start()
+                
             # Получаем вывод
             output = output_capture.getvalue()
             
@@ -1139,17 +1155,47 @@ if "DYNO" in os.environ:
             # Восстанавливаем потоки
             sys.stdin = old_stdin
             sys.stdout = old_stdout
-    
-    if __name__ == '__main__':
-        port = int(os.environ.get('PORT', 5000))
-        app.run(host='0.0.0.0', port=port)
 
+def run_full_analysis(month):
+    """Полная обработка в фоновом режиме"""
+    try:
+        # Восстанавливаем настоящий stdout для логирования
+        old_stdout = sys.stdout
+        sys.stdout = sys.__stdout__
+        
+        print(f"Starting FULL background analysis for {month}")
+        
+        # Перенесите сюда всю логику из вашей main() функции
+        FILE = f"hsbc_{month}.csv"
+        print(f"Loading file: {FILE}")
+
+        transactions, daily_categories = load_transactions(FILE)
+        if not transactions:
+            print("No transactions found")
+            return
+            
+        data = analyze(transactions, daily_categories, month)
+        
+        # Выводим основные результаты
+        print(f"{month.upper()} ANALYSIS COMPLETED")
+        print(f"Income: {data['income']:.2f}€")
+        print(f"Expenses: {data['expenses']:.2f}€")
+        print(f"Savings: {data['savings']:.2f}€")
+        
+        # Запускаем Google Sheets
+        table_data = prepare_summary_data(data, transactions)
+        MONTH_NORMALIZED = get_month_column_name(month)
+        write_to_target_sheet(table_data, MONTH_NORMALIZED)
+        
+    except Exception as e:
+        print(f"Background analysis error: {e}")
+    finally:
+        if 'old_stdout' in locals():
+            sys.stdout = old_stdout  
+              
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
 else:
-
-    
-
-
-    
-
     if __name__ == "__main__":
         main()
