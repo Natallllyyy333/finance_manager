@@ -20,6 +20,7 @@ import sys
 from io import StringIO
 import json
 from google.oauth2 import service_account
+import threading
 
 DAILY_NORMS = {
         'Rent': 50.0,
@@ -32,6 +33,124 @@ DAILY_NORMS = {
         'Dining': 10.00
     }
 
+def sync_google_sheets_operation(month_name, table_data):
+    """Синхронная версия Google Sheets операции"""
+    try:
+        # 1. Authentification
+        creds = get_google_credentials()
+        gc = gspread.authorize(creds)
+
+        # 2. Open target table by ID
+        target_spreadsheet = gc.open_by_key(
+            '1US65_F99qrkqbl2oVkMa4DGUiLacEDRoNz_J9hr2bbQ')
+        summary_sheet = target_spreadsheet.worksheet('SUMMARY')
+
+        # 3. Get current headers
+        headers = summary_sheet.row_values(2)
+
+        # 4. Normalizing month name for comparison
+        normalized_month = month_name.capitalize()
+
+        # 5. Find the month column
+        month_col = None
+        for i, header in enumerate(headers, 1):
+            if header == normalized_month:
+                month_col = i
+                break
+
+        if month_col is None:
+            # Find first empty column
+            for i, header in enumerate(headers, 1):
+                if not header.strip():  # Empty column
+                    month_col = i
+                    summary_sheet.update_cell(2, month_col, normalized_month)
+                    summary_sheet.update_cell(
+                        3, month_col + 1, f"{normalized_month} %")
+                    print(
+                        f"Создан новый столбец для "
+                        f"{normalized_month} в позиции: {month_col}")
+                    break
+        
+        if month_col is None:
+            # Add new columns at the end
+            month_col = len(headers) + 1
+            if month_col > 37:  # Проверка ограничения Google Sheets
+                print("✗ Достигнут лимит столбцов (37)")
+                return False
+            summary_sheet.update_cell(2, month_col, normalized_month)
+            summary_sheet.update_cell(
+                3, month_col + 1, f"{normalized_month} %")
+            time.sleep(10)
+        
+        # 6. Prepare data to be written
+        update_data = []
+        num_rows = len(table_data)
+        for i, row_data in enumerate(table_data, start=4):
+            if len(row_data) == 3:
+                category, amount, percentage = row_data
+            elif len(row_data) == 2:
+                category, amount = row_data
+                percentage = 0
+            else:
+                continue
+            update_data.append({
+                'range': f"{gspread.utils.rowcol_to_a1(i, month_col)}",
+                'values': [[amount]]
+            })
+            update_data.append({
+                'range': f"{gspread.utils.rowcol_to_a1(i, month_col + 1)}",
+                'values': [[percentage]]
+            })
+
+        # 7. batch-query
+        if update_data:
+            batch_size = 10
+            for i in range(0, len(update_data), batch_size):
+                batch = update_data[i:i+batch_size]
+                summary_sheet.batch_update(batch)
+                if i + batch_size < len(update_data):
+                    time.sleep(10)
+            time.sleep(10)
+            
+            try:
+                percent_col = month_col + 1
+                start_row = 4
+                end_row = start_row + len(table_data) - 1
+                for row in range(start_row, end_row + 1):
+                    cell_address = f"{rowcol_to_a1(row, percent_col)}"
+                    summary_sheet.format(cell_address, {
+                        "numberFormat": {
+                            "type": "PERCENT",
+                            "pattern": "0.00%"
+                        },
+                        "horizontalAlignment": "CENTER"
+                    })
+                    time.sleep(0.1)
+            except Exception as format_error:
+                print(f"⚠️ Percent column formating error: {format_error}")
+            time.sleep(10)
+        
+        return True
+        
+    except Exception as e:
+        print(f"✗ Ошибка записи в SUMMARY: {e}")
+        return False
+def async_google_sheets_operation(month_name, table_data):
+    """Асинхронно выполняет Google Sheets операции"""
+    try:
+        # Небольшая задержка для инициализации
+        time.sleep(2)
+        
+        # Вызываем синхронную версию
+        success = sync_google_sheets_operation(month_name, table_data)
+        
+        if success:
+            print(f"✓ Асинхронная запись в Google Sheets завершена для {month_name}")
+        else:
+            print(f"✗ Ошибка при асинхронной записи в Google Sheets")
+            
+    except Exception as e:
+        print(f"Async Google Sheets error: {e}")
 
 def get_google_credentials():
     """Get Google credentials from environment variables or file"""
@@ -372,102 +491,120 @@ def prepare_summary_data(data, transactions):
 def write_to_target_sheet(table_data, month_name):
     """Записать данные в целевую таблицу SUMMARY"""
     try:
-        # 1. Authentification
-        creds = get_google_credentials()
-        gc = gspread.authorize(creds)
-
-        # 2. Open target table by ID
-        target_spreadsheet = gc.open_by_key(
-            '1US65_F99qrkqbl2oVkMa4DGUiLacEDRoNz_J9hr2bbQ')
-        summary_sheet = target_spreadsheet.worksheet('SUMMARY')
-
-        # 3. Get current headers
-        headers = summary_sheet.row_values(2)
-
-        # 4. Normalizing month name for comparison
-        normalized_month = month_name.capitalize()
-
-        # 4. Find the month column
-        month_col = None
-        for i, header in enumerate(headers, 1):  # Начинаем с 1 столбца
-            if header == normalized_month:
-                month_col = i
-                break
-
-        if month_col is None:
-            # Find first empty column
-            for i, header in enumerate(headers, 1):
-                if not header.strip():  # Empty column
-                    month_col = i
-                    """Write the name of the month
-                    into the second row in the cell number month_col"""
-                    summary_sheet.update_cell(2, month_col, normalized_month)
-                    summary_sheet.update_cell(
-                        3, month_col + 1, f"{normalized_month} %")
-                    print(
-                        f"Создан новый столбец для "
-                        f"{normalized_month} в позиции: {month_col}")
-                    break
-        if month_col is None:
-            # Add new columns at the end
-            month_col = len(headers) + 1
-            if month_col > 37:  # Проверка ограничения Google Sheets
-                print("✗ Достигнут лимит столбцов (37)")
-                return False
-            summary_sheet.update_cell(2, month_col, normalized_month)
-            summary_sheet.update_cell(
-                3, month_col + 1, f"{normalized_month} %")
-            time.sleep(10)
-        # 5. Prepare data to be written
-        update_data = []
-        num_rows = len(table_data)
-        for i, row_data in enumerate(table_data, start=4):
-            if len(row_data) == 3:
-                category, amount, percentage = row_data
-            elif len(row_data) == 2:
-                category, amount = row_data
-                percentage = 0
-            else:
-                continue
-            update_data.append({
-                'range': f"{gspread.utils.rowcol_to_a1(i, month_col)}",
-                'values': [[amount]]
-            })
-            update_data.append({
-                'range': f"{gspread.utils.rowcol_to_a1(i, month_col + 1)}",
-                'values': [[percentage]]
-            })
-
-            # 6. batch-query
-        if update_data:
-            batch_size = 10
-            for i in range(0, len(update_data), batch_size):
-                batch = update_data[i:i+batch_size]
-                summary_sheet.batch_update(batch)
-                if i + batch_size < len(update_data):
-                    time.sleep(10)
-            time.sleep(10)
-            try:
-                percent_col = month_col + 1
-                start_row = 4
-                end_row = start_row + len(table_data) - 1
-                for row in range(start_row, end_row + 1):
-                    cell_address = f"{rowcol_to_a1(row, percent_col)}"
-                    summary_sheet.format(cell_address, {
-                        "numberFormat": {
-                            "type": "PERCENT",
-                            "pattern": "0.00%"
-                        },
-                        "horizontalAlignment": "CENTER"
-                    })
-                    time.sleep(0.1)
-            except Exception as format_error:
-                print(f"⚠️ Percent column formating error: {format_error}")
-            time.sleep(10)
-        return True
+        if not table_data:
+            print("✗ No data to write to target sheet")
+            return False
+        # Если в Heroku, запускаем асинхронно
+        if "DYNO" in os.environ:
+            thread = threading.Thread(target=async_google_sheets_operation, args=(month_name, table_data))
+            thread.daemon = True
+            thread.start()
+            print("Google Sheets operation started in background")
+            return True
+        else:
+            # Локально выполняем синхронно
+            return sync_google_sheets_operation(month_name, table_data)
+            
     except Exception as e:
         print(f"✗ Ошибка записи в SUMMARY: {e}")
         return False
+    # try:
+    #     # 1. Authentification
+    #     creds = get_google_credentials()
+    #     gc = gspread.authorize(creds)
+
+    #     # 2. Open target table by ID
+    #     target_spreadsheet = gc.open_by_key(
+    #         '1US65_F99qrkqbl2oVkMa4DGUiLacEDRoNz_J9hr2bbQ')
+    #     summary_sheet = target_spreadsheet.worksheet('SUMMARY')
+
+    #     # 3. Get current headers
+    #     headers = summary_sheet.row_values(2)
+
+    #     # 4. Normalizing month name for comparison
+    #     normalized_month = month_name.capitalize()
+
+    #     # 4. Find the month column
+    #     month_col = None
+    #     for i, header in enumerate(headers, 1):  # Начинаем с 1 столбца
+    #         if header == normalized_month:
+    #             month_col = i
+    #             break
+
+    #     if month_col is None:
+    #         # Find first empty column
+    #         for i, header in enumerate(headers, 1):
+    #             if not header.strip():  # Empty column
+    #                 month_col = i
+    #                 """Write the name of the month
+    #                 into the second row in the cell number month_col"""
+    #                 summary_sheet.update_cell(2, month_col, normalized_month)
+    #                 summary_sheet.update_cell(
+    #                     3, month_col + 1, f"{normalized_month} %")
+    #                 print(
+    #                     f"Создан новый столбец для "
+    #                     f"{normalized_month} в позиции: {month_col}")
+    #                 break
+    #     if month_col is None:
+    #         # Add new columns at the end
+    #         month_col = len(headers) + 1
+    #         if month_col > 37:  # Проверка ограничения Google Sheets
+    #             print("✗ Достигнут лимит столбцов (37)")
+    #             return False
+    #         summary_sheet.update_cell(2, month_col, normalized_month)
+    #         summary_sheet.update_cell(
+    #             3, month_col + 1, f"{normalized_month} %")
+    #         time.sleep(10)
+    #     # 5. Prepare data to be written
+    #     update_data = []
+    #     num_rows = len(table_data)
+    #     for i, row_data in enumerate(table_data, start=4):
+    #         if len(row_data) == 3:
+    #             category, amount, percentage = row_data
+    #         elif len(row_data) == 2:
+    #             category, amount = row_data
+    #             percentage = 0
+    #         else:
+    #             continue
+    #         update_data.append({
+    #             'range': f"{gspread.utils.rowcol_to_a1(i, month_col)}",
+    #             'values': [[amount]]
+    #         })
+    #         update_data.append({
+    #             'range': f"{gspread.utils.rowcol_to_a1(i, month_col + 1)}",
+    #             'values': [[percentage]]
+    #         })
+
+    #         # 6. batch-query
+    #     if update_data:
+    #         batch_size = 10
+    #         for i in range(0, len(update_data), batch_size):
+    #             batch = update_data[i:i+batch_size]
+    #             summary_sheet.batch_update(batch)
+    #             if i + batch_size < len(update_data):
+    #                 time.sleep(10)
+    #         time.sleep(10)
+    #         try:
+    #             percent_col = month_col + 1
+    #             start_row = 4
+    #             end_row = start_row + len(table_data) - 1
+    #             for row in range(start_row, end_row + 1):
+    #                 cell_address = f"{rowcol_to_a1(row, percent_col)}"
+    #                 summary_sheet.format(cell_address, {
+    #                     "numberFormat": {
+    #                         "type": "PERCENT",
+    #                         "pattern": "0.00%"
+    #                     },
+    #                     "horizontalAlignment": "CENTER"
+    #                 })
+    #                 time.sleep(0.1)
+    #         except Exception as format_error:
+    #             print(f"⚠️ Percent column formating error: {format_error}")
+    #         time.sleep(10)
+    #     return True
+    # except Exception as e:
+    #     print(f"✗ Ошибка записи в SUMMARY: {e}")
+    #     return False
 
 
 def main():
@@ -607,10 +744,13 @@ def main():
                 rows_to_add = (7 + len(table_data)) - last_row
                 worksheet.add_rows(rows_to_add)
                 time.sleep(10)
-            MONTH_NORMALIZED = get_month_column_name(
-                MONTH)
-            success = write_to_target_sheet(table_data, MONTH_NORMALIZED)
+            MONTH_NORMALIZED = get_month_column_name(MONTH)
+            write_to_target_sheet(table_data, MONTH_NORMALIZED)  # Убрали success =
             time.sleep(10)
+            # MONTH_NORMALIZED = get_month_column_name(
+            #     MONTH)
+            # success = write_to_target_sheet(table_data, MONTH_NORMALIZED)
+            # time.sleep(10)
             category_headers = [['Category', 'Amount', 'Percentage']]
             worksheet.update('G7:I7', category_headers)
             time.sleep(10)
@@ -845,10 +985,15 @@ def main():
             worksheet.format("A1:Z100", {"horizontalAlignment": "CENTER"})
             time.sleep(10)
             MONTH_NORMALIZED = get_month_column_name(MONTH)
-            success = write_to_target_sheet(table_data, MONTH_NORMALIZED)
+            write_to_target_sheet(table_data, MONTH_NORMALIZED)  # Убрали success = 
             print(
-                f"Successfully updated {len(transactions)} "
-                f"transactions in Google Sheets")
+                f"Google Sheets update initiated for {len(transactions)} transactions")
+            # MONTH_NORMALIZED = get_month_column_name(MONTH)
+            # success = write_to_target_sheet(table_data, MONTH_NORMALIZED)
+            # print(
+            #     f"Successfully updated {len(transactions)} "
+            #     f"transactions in Google Sheets")
+            
         else:
             print("\nNo transactions to update in Google Sheets")
     except Exception as e:
