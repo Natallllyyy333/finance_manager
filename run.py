@@ -417,7 +417,7 @@ def write_to_target_sheet(table_data, month_name):
             summary_sheet.update_cell(2, month_col, normalized_month)
             summary_sheet.update_cell(
                 3, month_col + 1, f"{normalized_month} %")
-            time.sleep(2)
+            time.sleep(5)
         # 5. Prepare data to be written
         update_data = []
         num_rows = len(table_data)
@@ -445,7 +445,7 @@ def write_to_target_sheet(table_data, month_name):
                 batch = update_data[i:i+batch_size]
                 summary_sheet.batch_update(batch)
                 if i + batch_size < len(update_data):
-                    time.sleep(2)
+                    time.sleep(5)
             time.sleep(5)
             try:
                 percent_col = month_col + 1
@@ -463,7 +463,7 @@ def write_to_target_sheet(table_data, month_name):
                     time.sleep(0.1)
             except Exception as format_error:
                 print(f"⚠️ Percent column formating error: {format_error}")
-            time.sleep(2)
+            time.sleep(5)
         return True
     except Exception as e:
         print(f"✗ Ошибка записи в SUMMARY: {e}")
@@ -536,7 +536,7 @@ def main():
         all_values = worksheet.get_all_values()
         if len(all_values) > 1:
             worksheet.delete_rows(1, len(all_values)+1)
-        time.sleep(2)
+        time.sleep(5)
         all_data = [["Date", "Description", "Amount", "Type", "Category"]]
         for t in transactions:
             all_data.append([t['date'], t['desc'][:50],
@@ -561,27 +561,27 @@ def main():
                 'fontSize': 12
                 }
                 })
-        time.sleep(2)
+        time.sleep(5)
         worksheet.format('C8:C31', {'numberFormat': {
             'type': 'CURRENCY', 'pattern': '€#,##0.00'}})
-        time.sleep(2)
+        time.sleep(5)
         worksheet.format('A7:E7', {"textFormat": {
             'bold': True, 'fontSize': 12},
             "backgroundColor": {"red": 0.9, "green": 0.9, "blue": 0.9}})
-        time.sleep(2)
+        time.sleep(5)
         worksheet.update('A2:A4', [['Total Income:'], [
             'Total Expenses:'], ['Savings:']])
-        time.sleep(2)
+        time.sleep(5)
         worksheet.update('B2:B4', [[total_income], [
             total_expense], [savings]])
-        time.sleep(2)
+        time.sleep(5)
         worksheet.update('C2:C4', [[1], [
             expense_rate], [savings_rate]])
-        time.sleep(2)
+        time.sleep(5)
         worksheet.format('C2:C4', {'numberFormat': {
             'type': 'PERCENT',
             'pattern': '0%'}})
-        time.sleep(2)
+        time.sleep(5)
         if transactions:
             expenses_by_category = defaultdict(float)
             for t in transactions:
@@ -596,24 +596,24 @@ def main():
                         100) if total_expenses > 0 else 0
             category_data.append([
                 f"{category}: {amount:.2f}€ ({percentage:.1f}%)"])
-            time.sleep(2)
+            time.sleep(5)
         if category_data:
             last_row = 7 + len(category_data)
             last_row_transactions = 7 + len(transactions)
             table_data = []
             table_data = prepare_summary_data(data, transactions)
-            time.sleep(2)
+            time.sleep(5)
             if last_row < 7 + len(table_data):
                 rows_to_add = (7 + len(table_data)) - last_row
                 worksheet.add_rows(rows_to_add)
-                time.sleep(2)
+                time.sleep(5)
             MONTH_NORMALIZED = get_month_column_name(
                 MONTH)
             success = write_to_target_sheet(table_data, MONTH_NORMALIZED)
-            time.sleep(2)
+            time.sleep(5)
             category_headers = [['Category', 'Amount', 'Percentage']]
             worksheet.update('G7:I7', category_headers)
-            time.sleep(2)
+            time.sleep(5)
             category_table_data = []
             for category, amount, percentage in table_data:
                 if isinstance(percentage, (int, float)):
@@ -625,16 +625,16 @@ def main():
             if end_row > current_rows:
                 rows_to_add = end_row - current_rows
                 worksheet.add_rows(rows_to_add)
-                time.sleep(2)
+                time.sleep(5)
             worksheet.update(f'G8:I{end_row}', category_table_data)
-            time.sleep(2)
+            time.sleep(5)
             category_end_row = 7 + len(table_data)
             if category_end_row > worksheet.row_count:
                 rows_to_add = category_end_row - worksheet.row_count
                 worksheet.add_rows(rows_to_add)
-                time.sleep(2)
+                time.sleep(5)
             worksheet.update(f'G8:I{category_end_row}', table_data)
-            time.sleep(2)
+            time.sleep(5)
             worksheet.format('G7:I7', {
                 "textFormat": {"bold": True, "fontSize": 12},
                 "backgroundColor": {"red": 0.9, "green": 0.9, "blue": 0.9}
@@ -647,14 +647,14 @@ def main():
                         "pattern": "€#,##0.00"
                                     }
                 })
-            time.sleep(2)
+            time.sleep(5)
             worksheet.format(f'I8:I{end_row}', {
                 "numberFormat": {
                     "type": "PERCENT",
                     "pattern": "0.00%"
                 }
             })
-            time.sleep(2)
+            time.sleep(5)
             column_formats = [
                 (f'A8:A{last_row_transactions}', {"backgroundColor": {
                 "red": 0.90, "green": 0.90, "blue": 0.90}}),
@@ -669,7 +669,7 @@ def main():
             ]
             for range_, format_ in column_formats:
                 worksheet.format(range_, format_)
-            time.sleep(2)
+            time.sleep(5)
             category_column_formats = [
                 (f'G8:G{end_row}', {"backgroundColor": {
                 "red": 0.94, "green": 0.94, "blue": 0.94}}),
@@ -680,16 +680,16 @@ def main():
             ]
             for range_, format_ in category_column_formats:
                 worksheet.format(range_, format_)
-            time.sleep(2)
+            time.sleep(5)
             worksheet.update('A2:A4', [['Total Income:'], [
                             'Total Expenses:'], ['Savings:']])
-            time.sleep(2)
+            time.sleep(5)
             worksheet.update('B2:B4', [[total_income], [
                             total_expense], [savings]])
-            time.sleep(2)
+            time.sleep(5)
             worksheet.update('C2:C4', [[1], [
                             expense_rate], [savings_rate]])
-            time.sleep(2)
+            time.sleep(5)
             worksheet.format('C2:C4', {'numberFormat': {
                 'type': 'PERCENT',
                 'pattern': '0%'}})
@@ -713,7 +713,7 @@ def main():
             ]
             for table_range in tables:
                 worksheet.format(table_range, border_format)
-            time.sleep(2)
+            time.sleep(5)
             header_bottom_border = {
                 "borders": {
                     "bottom": {
@@ -742,21 +742,21 @@ def main():
                 }
             }
             worksheet.format('A7:E7', header_bottom_border)
-            time.sleep(2)
+            time.sleep(5)
             worksheet.format('G7:I7', header_bottom_border)
-            time.sleep(2)
+            time.sleep(5)
             worksheet.format('D2:D4', header_left_border)
-            time.sleep(2)
+            time.sleep(5)
             worksheet.format('A2:C4', border_format)
-            time.sleep(2)
+            time.sleep(5)
             worksheet.format('A1:C1', header_bottom_border)
-            time.sleep(2)
+            time.sleep(5)
             worksheet.format('A4:C4', border_format)
-            time.sleep(2)
+            time.sleep(5)
             worksheet.format('A5:C5', header_top_border)
-            time.sleep(2)
+            time.sleep(5)
             recommendations = generate_daily_recommendations(data)
-            time.sleep(2)
+            time.sleep(5)
             rec_headers = ["Priority", "Recommendation"]
             rec_data = [[f"{i+1}.", rec]
                         for i, rec in enumerate(recommendations)]
@@ -766,16 +766,16 @@ def main():
                 values=[rec_headers],
                 range_name=f"K{rec_start_row}:L{rec_start_row}"
             )
-            time.sleep(2)
+            time.sleep(5)
             for i, row in enumerate(rec_data, start=rec_start_row+1):
                 worksheet.update(f"K{i}:L{i}", [row])
-            time.sleep(2)
+            time.sleep(5)
             fmt = cellFormat(
                 horizontalAlignment='CENTER',
                 padding=Padding(top=8, right=12, bottom=8, left=12),
                 wrapStrategy='WRAP'
             )
-            time.sleep(2)
+            time.sleep(5)
             worksheet.format(
                 f"K{rec_start_row}:L{rec_start_row}",
                 {
@@ -789,7 +789,7 @@ def main():
                     }
                 }
             )
-            time.sleep(2)
+            time.sleep(5)
             worksheet.format(
                 f"K{rec_start_row + 1}:L{rec_start_row + len(rec_data)}",
                 {
@@ -802,7 +802,7 @@ def main():
                     "wrapStrategy": "WRAP",
                 }
             )
-            time.sleep(2)
+            time.sleep(5)
             set_column_width(worksheet, 'A', 120)
             set_column_width(worksheet,  'C',  80)
             set_column_width(worksheet,  'D',  80)
@@ -814,36 +814,36 @@ def main():
             set_column_width(worksheet, 'L', 300)
             set_column_width(worksheet, 'F', 30)
             set_column_width(worksheet, 'J', 30)
-            time.sleep(2)
+            time.sleep(5)
             worksheet.update(f"K6", [['DAILY RECOMMENDATIONS']])
-            time.sleep(2)
+            time.sleep(5)
             worksheet.format("K6", {
                 "textFormat": {"bold": True, "fontSize": 14},
                 "horizontalAlignment": "CENTER"
             })
-            time.sleep(2)
+            time.sleep(5)
             worksheet.merge_cells(f"K6:L6")
-            time.sleep(2)
+            time.sleep(5)
             worksheet.update(f"A6", [['FINANCIAL OVERVIEW']])
-            time.sleep(2)
+            time.sleep(5)
             worksheet.format("A6", {
                 "textFormat": {"bold": True, "fontSize": 14},
                 "horizontalAlignment": "CENTER"
             })
-            time.sleep(2)
+            time.sleep(5)
             worksheet.merge_cells(f"A6:E6")
-            time.sleep(2)
+            time.sleep(5)
             worksheet.update(f"G6", [['TRANSACTION CATEGORIES']])
-            time.sleep(2)
+            time.sleep(5)
             worksheet.format("G6", {
                 "textFormat": {"bold": True, "fontSize": 14},
                 "horizontalAlignment": "CENTER"
             })
-            time.sleep(2)
+            time.sleep(5)
             worksheet.merge_cells(f"G6:I6")
-            time.sleep(2)
+            time.sleep(5)
             worksheet.format("A1:Z100", {"horizontalAlignment": "CENTER"})
-            time.sleep(2)
+            time.sleep(5)
             MONTH_NORMALIZED = get_month_column_name(MONTH)
             success = write_to_target_sheet(table_data, MONTH_NORMALIZED)
             print(
