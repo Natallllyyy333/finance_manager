@@ -42,7 +42,9 @@ def get_google_credentials():
             try:
                 creds_dict = json.loads(service_account_json)
                 from google.oauth2 import service_account
-                return service_account.Credentials.from_service_account_info(creds_dict)
+                SCOPES = ['https://www.googleapis.com/auth/spreadsheets',
+                         'https://www.googleapis.com/auth/drive']
+                return service_account.Credentials.from_service_account_info(creds_dict, scopes=SCOPES)
             except json.JSONDecodeError:
                 raise Exception("Invalid JSON in GOOGLE_SERVICE_ACCOUNT_JSON")
         else:
