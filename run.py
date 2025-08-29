@@ -40,115 +40,143 @@ DAILY_NORMS = {
 def sync_google_sheets_operation(month_name, table_data):
     """Синхронная версия Google Sheets операции"""
     try:
-        time.sleep(5)
+        print(f"📨 Starting Google Sheets sync for {month_name}")
+        print(f"📊 Data to write: {len(table_data)} rows")
+        
+        time.sleep(2)
+        
         # 1. Authentification
+        print("🔑 Getting credentials...")
         creds = get_google_credentials()
+        if not creds:
+            print("❌ No credentials available")
+            return False
+            
+        print("✅ Credentials obtained, authorizing...")
         gc = gspread.authorize(creds)
-
+        
+        print("✅ Authorized, opening spreadsheet...")
         # 2. Open target table by ID
-        target_spreadsheet = gc.open_by_key(
-            '1US65_F99qrkqbl2oVkMa4DGUiLacEDRoNz_J9hr2bbQ')
-        summary_sheet = target_spreadsheet.worksheet('SUMMARY')
-
+        try:
+            target_spreadsheet = gc.open_by_key('1US65_F99qrkqbl2oVkMa4DGUiLacEDRoNz_J9hr2bbQ')
+            print("✅ Spreadsheet opened successfully")
+        except Exception as e:
+            print(f"❌ Error opening spreadsheet: {e}")
+            return False
+            
+        try:
+            summary_sheet = target_spreadsheet.worksheet('SUMMARY')
+            print("✅ SUMMARY worksheet accessed")
+        except Exception as e:
+            print(f"❌ Error accessing SUMMARY worksheet: {e}")
+            return False
+        
+        print("📋 Getting headers...")
         # 3. Get current headers
         headers = summary_sheet.row_values(2)
+        print(f"📝 Current headers: {headers}")
 
         # 4. Normalizing month name for comparison
         normalized_month = month_name.capitalize()
+        print(f"🔍 Looking for column: {normalized_month}")
 
         # 5. Find the month column
         month_col = None
         for i, header in enumerate(headers, 1):
             if header == normalized_month:
                 month_col = i
+                print(f"✅ Found existing column for {normalized_month} at position: {month_col}")
                 break
 
         if month_col is None:
+            print("🔍 No existing column found, looking for empty column...")
             # Find first empty column
             for i, header in enumerate(headers, 1):
                 if not header.strip():  # Empty column
                     month_col = i
+                    print(f"✅ Found empty column at position: {month_col}")
+                    print(f"📝 Creating new column for {normalized_month}...")
                     summary_sheet.update_cell(2, month_col, normalized_month)
-                    summary_sheet.update_cell(
-                        3, month_col + 1, f"{normalized_month} %")
-                    print(
-                        f"Создан новый столбец для "
-                        f"{normalized_month} в позиции: {month_col}")
+                    summary_sheet.update_cell(3, month_col + 1, f"{normalized_month} %")
+                    print(f"✅ Created new column for {normalized_month} at position: {month_col}")
                     break
         
         if month_col is None:
+            print("🔍 No empty columns, adding at the end...")
             # Add new columns at the end
             month_col = len(headers) + 1
-            if month_col > 37:  # Проверка ограничения Google Sheets
-                print("✗ Достигнут лимит столбцов (37)")
+            if month_col > 37:
+                print("❌ Column limit reached (37)")
                 return False
+            print(f"📝 Adding new column at position: {month_col}")
             summary_sheet.update_cell(2, month_col, normalized_month)
-            summary_sheet.update_cell(
-                3, month_col + 1, f"{normalized_month} %")
-            time.sleep(20)
+            summary_sheet.update_cell(3, month_col + 1, f"{normalized_month} %")
+            print(f"✅ Added new column for {normalized_month} at position: {month_col}")
         
+        print("📝 Preparing data for writing...")
         # 6. Prepare data to be written
         update_data = []
-        num_rows = len(table_data)
         for i, row_data in enumerate(table_data, start=4):
             if len(row_data) == 3:
                 category, amount, percentage = row_data
-            elif len(row_data) == 2:
-                category, amount = row_data
-                percentage = 0
-            else:
-                continue
-            update_data.append({
-                'range': f"{gspread.utils.rowcol_to_a1(i, month_col)}",
-                'values': [[amount]]
-            })
-            update_data.append({
-                'range': f"{gspread.utils.rowcol_to_a1(i, month_col + 1)}",
-                'values': [[percentage]]
-            })
-
+                update_data.append({
+                    'range': f"{gspread.utils.rowcol_to_a1(i, month_col)}",
+                    'values': [[amount]]
+                })
+                update_data.append({
+                    'range': f"{gspread.utils.rowcol_to_a1(i, month_col + 1)}", 
+                    'values': [[percentage]]
+                })
+        
+        print(f"📤 Ready to write {len(update_data)} cells")
+        
         # 7. batch-query
         if update_data:
+            print("⏳ Writing data to Google Sheets...")
             batch_size = 5
             for i in range(0, len(update_data), batch_size):
                 batch = update_data[i:i+batch_size]
                 summary_sheet.batch_update(batch)
+                print(f"✅ Batch {i//batch_size + 1} written")
                 if i + batch_size < len(update_data):
-                    time.sleep(20)
-            time.sleep(20)
+                    time.sleep(10)
             
+            print("✅ All data written successfully!")
+            
+            # Format percentage column
             try:
+                print("🎨 Formatting percentage column...")
                 percent_col = month_col + 1
                 start_row = 4
                 end_row = start_row + len(table_data) - 1
                 for row in range(start_row, end_row + 1):
                     cell_address = f"{rowcol_to_a1(row, percent_col)}"
                     summary_sheet.format(cell_address, {
-                        "numberFormat": {
-                            "type": "PERCENT",
-                            "pattern": "0.00%"
-                        },
+                        "numberFormat": {"type": "PERCENT", "pattern": "0.00%"},
                         "horizontalAlignment": "CENTER"
                     })
-                    time.sleep(0.1)
+                print("✅ Percentage column formatted")
             except Exception as format_error:
-                print(f"⚠️ Percent column formating error: {format_error}")
-            time.sleep(20)
+                print(f"⚠️ Formatting error: {format_error}")
         
+        print("✅ Google Sheets update completed successfully!")
         return True
         
     except Exception as e:
-        print(f"✗ Ошибка записи в SUMMARY: {e}")
+        print(f"❌ Error in sync_google_sheets_operation: {e}")
+        import traceback
+        print(f"🔍 Traceback: {traceback.format_exc()}")
         return False
 def async_google_sheets_operation(month_name, table_data):
     """Асинхронно выполняет Google Sheets операции"""
     try:
+        print(f"🚀 Starting async Google Sheets operation for {month_name}")
         # Небольшая задержка для инициализации
         time.sleep(10)
 
-        if len(table_data) > 50:
-            print("⚠️ Large dataset, using optimized approach")
-            # Упрощенная логика для больших данных
+        # if len(table_data) > 50:
+        #     print("⚠️ Large dataset, using optimized approach")
+        #     # Упрощенная логика для больших данных
         
         # Вызываем синхронную версию
         success = sync_google_sheets_operation(month_name, table_data)
@@ -160,6 +188,8 @@ def async_google_sheets_operation(month_name, table_data):
             
     except Exception as e:
         print(f"Async Google Sheets error: {e}")
+        import traceback
+        print(f"🔥 Traceback: {traceback.format_exc()}")
 
 def get_google_credentials():
     """Get Google credentials from environment variables or file"""
