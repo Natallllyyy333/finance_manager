@@ -21,6 +21,10 @@ from io import StringIO
 import json
 from google.oauth2 import service_account
 import threading
+from flask import Flask, request, render_template_string
+
+
+app = Flask(__name__)
 
 DAILY_NORMS = {
         'Rent': 50.0,
@@ -1070,9 +1074,7 @@ def main():
 
 if "DYNO" in os.environ:
     # Режим Heroku - запускаем как веб-приложение
-    from flask import Flask, request, render_template_string
     
-    app = Flask(__name__)
     
     HTML = '''
     <!DOCTYPE html>
