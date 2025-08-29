@@ -499,6 +499,19 @@ def write_to_target_sheet(table_data, month_name):
         if not table_data:
             print("✗ No data to write to target sheet")
             return False
+        
+        # Проверяем размер данных
+        if len(table_data) > 50:
+            print(f"⚠️ Large dataset ({len(table_data)} rows), simplifying update")
+            # Упрощаем данные для больших наборов
+            simplified_data = []
+            for row in table_data:
+                if row[0] in ['TOTAL INCOME', 'TOTAL EXPENSES', 'SAVINGS']:
+                    simplified_data.append(row)
+                elif row[0] and not any(x in row[0] for x in ['CATEGORIES', '']):
+                    simplified_data.append([row[0], row[1], 0])
+            table_data = simplified_data
+
         # Если в Heroku, запускаем асинхронно
         if "DYNO" in os.environ:
             thread = threading.Thread(target=async_google_sheets_operation, args=(month_name, table_data))
@@ -694,36 +707,64 @@ def main():
             total_expense / total_income) if total_income > 0 else 0
         savings_rate = (
             savings / total_income) if total_income > 0 else 0
-        worksheet.format('B2:B4', {
-            'numberFormat': {
-                'type': 'CURRENCY',
-                'pattern': '€#,##0.00'},
-            "textFormat": {
-                'bold': True,
-                'fontSize': 12
-                }
-                })
-        time.sleep(20)
-        worksheet.format('C8:C31', {'numberFormat': {
-            'type': 'CURRENCY', 'pattern': '€#,##0.00'}})
-        time.sleep(20)
-        worksheet.format('A7:E7', {"textFormat": {
-            'bold': True, 'fontSize': 12},
-            "backgroundColor": {"red": 0.9, "green": 0.9, "blue": 0.9}})
-        time.sleep(20)
-        worksheet.update('A2:A4', [['Total Income:'], [
-            'Total Expenses:'], ['Savings:']])
-        time.sleep(20)
-        worksheet.update('B2:B4', [[total_income], [
-            total_expense], [savings]])
-        time.sleep(20)
-        worksheet.update('C2:C4', [[1], [
-            expense_rate], [savings_rate]])
-        time.sleep(20)
-        worksheet.format('C2:C4', {'numberFormat': {
-            'type': 'PERCENT',
-            'pattern': '0%'}})
-        time.sleep(20)
+        # Группируем все операции форматирования
+        try:
+            format_operations = [
+                ('B2:B4', {
+                    'numberFormat': {'type': 'CURRENCY', 'pattern': '€#,##0.00'},
+                    "textFormat": {'bold': True, 'fontSize': 12}
+                }),
+                ('C8:C31', {'numberFormat': {'type': 'CURRENCY', 'pattern': '€#,##0.00'}}),
+                ('A7:E7', {
+                    "textFormat": {'bold': True, 'fontSize': 12},
+                    "backgroundColor": {"red": 0.9, "green": 0.9, "blue": 0.9}
+                }),
+                ('C2:C4', {'numberFormat': {'type': 'PERCENT', 'pattern': '0%'}}),
+                ('G7:I7', {
+                    "textFormat": {"bold": True, "fontSize": 12},
+                    "backgroundColor": {"red": 0.9, "green": 0.9, "blue": 0.9}
+                }),
+                (f'H8:H{end_row}', {"numberFormat": {"type": "CURRENCY", "pattern": "€#,##0.00"}}),
+                (f'I8:I{end_row}', {"numberFormat": {"type": "PERCENT", "pattern": "0.00%"}})
+            ]
+            
+            for range_name, format_dict in format_operations:
+                worksheet.format(range_name, format_dict)
+                time.sleep(10)  # Уменьшите задержку между операциями
+            
+        except Exception as e:
+            print(f"Formatting error: {e}")
+    # Продолжаем выполнение даже если форматирование не удалось
+        # worksheet.format('B2:B4', {
+        #     'numberFormat': {
+        #         'type': 'CURRENCY',
+        #         'pattern': '€#,##0.00'},
+        #     "textFormat": {
+        #         'bold': True,
+        #         'fontSize': 12
+        #         }
+        #         })
+        # time.sleep(20)
+        # worksheet.format('C8:C31', {'numberFormat': {
+        #     'type': 'CURRENCY', 'pattern': '€#,##0.00'}})
+        # time.sleep(20)
+        # worksheet.format('A7:E7', {"textFormat": {
+        #     'bold': True, 'fontSize': 12},
+        #     "backgroundColor": {"red": 0.9, "green": 0.9, "blue": 0.9}})
+        # time.sleep(20)
+        # worksheet.update('A2:A4', [['Total Income:'], [
+        #     'Total Expenses:'], ['Savings:']])
+        # time.sleep(20)
+        # worksheet.update('B2:B4', [[total_income], [
+        #     total_expense], [savings]])
+        # time.sleep(20)
+        # worksheet.update('C2:C4', [[1], [
+        #     expense_rate], [savings_rate]])
+        # time.sleep(20)
+        # worksheet.format('C2:C4', {'numberFormat': {
+        #     'type': 'PERCENT',
+        #     'pattern': '0%'}})
+        # time.sleep(20)
         if transactions:
             expenses_by_category = defaultdict(float)
             for t in transactions:
@@ -738,7 +779,7 @@ def main():
                         100) if total_expenses > 0 else 0
             category_data.append([
                 f"{category}: {amount:.2f}€ ({percentage:.1f}%)"])
-            time.sleep(20)
+            time.sleep(5)
         if category_data:
             last_row = 7 + len(category_data)
             last_row_transactions = 7 + len(transactions)
@@ -838,27 +879,47 @@ def main():
             worksheet.format('C2:C4', {'numberFormat': {
                 'type': 'PERCENT',
                 'pattern': '0%'}})
-            border_style = {
-                "style": "SOLID",
-                "width": 1,
-                "color": {"red": 0.6, "green": 0.6, "blue": 0.6}
-            }
-            border_format = {
-                "borders": {
-                    "top": border_style,
-                    "bottom": border_style,
-                    "left": border_style,
-                    "right": border_style
+            
+            # Упрощенное форматирование границ - делаем одним вызовом если возможно
+            try:
+                border_format = {
+                    "borders": {
+                        "top": {"style": "SOLID", "width": 1, "color": {"red": 0.6, "green": 0.6, "blue": 0.6}},
+                        "bottom": {"style": "SOLID", "width": 1, "color": {"red": 0.6, "green": 0.6, "blue": 0.6}},
+                        "left": {"style": "SOLID", "width": 1, "color": {"red": 0.6, "green": 0.6, "blue": 0.6}},
+                        "right": {"style": "SOLID", "width": 1, "color": {"red": 0.6, "green": 0.6, "blue": 0.6}}
+                    }
                 }
-            }
-            tables = [
-                f'A7:E{7 + len(transactions)}',  # Основная таблица транзакций
-                f'G7:I{end_row}',  # Таблица категорий
-                'A2:C4'                          # Блок с итогами
-            ]
-            for table_range in tables:
-                worksheet.format(table_range, border_format)
-            time.sleep(20)
+                
+                # Форматируем все таблицы одним batch если возможно
+                worksheet.format(f'A7:E{7 + len(transactions)}', border_format)
+                worksheet.format(f'G7:I{end_row}', border_format)
+                worksheet.format('A2:C4', border_format)
+                time.sleep(15)
+                
+            except Exception as e:
+                print(f"Border formatting error: {e}")
+            # border_style = {
+            #     "style": "SOLID",
+            #     "width": 1,
+            #     "color": {"red": 0.6, "green": 0.6, "blue": 0.6}
+            # }
+            # border_format = {
+            #     "borders": {
+            #         "top": border_style,
+            #         "bottom": border_style,
+            #         "left": border_style,
+            #         "right": border_style
+            #     }
+            # }
+            # tables = [
+            #     f'A7:E{7 + len(transactions)}',  # Основная таблица транзакций
+            #     f'G7:I{end_row}',  # Таблица категорий
+            #     'A2:C4'                          # Блок с итогами
+            # ]
+            # for table_range in tables:
+            #     worksheet.format(table_range, border_format)
+            # time.sleep(20)
             header_bottom_border = {
                 "borders": {
                     "bottom": {
@@ -989,10 +1050,12 @@ def main():
             time.sleep(20)
             worksheet.format("A1:Z100", {"horizontalAlignment": "CENTER"})
             time.sleep(20)
-            MONTH_NORMALIZED = get_month_column_name(MONTH)
-            write_to_target_sheet(table_data, MONTH_NORMALIZED)  # Убрали success = 
-            print(
-                f"Google Sheets update initiated for {len(transactions)} transactions")
+
+            # MONTH_NORMALIZED = get_month_column_name(MONTH)
+            # write_to_target_sheet(table_data, MONTH_NORMALIZED)  # Убрали success = 
+            # print(
+            #     f"Google Sheets update initiated for {len(transactions)} transactions")
+
             # MONTH_NORMALIZED = get_month_column_name(MONTH)
             # success = write_to_target_sheet(table_data, MONTH_NORMALIZED)
             # print(
