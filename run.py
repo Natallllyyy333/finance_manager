@@ -1159,6 +1159,10 @@ if "DYNO" in os.environ:
 def run_full_analysis(month):
     """Полная обработка в фоновом режиме"""
     try:
+        import sys
+        sys.stdout = sys.__stdout__
+        
+        print(f"🚀 Starting FULL background analysis for {month}")
         # Восстанавливаем настоящий stdout для логирования
         old_stdout = sys.stdout
         sys.stdout = sys.__stdout__
@@ -1182,17 +1186,20 @@ def run_full_analysis(month):
         print(f"Expenses: {data['expenses']:.2f}€")
         print(f"Savings: {data['savings']:.2f}€")
         
+        time.sleep(10)
+        print("⏳ Starting Google Sheets update...")
         # Запускаем Google Sheets
         table_data = prepare_summary_data(data, transactions)
         MONTH_NORMALIZED = get_month_column_name(month)
         write_to_target_sheet(table_data, MONTH_NORMALIZED)
+        print("🎉 All background tasks completed!")
         
     except Exception as e:
         print(f"Background analysis error: {e}")
     finally:
         if 'old_stdout' in locals():
             sys.stdout = old_stdout  
-              
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
