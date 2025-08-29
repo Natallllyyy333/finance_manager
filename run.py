@@ -18,7 +18,8 @@ warnings.filterwarnings('ignore', category=DeprecationWarning)
 import os
 import sys
 from io import StringIO
-
+import json
+from google.oauth2 import service_account
 
 DAILY_NORMS = {
         'Rent': 50.0,
@@ -30,6 +31,30 @@ DAILY_NORMS = {
         'Shopping': 3.33,  # 100 / 30
         'Dining': 10.00
     }
+
+
+def get_google_credentials():
+    """Get Google credentials from environment variables or file"""
+    if "DYNO" in os.environ:
+        # На Heroku - используем переменные окружения
+        creds_dict = {
+            "type": os.environ.get('GOOGLE_TYPE'),
+            "project_id": os.environ.get('GOOGLE_PROJECT_ID'),
+            "private_key_id": os.environ.get('GOOGLE_PRIVATE_KEY_ID'),
+            "private_key": os.environ.get('GOOGLE_PRIVATE_KEY').replace('\\n', '\n'),
+            "client_email": os.environ.get('GOOGLE_CLIENT_EMAIL'),
+            "client_id": os.environ.get('GOOGLE_CLIENT_ID'),
+            "auth_uri": os.environ.get('GOOGLE_AUTH_URI'),
+            "token_uri": os.environ.get('GOOGLE_TOKEN_URI'),
+            "auth_provider_x509_cert_url": os.environ.get('GOOGLE_AUTH_PROVIDER_CERT_URL'),
+            "client_x509_cert_url": os.environ.get('GOOGLE_CLIENT_CERT_URL')
+        }
+        return service_account.Credentials.from_service_account_info(creds_dict)
+    else:
+        # Локально - используем файл
+        return gspread.service_account('creds.json')
+
+
 def load_transactions(filename):
         """Load and categorize transactions with daily tracking"""
         transactions = []
@@ -348,10 +373,11 @@ def write_to_target_sheet(table_data, month_name):
     """Записать данные в целевую таблицу SUMMARY"""
     try:
         # 1. Authentification
-        gs = gspread.service_account('creds.json')
+        creds = get_google_credentials()
+        gc = gspread.authorize(creds)
 
         # 2. Open target table by ID
-        target_spreadsheet = gs.open_by_key(
+        target_spreadsheet = gc.open_by_key(
             '1US65_F99qrkqbl2oVkMa4DGUiLacEDRoNz_J9hr2bbQ')
         summary_sheet = target_spreadsheet.worksheet('SUMMARY')
 
@@ -465,8 +491,9 @@ def main():
     # Optional Google Sheets update
     try:
         # Authenticate and open Google Sheets
-        gs = gspread.service_account('creds.json')
-        sh = gs.open("Personal Finances")
+        creds = get_google_credentials()
+        gc = gspread.authorize(creds)
+        sh = gc.open("Personal Finances")
         # Check if worksheet exists
         worksheet = None
         try:
