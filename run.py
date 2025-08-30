@@ -1252,7 +1252,7 @@ def index():
             sys.stdout = old_stdout
 
 def write_to_month_sheet(month_name, transactions, data):
-    """Запись данных в лист месяца"""
+    """Запись данных в лист месяца в формате как на скриншоте"""
     try:
         print(f"📊 Writing to {month_name} worksheet...")
         
@@ -1276,48 +1276,185 @@ def write_to_month_sheet(month_name, transactions, data):
         
         # 3. Clear existing data
         worksheet.clear()
-        time.sleep(5)
+        time.sleep(2)
         
-        # 4. Write header
-        headers = ["Date", "Description", "Amount", "Type", "Category"]
-        worksheet.update('A1', [headers])
-        worksheet.format('A1:E1', {
-            "textFormat": {"bold": True, "fontSize": 12},
-            "backgroundColor": {"red": 0.9, "green": 0.9, "blue": 0.9}
+        # 4. Create the layout as shown in the screenshot
+        # Financial Overview header
+        worksheet.update('A6', [['FINANCIAL OVERVIEW']])
+        worksheet.merge_cells('A6:E6')
+        worksheet.format('A6', {
+            "textFormat": {"bold": True, "fontSize": 14},
+            "horizontalAlignment": "CENTER"
         })
         
-        # 5. Write transactions
-        all_data = [headers]
+        # Table headers
+        headers = ["Date", "Description", "Amount", "Type", "Category"]
+        worksheet.update('A7', [headers])
+        worksheet.format('A7:E7', {
+            "textFormat": {"bold": True, "fontSize": 12},
+            "backgroundColor": {"red": 0.9, "green": 0.9, "blue": 0.9},
+            "borders": {
+                "top": {"style": "SOLID", "width": 1},
+                "bottom": {"style": "SOLID", "width": 1},
+                "left": {"style": "SOLID", "width": 1},
+                "right": {"style": "SOLID", "width": 1}
+            }
+        })
+        
+        # Write transactions
+        all_data = []
         for t in transactions:
-            all_data.append([t['date'], t['desc'][:50], t['amount'], t['type'], t['category']])
+            all_data.append([t['date'], t['desc'][:30], t['amount'], t['type'], t['category']])
         
-        if len(all_data) > 1:
-            worksheet.update('A2', all_data[1:])  # Skip header row
+        if all_data:
+            worksheet.update('A8', all_data)
         
-        # 6. Write summary
-        summary_data = [
-            ["FINANCIAL SUMMARY"],
-            ["Total Income:", data['income']],
-            ["Total Expenses:", data['expenses']],
-            ["Savings:", data['savings']],
-            ["Savings Rate:", f"{(data['savings']/data['income']*100 if data['income'] > 0 else 0):.1f}%"]
-        ]
-        
-        worksheet.update('G1', summary_data)
-        worksheet.format('G1:H5', {
-            "textFormat": {"bold": True},
-            "borders": {"style": "SOLID"}
+        # Format transaction table
+        last_transaction_row = 7 + len(transactions)
+        worksheet.format(f'A8:E{last_transaction_row}', {
+            "borders": {
+                "top": {"style": "SOLID", "width": 1},
+                "bottom": {"style": "SOLID", "width": 1},
+                "left": {"style": "SOLID", "width": 1},
+                "right": {"style": "SOLID", "width": 1}
+            }
         })
         
         # Format currency columns
-        worksheet.format('C2:C', {
-            "numberFormat": {"type": "CURRENCY", "pattern": "€#,##0.00"}
-        })
-        worksheet.format('H2:H4', {
+        worksheet.format(f'C8:C{last_transaction_row}', {
             "numberFormat": {"type": "CURRENCY", "pattern": "€#,##0.00"}
         })
         
-        print(f"✅ Successfully wrote to {month_name} worksheet")
+        # Transaction Categories header
+        worksheet.update('G6', [['TRANSACTION CATEGORIES']])
+        worksheet.merge_cells('G6:I6')
+        worksheet.format('G6', {
+            "textFormat": {"bold": True, "fontSize": 14},
+            "horizontalAlignment": "CENTER"
+        })
+        
+        # Categories table headers
+        category_headers = ["Category", "Amount", "Percentage"]
+        worksheet.update('G7', [category_headers])
+        worksheet.format('G7:I7', {
+            "textFormat": {"bold": True, "fontSize": 12},
+            "backgroundColor": {"red": 0.9, "green": 0.9, "blue": 0.9},
+            "borders": {
+                "top": {"style": "SOLID", "width": 1},
+                "bottom": {"style": "SOLID", "width": 1},
+                "left": {"style": "SOLID", "width": 1},
+                "right": {"style": "SOLID", "width": 1}
+            }
+        })
+        
+        # Prepare and write category data
+        table_data = prepare_summary_data(data, transactions)
+        category_data = []
+        for row in table_data:
+            if row[0] and row[0] not in ['', 'INCOME CATEGORIES:', 'EXPENSE CATEGORIES:']:
+                category_data.append([row[0], row[1], row[2]])
+        
+        if category_data:
+            worksheet.update('G8', category_data)
+        
+        # Format category table
+        last_category_row = 7 + len(category_data)
+        worksheet.format(f'G8:I{last_category_row}', {
+            "borders": {
+                "top": {"style": "SOLID", "width": 1},
+                "bottom": {"style": "SOLID", "width": 1},
+                "left": {"style": "SOLID", "width": 1},
+                "right": {"style": "SOLID", "width": 1}
+            }
+        })
+        
+        # Format currency and percentage columns
+        worksheet.format(f'H8:H{last_category_row}', {
+            "numberFormat": {"type": "CURRENCY", "pattern": "€#,##0.00"}
+        })
+        worksheet.format(f'I8:I{last_category_row}', {
+            "numberFormat": {"type": "PERCENT", "pattern": "0.00%"}
+        })
+        
+        # Daily Recommendations header
+        worksheet.update('K6', [['DAILY RECOMMENDATIONS']])
+        worksheet.merge_cells('K6:L6')
+        worksheet.format('K6', {
+            "textFormat": {"bold": True, "fontSize": 14},
+            "horizontalAlignment": "CENTER"
+        })
+        
+        # Recommendations headers
+        rec_headers = ["Priority", "Recommendation"]
+        worksheet.update('K7', [rec_headers])
+        worksheet.format('K7:L7', {
+            "textFormat": {"bold": True, "fontSize": 12},
+            "backgroundColor": {"red": 0.9, "green": 0.9, "blue": 0.9},
+            "borders": {
+                "top": {"style": "SOLID", "width": 1},
+                "bottom": {"style": "SOLID", "width": 1},
+                "left": {"style": "SOLID", "width": 1},
+                "right": {"style": "SOLID", "width": 1}
+            }
+        })
+        
+        # Write recommendations
+        recommendations = generate_daily_recommendations(data)
+        rec_data = []
+        for i, rec in enumerate(recommendations, 1):
+            rec_data.append([f"{i}", rec])
+        
+        if rec_data:
+            worksheet.update('K8', rec_data)
+        
+        # Format recommendations table
+        last_rec_row = 7 + len(rec_data)
+        worksheet.format(f'K8:L{last_rec_row}', {
+            "borders": {
+                "top": {"style": "SOLID", "width": 1},
+                "bottom": {"style": "SOLID", "width": 1},
+                "left": {"style": "SOLID", "width": 1},
+                "right": {"style": "SOLID", "width": 1}
+            },
+            "wrapStrategy": "WRAP"
+        })
+        
+        # Summary section at the top
+        summary_data = [
+            ["Total Income:", data['income']],
+            ["Total Expenses:", data['expenses']],
+            ["Savings:", data['savings']]
+        ]
+        worksheet.update('A2', summary_data)
+        
+        # Format summary section
+        worksheet.format('A2:B4', {
+            "textFormat": {"bold": True},
+            "borders": {
+                "top": {"style": "SOLID", "width": 1},
+                "bottom": {"style": "SOLID", "width": 1},
+                "left": {"style": "SOLID", "width": 1},
+                "right": {"style": "SOLID", "width": 1}
+            }
+        })
+        
+        worksheet.format('B2:B4', {
+            "numberFormat": {"type": "CURRENCY", "pattern": "€#,##0.00"}
+        })
+        
+        # Set column widths to match the screenshot
+        set_column_width(worksheet, 'A', 100)  # Date
+        set_column_width(worksheet, 'B', 200)  # Description
+        set_column_width(worksheet, 'C', 80)   # Amount
+        set_column_width(worksheet, 'D', 80)   # Type
+        set_column_width(worksheet, 'E', 100)  # Category
+        set_column_width(worksheet, 'G', 150)  # Category name
+        set_column_width(worksheet, 'H', 80)   # Amount
+        set_column_width(worksheet, 'I', 80)   # Percentage
+        set_column_width(worksheet, 'K', 60)   # Priority
+        set_column_width(worksheet, 'L', 300)  # Recommendation
+        
+        print(f"✅ Successfully formatted {month_name} worksheet to match screenshot")
         return True
         
     except Exception as e:
@@ -1325,7 +1462,7 @@ def write_to_month_sheet(month_name, transactions, data):
         import traceback
         print(f"🔍 Traceback: {traceback.format_exc()}")
         return False
-
+    
 def run_full_analysis(month):
     """Полная обработка в фоновом режиме"""
     try:
@@ -1357,6 +1494,8 @@ def run_full_analysis(month):
         print(f"Savings: {data['savings']:.2f}€")
         # 1. ЗАПИСЬ В ЛИСТ МЕСЯЦА
         print(f"📝 Writing to {month} worksheet...")
+         # 1. ЗАПИСЬ В ЛИСТ МЕСЯЦА (новый формат)
+        print(f"📝 Writing to {month} worksheet in screenshot format...")
         write_to_month_sheet(month, transactions, data)
         
         time.sleep(10)
