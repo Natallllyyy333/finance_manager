@@ -1418,12 +1418,14 @@ def write_to_month_sheet(month_name, transactions, data):
             },
             "wrapStrategy": "WRAP"
         })
-        
+         # Calculate percentages
+        expense_percentage = (data['expenses'] / data['income']) if data['income'] > 0 else 0
+        savings_percentage = (data['savings'] / data['income']) if data['income'] > 0 else 0
         # Summary section at the top
         summary_data = [
-            ["Total Income:", data['income']],
-            ["Total Expenses:", data['expenses']],
-            ["Savings:", data['savings']]
+            ["Total Income:", data['income'], 1.0],
+            ["Total Expenses:", data['expenses'], expense_percentage],
+            ["Savings:", data['savings'], savings_percentage]
         ]
         worksheet.update('A2', summary_data)
         
