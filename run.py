@@ -1115,49 +1115,105 @@ if "DYNO" in os.environ:
     
     HTML = '''
     <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Finance Analyzer</title>
-        <style>
-            body { font-family: Arial; margin: 40px; background: #f5f5f5; }
-            .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-            input, button { padding: 10px; margin: 10px 0; font-size: 16px; }
-            pre { background: #2d2d2d; color: #f8f8f2; padding: 20px; border-radius: 5px; overflow: auto; }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <h1>💰 Personal Finance Analyzer</h1>
-            <form method="POST">
-                <input type="text" name="month" placeholder="Enter month (e.g. March, April, May)" required>
-                <button type="submit">Analyze</button>
-            </form>
-            
-            {% if result %}
-            <h2>📊 Results for {{ month }}:</h2>
-            <pre>{{ result }}</pre>
-            {% endif %}
-        </div>
-    </body>
-    </html>
+<html>
+<head>
+    <title>Finance Analyzer</title>
+    <style>
+        body { font-family: Arial; margin: 40px; background: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        input, button { padding: 10px; margin: 10px 0; font-size: 16px; }
+        pre { 
+            background: #2d2d2d; 
+            color: #f8f8f2; 
+            padding: 20px; 
+            border-radius: 5px; 
+            overflow: auto;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+        }
+        .success { color: #4CAF50; }
+        .loading { color: #FF9800; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💰 Personal Finance Analyzer</h1>
+        <form method="POST">
+            <input type="text" name="month" placeholder="Enter month (e.g. March, April, May)" required>
+            <button type="submit">Analyze</button>
+        </form>
+        
+        {% if result %}
+        <h2>📊 Results for {{ month }}:</h2>
+        <pre>{{ result }}</pre>
+        <p class="loading">⏳ Google Sheets update in progress... Check logs for details.</p>
+        {% endif %}
+    </div>
+</body>
+</html>
     '''
-    
-    @app.route('/', methods=['GET', 'POST'])
-    def index():
-        result = None
-        month = None
-        
-        if request.method == 'POST':
-            month = request.form['month'].strip()
-            # result = run_analysis(month)
-            result = f"Analysis for {month} started in background. Check logs for details."
+@app.route('/', methods=['GET', 'POST'])
+def index():
+    result = None
+    month = None
 
-             # Запускаем в фоне
-            thread = threading.Thread(target=run_analysis, args=(month,))
-            thread.daemon = True
-            thread.start()
+    if request.method == 'POST':
+        month = request.form['month'].strip()
         
-        return render_template_string(HTML, result=result, month=month)
+        # Быстрый анализ для немедленного отображения
+        try:
+            # Быстрая обработка для отображения
+            FILE = f"hsbc_{month}.csv"
+            transactions, daily_categories = load_transactions(FILE)
+            
+            if transactions:
+                data = analyze(transactions, daily_categories, month)
+                
+                # Форматируем результат для веб-отображения
+                result = f"""
+    === {month.upper()} FINANCIAL ANALYSIS ===
+    Income: {data['income']:.2f}€
+    Expenses: {data['expenses']:.2f}€
+    Savings: {data['savings']:.2f}€
+    Savings Rate: {(data['savings']/data['income']*100 if data['income'] > 0 else 0):.1f}%
+
+    Top Expenses:
+    """
+                # Добавляем топ категорий
+                top_categories = sorted(data['categories'].items(), key=lambda x: x[1], reverse=True)[:5]
+                for category, amount in top_categories:
+                    result += f"{category}: {amount:.2f}€\n"
+                
+                result += "\nGoogle Sheets update in progress..."
+                
+            else:
+                result = f"No transactions found for {month}"
+                
+        except Exception as e:
+            result = f"Error: {str(e)}"
+        
+        # Запускаем полную фоновую обработку
+        thread = threading.Thread(target=run_full_analysis, args=(month,))
+        thread.daemon = True
+        thread.start()
+    
+    return render_template_string(HTML, result=result, month=month)
+    # @app.route('/', methods=['GET', 'POST'])
+    # def index():
+    #     result = None
+    #     month = None
+        
+    #     if request.method == 'POST':
+    #         month = request.form['month'].strip()
+    #         # result = run_analysis(month)
+    #         result = f"Analysis for {month} started in background. Check logs for details."
+
+    #          # Запускаем в фоне
+    #         thread = threading.Thread(target=run_analysis, args=(month,))
+    #         thread.daemon = True
+    #         thread.start()
+        
+    #     return render_template_string(HTML, result=result, month=month)
     
     def run_analysis(month):
         """Запускает анализ с виртуальным вводом"""
@@ -1195,6 +1251,81 @@ if "DYNO" in os.environ:
             sys.stdin = old_stdin
             sys.stdout = old_stdout
 
+def write_to_month_sheet(month_name, transactions, data):
+    """Запись данных в лист месяца"""
+    try:
+        print(f"📊 Writing to {month_name} worksheet...")
+        
+        # 1. Authentification
+        creds = get_google_credentials()
+        if not creds:
+            print("❌ No credentials for month sheet")
+            return False
+            
+        gc = gspread.authorize(creds)
+        sh = gc.open("Personal Finances")
+        
+        # 2. Get or create worksheet
+        try:
+            worksheet = sh.worksheet(month_name)
+            print(f"✅ Worksheet '{month_name}' found")
+        except gspread.WorksheetNotFound:
+            print(f"📝 Creating new worksheet '{month_name}'...")
+            worksheet = sh.add_worksheet(title=month_name, rows="100", cols="20")
+            print(f"✅ Worksheet '{month_name}' created")
+        
+        # 3. Clear existing data
+        worksheet.clear()
+        time.sleep(5)
+        
+        # 4. Write header
+        headers = ["Date", "Description", "Amount", "Type", "Category"]
+        worksheet.update('A1', [headers])
+        worksheet.format('A1:E1', {
+            "textFormat": {"bold": True, "fontSize": 12},
+            "backgroundColor": {"red": 0.9, "green": 0.9, "blue": 0.9}
+        })
+        
+        # 5. Write transactions
+        all_data = [headers]
+        for t in transactions:
+            all_data.append([t['date'], t['desc'][:50], t['amount'], t['type'], t['category']])
+        
+        if len(all_data) > 1:
+            worksheet.update('A2', all_data[1:])  # Skip header row
+        
+        # 6. Write summary
+        summary_data = [
+            ["FINANCIAL SUMMARY"],
+            ["Total Income:", data['income']],
+            ["Total Expenses:", data['expenses']],
+            ["Savings:", data['savings']],
+            ["Savings Rate:", f"{(data['savings']/data['income']*100 if data['income'] > 0 else 0):.1f}%"]
+        ]
+        
+        worksheet.update('G1', summary_data)
+        worksheet.format('G1:H5', {
+            "textFormat": {"bold": True},
+            "borders": {"style": "SOLID"}
+        })
+        
+        # Format currency columns
+        worksheet.format('C2:C', {
+            "numberFormat": {"type": "CURRENCY", "pattern": "€#,##0.00"}
+        })
+        worksheet.format('H2:H4', {
+            "numberFormat": {"type": "CURRENCY", "pattern": "€#,##0.00"}
+        })
+        
+        print(f"✅ Successfully wrote to {month_name} worksheet")
+        return True
+        
+    except Exception as e:
+        print(f"❌ Error writing to {month_name} worksheet: {e}")
+        import traceback
+        print(f"🔍 Traceback: {traceback.format_exc()}")
+        return False
+
 def run_full_analysis(month):
     """Полная обработка в фоновом режиме"""
     try:
@@ -1224,6 +1355,9 @@ def run_full_analysis(month):
         print(f"Income: {data['income']:.2f}€")
         print(f"Expenses: {data['expenses']:.2f}€")
         print(f"Savings: {data['savings']:.2f}€")
+        # 1. ЗАПИСЬ В ЛИСТ МЕСЯЦА
+        print(f"📝 Writing to {month} worksheet...")
+        write_to_month_sheet(month, transactions, data)
         
         time.sleep(10)
         print("⏳ Starting Google Sheets update...")
@@ -1235,6 +1369,8 @@ def run_full_analysis(month):
         
     except Exception as e:
         print(f"Background analysis error: {e}")
+        import traceback
+        print(f"Traceback: {traceback.format_exc()}")
     finally:
         if 'old_stdout' in locals():
             sys.stdout = old_stdout  
