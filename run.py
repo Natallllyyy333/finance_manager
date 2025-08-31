@@ -560,7 +560,7 @@ def terminal_visualization(data):
     # Categories breakdown в 3 колонки с гистограммами
     print("EXPENSE CATEGORIES: ")
     
-    top_categories = sorted(data['categories'].items(), key=lambda x: x[1], reverse=True)[:9]
+    top_categories = sorted(data['categories'].items(), key=lambda x: x[1], reverse=True)[:8]
     
     # Вычисляем проценты для гистограмм (минимум 1 блок)
     categories_with_percent = []
