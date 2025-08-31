@@ -22,6 +22,10 @@ import json
 from google.oauth2 import service_account
 import threading
 from flask import Flask, request, render_template_string
+import tempfile
+import shutil
+from werkzeug.utils import secure_filename
+from flask import flash
 
 
 app = Flask(__name__)
@@ -36,6 +40,11 @@ DAILY_NORMS = {
         'Shopping': 3.33,  # 100 / 30
         'Dining': 10.00
     }
+
+ALLOWED_EXTENSIONS = {'csv'}
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def sync_google_sheets_operation(month_name, table_data):
     """Синхронная версия Google Sheets операции"""
@@ -220,34 +229,70 @@ def get_google_credentials():
     
 
 
-def load_transactions(filename):
+def load_transactions(file_path_or_object):
         """Load and categorize transactions with daily tracking"""
         transactions = []
         daily_categories = defaultdict(lambda: defaultdict(float))
         try:
-            with open(filename, 'r', encoding='utf-8') as f:
-                for row in csv.reader(f):
-                    if len(row) < 5:
-                        continue
-                    try:
-                        amount = float(row[2])
-                        category = categorize(row[1])
-                        date = row[0]
-                        transactions.append({
-                            'date': date,
-                            'desc': row[1][:30],
-                            'amount': amount,
-                            'type': 'income' if row[4] == 'Credit' else 'expense',
-                            'category': category
-                        })
-                        if row[4] != 'Credit':
-                            daily_categories[date][category] += amount
-                    except ValueError:
-                        continue  # Skip rows with invalid data
-        except FileNotFoundError:
-            print(f"Error: File '{filename}' not found")
-            exit()
+        # Определяем, является ли вход файловым объектом или путем
+            if hasattr(file_path_or_object, 'read'):
+            # Это файловый объект
+                file_content = file_path_or_object.read().decode('utf-8')
+                file_lines = file_content.splitlines()
+                reader = csv.reader(file_lines)
+            else:
+            # Это путь к файлу
+                with open(file_path_or_object, 'r', encoding='utf-8') as f:
+                    reader = csv.reader(f)
+        
+            for row in reader:
+                if len(row) < 5:
+                    continue
+                try:
+                    amount = float(row[2])
+                    category = categorize(row[1])
+                    date = row[0]
+                    transactions.append({
+                        'date': date,
+                        'desc': row[1][:30],
+                        'amount': amount,
+                        'type': 'income' if row[4] == 'Credit' else 'expense',
+                        'category': category
+                    })
+                    if row[4] != 'Credit':
+                        daily_categories[date][category] += amount
+                except ValueError:
+                    continue  # Skip rows with invalid data
+                
+        except Exception as e:
+                print(f"Error loading transactions: {e}")
+        return [], defaultdict(lambda: defaultdict(float))
+        
         return transactions, daily_categories
+        # try:
+        #     with open(filename, 'r', encoding='utf-8') as f:
+        #         for row in csv.reader(f):
+        #             if len(row) < 5:
+        #                 continue
+        #             try:
+        #                 amount = float(row[2])
+        #                 category = categorize(row[1])
+        #                 date = row[0]
+        #                 transactions.append({
+        #                     'date': date,
+        #                     'desc': row[1][:30],
+        #                     'amount': amount,
+        #                     'type': 'income' if row[4] == 'Credit' else 'expense',
+        #                     'category': category
+        #                 })
+        #                 if row[4] != 'Credit':
+        #                     daily_categories[date][category] += amount
+        #             except ValueError:
+        #                 continue  # Skip rows with invalid data
+        # except FileNotFoundError:
+        #     print(f"Error: File '{filename}' not found")
+        #     exit()
+        # return transactions, daily_categories
 
 
 def categorize(description):
@@ -1338,6 +1383,8 @@ def main():
 
 
 if "DYNO" in os.environ:
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
     HTML = '''
 <!DOCTYPE html>
 <html>
@@ -1402,7 +1449,7 @@ if "DYNO" in os.environ:
             margin-bottom: 20px;
         }
         
-        input[type="text"] {
+        input[type="text"], input[type="file"] {
             padding: 14px 20px;
             border: 2px solid #e0e0e0;
             border-radius: 8px;
@@ -1412,7 +1459,7 @@ if "DYNO" in os.environ:
             background: #f8f9fa;
         }
         
-        input[type="text"]:focus {
+        input[type="text"]:focus, input[type="file"]:focus {
             outline: none;
             border-color: #667eea;
             background: white;
@@ -1422,7 +1469,10 @@ if "DYNO" in os.environ:
         input[type="text"]::placeholder {
             color: #9e9e9e;
         }
-        
+        input[type="file"] {
+            padding: 12px;
+            cursor: pointer;
+        }
         button {
             padding: 14px 30px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -1512,7 +1562,13 @@ if "DYNO" in os.environ:
             color: #666;
             border-left: 4px solid #667eea;
         }
-        
+        .file-info {
+            margin-top: 10px;
+            padding: 10px;
+            background: #e8f4f8;
+            border-radius: 6px;
+            border-left: 4px solid #2196F3;
+        }
         @media (max-width: 600px) {
             .input-group {
                 flex-direction: column;
@@ -1535,26 +1591,23 @@ if "DYNO" in os.environ:
         <div class="header">
             <h1>💰 PERSONAL FINANCE ANALYZER</h1>
             <p>Analyze your monthly expenses and get smart recommendations</p>
+            <p>Upload your CSV file and analyze your finances</p>
         </div>
         
         <div class="content">
             <div class="form-container">
-                <form method="POST">
+                <form method="POST" enctype="multipart/form-data">
                     <div class="input-group">
                         <input type="text" name="month" placeholder="Enter month (e.g. March, April)" required>
+                        <input type="file" name="file" accept=".csv" required>
                         <button type="submit">Analyze</button>
                     </div>
                 </form>
-                
-                <div class="instructions">
-                    💡 Enter the month name to analyze your financial data
+                {% if filename %}
+                <div class="file-info">
+                    📁 Using file: <strong>{{ filename }}</strong>
                 </div>
-                
-                <div class="feature-list">
-                    <div class="feature">📊 Expense Analysis</div>
-                    <div class="feature">💡 Smart Recommendations</div>
-                    <div class="feature">📈 Google Sheets Integration</div>
-                </div>
+                {% endif %}
             </div>
             
             {% if result %}
@@ -1569,6 +1622,25 @@ if "DYNO" in os.environ:
         </div>
     </div>
     
+    <script>
+        // Обновление статуса после завершения операции
+        setTimeout(function() {
+            const statusElement = document.getElementById('statusMessage');
+            if (statusElement) {
+                statusElement.textContent = '✅ Analysis completed successfully';
+                statusElement.className = 'status status-success';
+            }
+        }, 5000);
+        
+        // Показ имени выбранного файла
+        document.querySelector('input[type="file"]').addEventListener('change', function(e) {
+            const fileName = e.target.files[0]?.name;
+            if (fileName) {
+                // Можно добавить отображение имени файла, если нужно
+                console.log('Selected file:', fileName);
+            }
+        });
+    </script>
     <script>
         // Обновление статуса после завершения операции
         setTimeout(function() {
@@ -1593,6 +1665,21 @@ if "DYNO" in os.environ:
 </body>
 </html>
 '''
+else:
+     # Локальный режим - используем существующую логику
+        print(f" PERSONAL FINANCE ANALYZER ".center(77, "="))
+        MONTH = input("Enter the month (e.g. 'March, April, May'): ").strip().lower()
+        FILE = f"hsbc_{MONTH}.csv"
+        print(f"Loading file: {FILE}")
+
+        transactions, daily_categories = load_transactions(FILE)
+        if not transactions:
+            print(f"No transactions found")
+            
+            
+        data = analyze(transactions, daily_categories, MONTH)
+        terminal_visualization(data)
+        
     # Режим Heroku - запускаем как веб-приложение
     
     
@@ -1739,30 +1826,118 @@ if "DYNO" in os.environ:
 def index():
     result = None
     month = None
+    filename = None
 
     if request.method == 'POST':
         month = request.form['month'].strip()
+        if 'file' not in request.files:
+            return render_template_string(HTML, result="No file uploaded", month=month)
         
-        try:
-            # Быстрая обработка для отображения
-            FILE = f"hsbc_{month.lower()}.csv"
-            transactions, daily_categories = load_transactions(FILE)
+        file = request.files['file']
+        
+        if file.filename == '':
+            return render_template_string(HTML, result="No file selected", month=month)
+        
+        if file and allowed_file(file.filename):
+            try:
+                filename = secure_filename(file.filename)
+                
+                # Создаем временный файл или используем файловый объект напрямую
+                file.seek(0)  # Перемещаемся в начало файла
+                
+                # Загружаем транзакции из загруженного файла
+                transactions, daily_categories = load_transactions(file)
+        
+               
+                FILE = f"hsbc_{month.lower()}.csv"
+                transactions, daily_categories = load_transactions(FILE)
             
-            if transactions:
-                data = analyze(transactions, daily_categories, month)
-                result = format_terminal_output(data, month, len(transactions))
-                
-                # Запускаем полную фоновую обработку
-                thread = threading.Thread(target=run_full_analysis, args=(month,))
-                thread.daemon = True
-                thread.start()
-            else:
-                result = f"No transactions found for {month}"
-                
-        except Exception as e:
-            result = f"Error: {str(e)}"
+                if transactions:
+                    data = analyze(transactions, daily_categories, month)
+                    result = format_terminal_output(data, month, len(transactions))
+
+                    # Сохраняем файл временно для фоновой обработки
+                    temp_dir = tempfile.mkdtemp()
+                    temp_file_path = os.path.join(temp_dir, f"hsbc_{month.lower()}.csv")
+                    file.seek(0)  # Снова перемещаемся в начало
+                    file.save(temp_file_path)
+                    
+                    # Запускаем полную фоновую обработку
+                    thread = threading.Thread(target=run_full_analysis_with_file, 
+                                            args=(month, temp_file_path, temp_dir))
+                    thread.daemon = True
+                    thread.start()
+                else:
+                    result = f"No valid transactions found in {filename}"
+            except Exception as e:
+                result = f"Error processing file: {str(e)}"
+        else:
+            result = "Invalid file type. Please upload a CSV file."
     
-    return render_template_string(HTML, result=result, month=month)
+    return render_template_string(HTML, result=result, month=month, filename=filename)
+
+
+
+
+                    # Запускаем полную фоновую обработку
+            #         thread = threading.Thread(target=run_full_analysis, args=(month,))
+            #         thread.daemon = True
+            #         thread.start()
+            #     else:
+            #         result = f"No transactions found for {month}"
+                
+                
+            # except Exception as e:
+            #     result = f"Error: {str(e)}"
+    
+    # return render_template_string(HTML, result=result, month=month)
+def run_full_analysis_with_file(month, file_path, temp_dir):
+    """Полная обработка в фоновом режиме с использованием загруженного файла"""
+    try:
+        print(f"🚀 Starting FULL background analysis for {month} with uploaded file")
+        
+        # Загружаем транзакции из временного файла
+        transactions, daily_categories = load_transactions(file_path)
+        
+        if not transactions:
+            print("No transactions found in uploaded file")
+            return
+            
+        data = analyze(transactions, daily_categories, month)
+
+        # Выводим основные результаты
+        print(f"{month.upper()} ANALYSIS COMPLETED")
+        print(f"Income: {data['income']:.2f}€")
+        print(f"Expenses: {data['expenses']:.2f}€")
+        print(f"Savings: {data['savings']:.2f}€")
+        
+        # Запись в лист месяца
+        print(f"📝 Writing to {month} worksheet...")
+        write_to_month_sheet(month, transactions, data)
+        
+        time.sleep(10)
+        print("⏳ Starting Google Sheets update...")
+        
+        # Запускаем Google Sheets
+        table_data = prepare_summary_data(data, transactions)
+        MONTH_NORMALIZED = get_month_column_name(month)
+        write_to_target_sheet(table_data, MONTH_NORMALIZED)
+        
+        print("🎉 All background tasks completed!")
+        
+    except Exception as e:
+        print(f"Background analysis error: {e}")
+        import traceback
+        print(f"Traceback: {traceback.format_exc()}")
+    finally:
+        # Очищаем временные файлы
+        try:
+            if os.path.exists(temp_dir):
+                shutil.rmtree(temp_dir)
+                print(f"Cleaned up temporary directory: {temp_dir}")
+        except Exception as cleanup_error:
+            print(f"Error cleaning up temporary files: {cleanup_error}")
+
 def write_to_month_sheet(month_name, transactions, data):
     """Запись данных в лист месяца в формате как на скриншоте"""
     try:
