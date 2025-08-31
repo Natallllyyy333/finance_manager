@@ -1398,14 +1398,14 @@ if "DYNO" in os.environ:
             line-height: 1.1;
         }
         h1 { 
-            color: #0f0; 
+            color: #f8f8f2 
             text-align: center; 
             font-size: 16px;
             margin: 5px 0;
         }
         input, button { 
             background: #000; 
-            color: #0f0; 
+            color: #f8f8f2; 
             border: 1px solid #0f0; 
             padding: 5px; 
             margin: 5px 0; 
