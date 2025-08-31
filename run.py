@@ -340,8 +340,6 @@ def format_terminal_output(data, month, transactions_count=0):
     # Убираем пробелы в начале, если они есть
     # if centered_title.startswith(''):
     #     centered_title = centered_title.lstrip()
-    if centered_title.startswith(' '):
-        centered_title = centered_title[20:]
     output.append(centered_title)
     output.append(f"Income:   {data['income']:8.2f}€ [{'■' * 20}] 100.0%")
     output.append(f"Expenses: {data['expenses']:8.2f}€ [{'■' * int(expense_rate/5)}] {expense_rate:.1f}%")
@@ -541,8 +539,6 @@ def terminal_visualization(data):
     centered_title = f" {data['month'].upper()} FINANCIAL OVERVIEW ".center(70, "=")
     # if centered_title.startswith(''):
     #     centered_title = centered_title.lstrip()
-    if centered_title.startswith(' '):
-        centered_title = centered_title[20:]
     print(centered_title)
     print(f"Income:   {data['income']:8.2f}€ [{'■' * 20}] 100.0%")
     # Summary bars
@@ -1442,12 +1438,13 @@ if "DYNO" in os.environ:
         .terminal {
             background: #1e1e1e;
             color: #00ff00;
-           
+            padding: 20px;
             border-radius: 8px;
             font-family: 'Courier New', monospace;
             font-size: 14px;
             line-height: 1.4;
             overflow: auto;
+            
             max-height: 400px;
             border: 2px solid #333;
             margin-bottom: 20px;
