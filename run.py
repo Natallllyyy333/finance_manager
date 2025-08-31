@@ -899,7 +899,7 @@ def main():
     data = analyze(transactions, daily_categories, MONTH)
     terminal_visualization(data)
     # Recommendations
-    print(f"===== DAILY SPENDING RECOMMENDATIONS =====".center(40))
+    print(f"===== DAILY SPENDING RECOMMENDATIONS =====".center)
     for i, rec in enumerate(generate_daily_recommendations(data), 1):
         print(f"{i}. {rec}")
     # Optional Google Sheets update
