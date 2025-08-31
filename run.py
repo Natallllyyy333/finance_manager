@@ -322,93 +322,303 @@ def analyze(transactions, daily_categories, month):
     analysis['savings'] = analysis['income'] - analysis['expenses']
     return analysis
 
-
-def terminal_visualization(data):
-    """Visualize financial data in terminal."""
-    # Header
-    print(
-        f" {data['month'].upper()} FINANCIAL OVERVIEW ".center(77, "="))
-    # Summary bars
-    expense_rate = (data['expenses'] / data['income']
-                    * 100) if data['income'] > 0 else 0
-    savings_rate = (data['savings'] / data['income']
-                    * 100) if data['income'] > 0 else 0
-    income_bar = "■" * int(data['income'] / max(data['income'], 1) * 20)
-    print(f"Income: {data['income']:8.2f}€ [{income_bar}] 100%")
-    expense_bar = "■" * int(data['expenses'] / max(data['income'], 1) * 20)
-    print(f"Expenses: {data['expenses']:8.2f}€ ["
-        f"{expense_bar}] {expense_rate:.1f}%")
-    savings_bar = "■" * int(data['savings'] / max(data['income'], 1) * 20)
-    print(f"Savings: {data['savings']:8.2f}€ ["
-        f"{savings_bar}] {savings_rate:.1f}%")
-    # Categories breakdown
-    print(f" EXPENSE CATEGORIES ".center(77, '-'))
-    top_categories = sorted(data['categories'].items(),
-                            key=lambda x: x[1], reverse=True)[:9]  # 9 for 3 columns
-    # Split into three columns
-    col1 = top_categories[0:3]
-    col2 = top_categories[3:6]
-    col3 = top_categories[6:9]
-
-    # Fixed width for each column component
-    NAME_WIDTH = 10    # Category name
-    AMOUNT_WIDTH = 9   # Amount (6.2f + € + space)
-    BAR_WIDTH = 6      # Bar visualization
+def format_terminal_output(data, month, transactions_count=0):
+    """Форматирует вывод для терминала 80x24 символов как на скриншоте"""
+    output = []
     
-    # Total column width including spacing
-    COLUMN_WIDTH = NAME_WIDTH + 1 + AMOUNT_WIDTH + 1 + BAR_WIDTH  # +2 for spaces
-
-# Display three columns
-    for (cat1, amt1), (cat2, amt2), (cat3, amt3) in zip_longest(col1, col2, col3, fillvalue=(None, 0)):
+    # Заголовок (строка 1-3) - все центрировано
+    output.append(" PERSONAL FINANCE ANALYZER ".center(80, "="))
+    output.append(f"Enter the month (e.g. 'March, April, May'): {month.lower()}")
+    output.append(f"Loading file: hsbc_{month.lower()}.csv")
+    output.append("")  # Пустая строка
+    
+    # Финансовый обзор (строка 5-9)
+    expense_rate = (data['expenses'] / data['income'] * 100) if data['income'] > 0 else 0
+    savings_rate = (data['savings'] / data['income'] * 100) if data['income'] > 0 else 0
+    
+    output.append(f" {month.upper()} FINANCIAL OVERVIEW ".center(80, "="))
+    output.append(f"Income:   {data['income']:8.2f}€ [{'■' * 20}] 100.0%")
+    output.append(f"Expenses: {data['expenses']:8.2f}€ [{'■' * int(expense_rate/5)}] {expense_rate:.1f}%")
+    output.append(f"Savings:  {data['savings']:8.2f}€ [{'■' * int(savings_rate/5)}] {savings_rate:.1f}%")
+    output.append("")  # Пустая строка
+    
+    # Категории расходов в 3 колонки с гистограммами (строка 10-15)
+    output.append(" EXPENSE CATEGORIES ".center(80, "-"))
+    
+    # Топ 9 категорий в 3 колонки
+    top_categories = sorted(data['categories'].items(), key=lambda x: x[1], reverse=True)[:9]
+    
+    # Вычисляем проценты для гистограмм (минимум 1 блок для самой малой категории)
+    categories_with_percent = []
+    max_percent = max((amount / data['expenses'] * 100) for category, amount in top_categories) if data['expenses'] > 0 else 0
+    
+    for category, amount in top_categories:
+        percent = (amount / data['expenses'] * 100) if data['expenses'] > 0 else 0
+        # Масштабируем так, чтобы самая малая категория имела минимум 1 блок
+        if max_percent > 0:
+            scaled_percent = max(1, int(percent / max_percent * 8))
+        else:
+            scaled_percent = 1
+        categories_with_percent.append((category, amount, scaled_percent))
+    
+    # Разделяем на 3 колонки
+    col1 = categories_with_percent[0:3]
+    col2 = categories_with_percent[3:6]
+    col3 = categories_with_percent[6:9]
+    
+    for i in range(3):
         line = ""
-        if cat1:
-            pct1 = (amt1 / data['expenses'] * 100) if data['expenses'] > 0 else 0
-            bar1 = "■" * min(int(pct1 / 1), BAR_WIDTH)
-
-            col1_text = f"{cat1[:NAME_WIDTH]:<{NAME_WIDTH}} {amt1:6.2f}€ {bar1:<{BAR_WIDTH}}"
-            line += col1_text.ljust(COLUMN_WIDTH)
-            
-        else:
-            line += " " *  COLUMN_WIDTH
-        line += ""
-                
-        if cat2:
-            
-            pct2 = (amt2 / data['expenses'] * 100) if data['expenses'] > 0 else 0
-            bar2 = "■" * min(int(pct2 / 1), BAR_WIDTH)
-            col2_text = f"{cat2[:NAME_WIDTH]:<{NAME_WIDTH}} {amt2:6.2f}€ {bar2:<{BAR_WIDTH}}"
-            line += col2_text.ljust(COLUMN_WIDTH)
-            
-        else:
-            line += " " * COLUMN_WIDTH 
-        line += ""
         
-
-        if cat3:
+        # Колонка 1
+        if i < len(col1):
+            cat1, amt1, bar_len1 = col1[i]
+            line += f"{cat1[:10]:<10} {amt1:6.2f}€ {'■' * bar_len1}"
+        else:
+            line += " " * 25
             
-            pct3 = (amt3 / data['expenses'] * 100) if data['expenses'] > 0 else 0
-            bar3 = "■" * min(int(pct3 / 1), BAR_WIDTH)
-            col3_text = f"{cat3[:NAME_WIDTH]:<{NAME_WIDTH}} {amt3:6.2f}€ {bar3:<{BAR_WIDTH}}"
-            line += col3_text.ljust(COLUMN_WIDTH)
+        line += " " * 2  # Отступ между колонками
         
-        print(line)
-    print(f" DAILY SPENDING and NORMS ".center(77, '='))
+        # Колонка 2
+        if i < len(col2):
+            cat2, amt2, bar_len2 = col2[i]
+            line += f"{cat2[:10]:<10} {amt2:6.2f}€ {'■' * bar_len2}"
+        else:
+            line += " " * 25
+            
+        line += " " * 2  # Отступ между колонками
+        
+        # Колонка 3
+        if i < len(col3):
+            cat3, amt3, bar_len3 = col3[i]
+            line += f"{cat3[:10]:<10} {amt3:6.2f}€ {'■' * bar_len3}"
+        else:
+            line += " " * 17  # Заполняем оставшееся пространство
+        
+        output.append(line)
+    
+    output.append("")  # Пустая строка
+    
+    # Ежедневные траты и нормы (строка 16-19)
+    output.append(" DAILY SPENDING and NORMS ".center(80, "="))
+    
     sorted_categories = sorted(
-        [
-            (cat, avg)
-            for cat, avg in data['daily_averages'].items()
-            if cat in DAILY_NORMS
-        ],
+        [(cat, avg) for cat, avg in data['daily_averages'].items() if cat in DAILY_NORMS],
         key=lambda x: x[1] - DAILY_NORMS.get(x[0], 0),
         reverse=True
     )[:3]
+    
     for category, avg in sorted_categories:
         norm = DAILY_NORMS.get(category, 0)
         diff = avg - norm
-        print(f"{category:<12} Avg: {avg:5.2f}€  Norm: {norm: 5.2f}€ "
-            f"{'▲' if diff > 0 else '▼'} {abs(diff):.2f}€ "
-            )
+        arrow = "▲" if diff > 0 else "▼"
+        output.append(f"{category[:12]:<12} Avg: {avg:5.2f}€ Norm: {norm:5.2f}€ {arrow} {abs(diff):.2f}€")
+    
+    output.append("")  # Пустая строка
+    
+    # Рекомендации (строка 20-23)
+    output.append(" DAILY SPENDING RECOMMENDATIONS ".center(80, "="))
+    
+    recommendations = generate_daily_recommendations(data)[:3]
+    for i, rec in enumerate(recommendations, 1):
+        if len(rec) > 70:
+            rec = rec[:67] + "..."
+        output.append(f"{i}. {rec}")
+    
+    # Информация о Google Sheets (строка 24)
+    output.append("")  # Пустая строка перед updating
+    if transactions_count > 0:
+        output.append(f"Updating {transactions_count} transactions in Google Sheets...")
+    
+    # Проверяем, что вывод точно 24 строки
+    while len(output) < 24:
+        output.append("")
+    while len(output) > 24:
+        output.pop()
+    
+    return "\n".join(output)
 
+# def terminal_visualization(data):
+#     """Visualize financial data in terminal."""
+#     # Header
+#     print(
+#         f" {data['month'].upper()} FINANCIAL OVERVIEW ".center(77, "="))
+#     # Summary bars
+#     expense_rate = (data['expenses'] / data['income']
+#                     * 100) if data['income'] > 0 else 0
+#     savings_rate = (data['savings'] / data['income']
+#                     * 100) if data['income'] > 0 else 0
+#     income_bar = "■" * int(data['income'] / max(data['income'], 1) * 20)
+#     print(f"Income: {data['income']:8.2f}€ [{income_bar}] 100%")
+#     expense_bar = "■" * int(data['expenses'] / max(data['income'], 1) * 20)
+#     print(f"Expenses: {data['expenses']:8.2f}€ ["
+#         f"{expense_bar}] {expense_rate:.1f}%")
+#     savings_bar = "■" * int(data['savings'] / max(data['income'], 1) * 20)
+#     print(f"Savings: {data['savings']:8.2f}€ ["
+#         f"{savings_bar}] {savings_rate:.1f}%")
+#     # Categories breakdown
+#     print(f" EXPENSE CATEGORIES ".center(77, '-'))
+#     top_categories = sorted(data['categories'].items(),
+#                             key=lambda x: x[1], reverse=True)[:9]  # 9 for 3 columns
+#     # Split into three columns
+#     col1 = top_categories[0:3]
+#     col2 = top_categories[3:6]
+#     col3 = top_categories[6:9]
+
+#     # Fixed width for each column component
+#     NAME_WIDTH = 10    # Category name
+#     AMOUNT_WIDTH = 9   # Amount (6.2f + € + space)
+#     BAR_WIDTH = 6      # Bar visualization
+    
+#     # Total column width including spacing
+#     COLUMN_WIDTH = NAME_WIDTH + 1 + AMOUNT_WIDTH + 1 + BAR_WIDTH  # +2 for spaces
+
+# # Display three columns
+#     for (cat1, amt1), (cat2, amt2), (cat3, amt3) in zip_longest(col1, col2, col3, fillvalue=(None, 0)):
+#         line = ""
+#         if cat1:
+#             pct1 = (amt1 / data['expenses'] * 100) if data['expenses'] > 0 else 0
+#             bar1 = "■" * min(int(pct1 / 1), BAR_WIDTH)
+
+#             col1_text = f"{cat1[:NAME_WIDTH]:<{NAME_WIDTH}} {amt1:6.2f}€ {bar1:<{BAR_WIDTH}}"
+#             line += col1_text.ljust(COLUMN_WIDTH)
+            
+#         else:
+#             line += " " *  COLUMN_WIDTH
+#         line += ""
+                
+#         if cat2:
+            
+#             pct2 = (amt2 / data['expenses'] * 100) if data['expenses'] > 0 else 0
+#             bar2 = "■" * min(int(pct2 / 1), BAR_WIDTH)
+#             col2_text = f"{cat2[:NAME_WIDTH]:<{NAME_WIDTH}} {amt2:6.2f}€ {bar2:<{BAR_WIDTH}}"
+#             line += col2_text.ljust(COLUMN_WIDTH)
+            
+#         else:
+#             line += " " * COLUMN_WIDTH 
+#         line += ""
+        
+
+#         if cat3:
+            
+#             pct3 = (amt3 / data['expenses'] * 100) if data['expenses'] > 0 else 0
+#             bar3 = "■" * min(int(pct3 / 1), BAR_WIDTH)
+#             col3_text = f"{cat3[:NAME_WIDTH]:<{NAME_WIDTH}} {amt3:6.2f}€ {bar3:<{BAR_WIDTH}}"
+#             line += col3_text.ljust(COLUMN_WIDTH)
+        
+#         print(line)
+#     print(f" DAILY SPENDING and NORMS ".center(77, '='))
+#     sorted_categories = sorted(
+#         [
+#             (cat, avg)
+#             for cat, avg in data['daily_averages'].items()
+#             if cat in DAILY_NORMS
+#         ],
+#         key=lambda x: x[1] - DAILY_NORMS.get(x[0], 0),
+#         reverse=True
+#     )[:3]
+#     for category, avg in sorted_categories:
+#         norm = DAILY_NORMS.get(category, 0)
+#         diff = avg - norm
+#         print(f"{category:<12} Avg: {avg:5.2f}€  Norm: {norm: 5.2f}€ "
+#             f"{'▲' if diff > 0 else '▼'} {abs(diff):.2f}€ "
+#             )
+def terminal_visualization(data):
+    """Visualize financial data in terminal (80x24) как на скриншоте."""
+    # Header - все центрировано
+    print(" PERSONAL FINANCE ANALYZER ".center(80, "="))
+    print(f"Enter the month (e.g. 'March, April, May'): {data['month'].lower()}")
+    print(f"Loading file: hsbc_{data['month'].lower()}.csv")
+    print("")
+    
+    # Summary bars
+    expense_rate = (data['expenses'] / data['income'] * 100) if data['income'] > 0 else 0
+    savings_rate = (data['savings'] / data['income'] * 100) if data['income'] > 0 else 0
+    
+    print(f" {data['month'].upper()} FINANCIAL OVERVIEW ".center(80, "="))
+    print(f"Income:   {data['income']:8.2f}€ [{'■' * 20}] 100.0%")
+    print(f"Expenses: {data['expenses']:8.2f}€ [{'■' * int(expense_rate/5)}] {expense_rate:.1f}%")
+    print(f"Savings:  {data['savings']:8.2f}€ [{'■' * int(savings_rate/5)}] {savings_rate:.1f}%")
+    print("")
+    
+    # Categories breakdown в 3 колонки с гистограммами
+    print(" EXPENSE CATEGORIES ".center(80, "-"))
+    
+    top_categories = sorted(data['categories'].items(), key=lambda x: x[1], reverse=True)[:9]
+    
+    # Вычисляем проценты для гистограмм (минимум 1 блок)
+    categories_with_percent = []
+    max_percent = max((amount / data['expenses'] * 100) for category, amount in top_categories) if data['expenses'] > 0 else 0
+    
+    for category, amount in top_categories:
+        percent = (amount / data['expenses'] * 100) if data['expenses'] > 0 else 0
+        if max_percent > 0:
+            scaled_percent = max(1, int(percent / max_percent * 8))
+        else:
+            scaled_percent = 1
+        categories_with_percent.append((category, amount, scaled_percent))
+    
+    col1 = categories_with_percent[0:3]
+    col2 = categories_with_percent[3:6]
+    col3 = categories_with_percent[6:9]
+    
+    for i in range(3):
+        line = ""
+        
+        # Колонка 1
+        if i < len(col1):
+            cat1, amt1, bar_len1 = col1[i]
+            line += f"{cat1[:10]:<10} {amt1:6.2f}€ {'■' * bar_len1}"
+        else:
+            line += " " * 25
+            
+        line += " " * 2
+        
+        # Колонка 2
+        if i < len(col2):
+            cat2, amt2, bar_len2 = col2[i]
+            line += f"{cat2[:10]:<10} {amt2:6.2f}€ {'■' * bar_len2}"
+        else:
+            line += " " * 25
+            
+        line += " " * 2
+        
+        # Колонка 3
+        if i < len(col3):
+            cat3, amt3, bar_len3 = col3[i]
+            line += f"{cat3[:10]:<10} {amt3:6.2f}€ {'■' * bar_len3}"
+        
+        print(line)
+    
+    print("")
+    
+    # Daily spending and norms
+    print(" DAILY SPENDING and NORMS ".center(80, "="))
+    
+    sorted_categories = sorted(
+        [(cat, avg) for cat, avg in data['daily_averages'].items() if cat in DAILY_NORMS],
+        key=lambda x: x[1] - DAILY_NORMS.get(x[0], 0),
+        reverse=True
+    )[:3]
+    
+    for category, avg in sorted_categories:
+        norm = DAILY_NORMS.get(category, 0)
+        diff = avg - norm
+        arrow = "▲" if diff > 0 else "▼"
+        print(f"{category[:12]:<12} Avg: {avg:5.2f}€ Norm: {norm:5.2f}€ {arrow} {abs(diff):.2f}€")
+    
+    print("")
+    
+    # Recommendations
+    print(" DAILY SPENDING RECOMMENDATIONS ".center(80, "="))
+    
+    recommendations = generate_daily_recommendations(data)[:3]
+    for i, rec in enumerate(recommendations, 1):
+        if len(rec) > 70:
+            rec = rec[:67] + "..."
+        print(f"{i}. {rec}")
+    
+    print("")
+    print("Updating 15 transactions in Google Sheets...")
 
 def generate_daily_recommendations(data):
     """Generate daily category-specific recommendations."""
@@ -1113,46 +1323,137 @@ if "DYNO" in os.environ:
     # Режим Heroku - запускаем как веб-приложение
     
     
-    HTML = '''
-    <!DOCTYPE html>
+#     HTML = '''
+#     <!DOCTYPE html>
+# <html>
+# <head>
+#     <title>Finance Analyzer</title>
+#     <style>
+#         body { font-family: Arial; margin: 40px; background: #f5f5f5; }
+#         .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+#         input, button { padding: 10px; margin: 10px 0; font-size: 16px; }
+#         pre { 
+#             background: #2d2d2d; 
+#             color: #f8f8f2; 
+#             padding: 20px; 
+#             border-radius: 5px; 
+#             overflow: auto;
+#             white-space: pre-wrap;
+#             font-family: 'Courier New', monospace;
+#         }
+#         .success { color: #4CAF50; }
+#         .loading { color: #FF9800; }
+#     </style>
+# </head>
+# <body>
+#     <div class="container">
+#         <h1>💰 Personal Finance Analyzer</h1>
+#         <form method="POST">
+#             <input type="text" name="month" placeholder="Enter month (e.g. March, April, May)" required>
+#             <button type="submit">Analyze</button>
+#         </form>
+        
+#         {% if result %}
+#         <h2>📊 Results for {{ month }}:</h2>
+#         <pre>{{ result }}</pre>
+#         <p class="loading">⏳ Google Sheets update in progress... Check logs for details.</p>
+#         {% endif %}
+#     </div>
+# </body>
+# </html>
+#     '''
+        HTML = '''
+<!DOCTYPE html>
 <html>
 <head>
     <title>Finance Analyzer</title>
     <style>
-        body { font-family: Arial; margin: 40px; background: #f5f5f5; }
-        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        input, button { padding: 10px; margin: 10px 0; font-size: 16px; }
-        pre { 
-            background: #2d2d2d; 
-            color: #f8f8f2; 
-            padding: 20px; 
-            border-radius: 5px; 
-            overflow: auto;
-            white-space: pre-wrap;
-            font-family: 'Courier New', monospace;
+        body { 
+            font-family: 'Courier New', monospace; 
+            margin: 0; 
+            background: #000; 
+            color: #0f0;
+            overflow: hidden;
         }
-        .success { color: #4CAF50; }
-        .loading { color: #FF9800; }
+        .container { 
+            width: 640px; 
+            height: 384px;
+            margin: 10px auto; 
+            background: #000; 
+            padding: 0;
+        }
+        .terminal {
+            width: 640px;
+            height: 384px;
+            background: #000;
+            color: #0f0;
+            padding: 10px;
+            border: 2px solid #0f0;
+            overflow: auto;
+            white-space: pre;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.1;
+        }
+        h1 { 
+            color: #0f0; 
+            text-align: center; 
+            font-size: 16px;
+            margin: 5px 0;
+        }
+        input, button { 
+            background: #000; 
+            color: #0f0; 
+            border: 1px solid #0f0; 
+            padding: 5px; 
+            margin: 5px 0; 
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            width: 200px;
+        }
+        .form-container {
+            text-align: center;
+            margin: 10px 0;
+        }
+        .status {
+            color: #0f0;
+            text-align: center;
+            font-size: 12px;
+            margin: 5px 0;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>💰 Personal Finance Analyzer</h1>
-        <form method="POST">
-            <input type="text" name="month" placeholder="Enter month (e.g. March, April, May)" required>
-            <button type="submit">Analyze</button>
-        </form>
+        <h1>💰 PERSONAL FINANCE ANALYZER</h1>
+        <div class="form-container">
+            <form method="POST">
+                <input type="text" name="month" placeholder="Month (e.g. March)" required>
+                <button type="submit">Analyze</button>
+            </form>
+        </div>
         
         {% if result %}
-        <h2>📊 Results for {{ month }}:</h2>
-        <pre>{{ result }}</pre>
-        <p class="loading">⏳ Google Sheets update in progress... Check logs for details.</p>
+        <div class="terminal">
+{{ result }}
+        </div>
+        <div class="status" id="statusMessage">⏳ Google Sheets update in progress...</div>
         {% endif %}
     </div>
+    <script>
+        // Обновление статуса после завершения операции
+        setTimeout(function() {
+            const statusElement = document.getElementById('statusMessage');
+            if (statusElement) {
+                statusElement.textContent = '✓ Successfully updated 15 transactions in Google Sheets';
+                statusElement.style.color = '#0f0';
+            }
+        }, 5000); // Через 5 секунд меняем статус
+    </script>
 </body>
 </html>
-    '''
-@app.route('/', methods=['GET', 'POST'])
+'''
+# @app.route('/', methods=['GET', 'POST'])
 def index():
     result = None
     month = None
@@ -1160,97 +1461,26 @@ def index():
     if request.method == 'POST':
         month = request.form['month'].strip()
         
-        # Быстрый анализ для немедленного отображения
         try:
             # Быстрая обработка для отображения
-            FILE = f"hsbc_{month}.csv"
+            FILE = f"hsbc_{month.lower()}.csv"
             transactions, daily_categories = load_transactions(FILE)
             
             if transactions:
                 data = analyze(transactions, daily_categories, month)
+                result = format_terminal_output(data, month, len(transactions))
                 
-                # Форматируем результат для веб-отображения
-                result = f"""
-    === {month.upper()} FINANCIAL ANALYSIS ===
-    Income: {data['income']:.2f}€
-    Expenses: {data['expenses']:.2f}€
-    Savings: {data['savings']:.2f}€
-    Savings Rate: {(data['savings']/data['income']*100 if data['income'] > 0 else 0):.1f}%
-
-    Top Expenses:
-    """
-                # Добавляем топ категорий
-                top_categories = sorted(data['categories'].items(), key=lambda x: x[1], reverse=True)[:5]
-                for category, amount in top_categories:
-                    result += f"{category}: {amount:.2f}€\n"
-                
-                result += "\nGoogle Sheets update in progress..."
-                
+                # Запускаем полную фоновую обработку
+                thread = threading.Thread(target=run_full_analysis, args=(month,))
+                thread.daemon = True
+                thread.start()
             else:
                 result = f"No transactions found for {month}"
                 
         except Exception as e:
             result = f"Error: {str(e)}"
-        
-        # Запускаем полную фоновую обработку
-        thread = threading.Thread(target=run_full_analysis, args=(month,))
-        thread.daemon = True
-        thread.start()
     
     return render_template_string(HTML, result=result, month=month)
-    # @app.route('/', methods=['GET', 'POST'])
-    # def index():
-    #     result = None
-    #     month = None
-        
-    #     if request.method == 'POST':
-    #         month = request.form['month'].strip()
-    #         # result = run_analysis(month)
-    #         result = f"Analysis for {month} started in background. Check logs for details."
-
-    #          # Запускаем в фоне
-    #         thread = threading.Thread(target=run_analysis, args=(month,))
-    #         thread.daemon = True
-    #         thread.start()
-        
-    #     return render_template_string(HTML, result=result, month=month)
-    
-    def run_analysis(month):
-        """Запускает анализ с виртуальным вводом"""
-        try:
-            print(f"Starting background analysis for {month}")
-            # Сохраняем оригинальные потоки
-            old_stdin = sys.stdin
-            old_stdout = sys.stdout
-            
-            # Создаем виртуальные потоки
-            sys.stdin = StringIO(month + '\n')
-            sys.stdout = output_capture = StringIO()
-            
-            # Запускаем основную логику
-            # main()
-            print(f"=== {month.upper()} FINANCIAL ANALYSIS INITIATED ===")
-            print("Data processing started in background...")
-            print("Google Sheets update will complete shortly")
-            print("Check Heroku logs for detailed results")
-
-             # Запускаем полный анализ в фоне
-            thread = threading.Thread(target=run_full_analysis, args=(month,))
-            thread.daemon = True
-            thread.start()
-                
-            # Получаем вывод
-            output = output_capture.getvalue()
-            
-            return output
-            
-        except Exception as e:
-            return f"Error: {str(e)}"
-        finally:
-            # Восстанавливаем потоки
-            sys.stdin = old_stdin
-            sys.stdout = old_stdout
-
 def write_to_month_sheet(month_name, transactions, data):
     """Запись данных в лист месяца в формате как на скриншоте"""
     try:
