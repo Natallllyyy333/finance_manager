@@ -1387,8 +1387,8 @@ if "DYNO" in os.environ:
         .terminal {
             width: 640px;
             height: 384px;
-            background: #000;
-            color: #0f0;
+            background: #2d2d2d; 
+            color: #f8f8f2; 
             padding: 10px;
             border: 2px solid #0f0;
             overflow: auto;
