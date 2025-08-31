@@ -1442,16 +1442,16 @@ if "DYNO" in os.environ:
         .terminal {
             background: #1e1e1e;
             color: #00ff00;
-            padding: 20px;
+           
             border-radius: 8px;
             font-family: 'Courier New', monospace;
             font-size: 14px;
             line-height: 1.4;
             overflow: auto;
-            white-space: pre;
+           
             max-height: 400px;
             border: 2px solid #333;
-            margin-bottom: 20px;
+           
         }
         
         .status {
