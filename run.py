@@ -335,8 +335,8 @@ def format_terminal_output(data, month, transactions_count=0):
     # Финансовый обзор (строка 5-9)
     expense_rate = (data['expenses'] / data['income'] * 100) if data['income'] > 0 else 0
     savings_rate = (data['savings'] / data['income'] * 100) if data['income'] > 0 else 0
-    centered_title = []
-    centered_title += f"{month.upper()[:5]:<5}"
+    
+    centered_title = f"{month.upper()[:5]:<5}"
     # Убираем пробелы в начале, если они есть
     # if centered_title.startswith(''):
     #     centered_title = centered_title.lstrip()
@@ -1459,8 +1459,8 @@ if "DYNO" in os.environ:
             border: 2px solid #333;
             margin-bottom: 20px;
         }
-         .terminal br:first-child + *,
-        .terminal > :first-child {
+         .terminal :first-child 
+         {
             white-space: nowrap !important;
             display: block;
             overflow: hidden;
