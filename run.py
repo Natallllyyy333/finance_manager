@@ -1449,7 +1449,9 @@ if "DYNO" in os.environ:
             border: 2px solid #333;
             margin-bottom: 20px;
         }
-        
+        .terminal::first-line {
+        white-space: normal;
+        }
         .status {
             text-align: center;
             padding: 15px;
