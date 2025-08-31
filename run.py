@@ -525,10 +525,10 @@ def format_terminal_output(data, month, transactions_count=0):
 def terminal_visualization(data):
     """Visualize financial data in terminal (80x24) как на скриншоте."""
     # Header - все центрировано
-    print(" PERSONAL FINANCE ANALYZER ".center(80, "="))
-    print(f"Enter the month (e.g. 'March, April, May'): {data['month'].lower()}")
-    print(f"Loading file: hsbc_{data['month'].lower()}.csv")
-    print("")
+    # print(" PERSONAL FINANCE ANALYZER ".center(80, "="))
+    # print(f"Enter the month (e.g. 'March, April, May'): {data['month'].lower()}")
+    # print(f"Loading file: hsbc_{data['month'].lower()}.csv")
+    # print("")
     
     # Summary bars
     expense_rate = (data['expenses'] / data['income'] * 100) if data['income'] > 0 else 0
@@ -878,11 +878,11 @@ def write_to_target_sheet(table_data, month_name):
 
 def main():
     
-    print(f" PERSONAL FINANCE ANALYZER ".center(77, "="))
+    # print(f" PERSONAL FINANCE ANALYZER ".center(77, "="))
     MONTH = input(
         "Enter the month (e.g. 'March, April, May'): ").strip().lower()
     FILE = f"hsbc_{MONTH}.csv"
-    print(f"Loading file: {FILE}")
+    # print(f"Loading file: {FILE}")
 
     transactions, daily_categories = load_transactions(FILE)
     if not transactions:
