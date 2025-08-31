@@ -336,7 +336,7 @@ def format_terminal_output(data, month, transactions_count=0):
     expense_rate = (data['expenses'] / data['income'] * 100) if data['income'] > 0 else 0
     savings_rate = (data['savings'] / data['income'] * 100) if data['income'] > 0 else 0
     
-    centered_title = f"{month.upper()[:5]:<5}"
+    centered_title = f"FINANCIAL OVERVIEW: {month.upper()}"
     # Убираем пробелы в начале, если они есть
     # if centered_title.startswith(''):
     #     centered_title = centered_title.lstrip()
@@ -561,7 +561,7 @@ def terminal_visualization(data):
     # Categories breakdown в 3 колонки с гистограммами
     print("EXPENSE CATEGORIES: ")
     
-    top_categories = sorted(data['categories'].items(), key=lambda x: x[1], reverse=True)[:9]
+    top_categories = sorted(data['categories'].items(), key=lambda x: x[1], reverse=True)[:8]
     
     # Вычисляем проценты для гистограмм (минимум 1 блок)
     categories_with_percent = []
