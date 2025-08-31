@@ -327,10 +327,10 @@ def format_terminal_output(data, month, transactions_count=0):
     output = []
     
     # Заголовок (строка 1-3) - все центрировано
-    output.append(" PERSONAL FINANCE ANALYZER ".center(80, "="))
-    output.append(f"Enter the month (e.g. 'March, April, May'): {month.lower()}")
-    output.append(f"Loading file: hsbc_{month.lower()}.csv")
-    output.append("")  # Пустая строка
+    # output.append(" PERSONAL FINANCE ANALYZER ".center(80, "="))
+    # output.append(f"Enter the month (e.g. 'March, April, May'): {month.lower()}")
+    # output.append(f"Loading file: hsbc_{month.lower()}.csv")
+    # output.append("")  # Пустая строка
     
     # Финансовый обзор (строка 5-9)
     expense_rate = (data['expenses'] / data['income'] * 100) if data['income'] > 0 else 0
