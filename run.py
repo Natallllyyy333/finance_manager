@@ -1444,7 +1444,7 @@ if "DYNO" in os.environ:
             font-size: 14px;
             line-height: 1.4;
             overflow: auto;
-            
+            white-space: pre;
             max-height: 400px;
             border: 2px solid #333;
             margin-bottom: 20px;
