@@ -1453,7 +1453,7 @@ if "DYNO" in os.environ:
 </body>
 </html>
 '''
-# @app.route('/', methods=['GET', 'POST'])
+@app.route('/', methods=['GET', 'POST'])
 def index():
     result = None
     month = None
