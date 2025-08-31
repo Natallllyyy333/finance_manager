@@ -1456,26 +1456,11 @@ if "DYNO" in os.environ:
             line-height: 1.4;
             overflow: auto;
             white-space: pre-wrap;
-            max-height: 400px;
+            max-height: 600px;
             border: 2px solid #333;
             margin-bottom: 20px;
         }
-         centered_titl 
-         {
-            white-space: nowrap !important;
-            display: block;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        
-        /* Вторая строка терминала - nowrap */
-        .terminal br:first-child + * + *,
-        .terminal > :nth-child(2) {
-            white-space: nowrap !important;
-            display: block;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
+         
         .status {
             text-align: center;
             padding: 15px;
