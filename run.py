@@ -1446,9 +1446,9 @@ if "DYNO" in os.environ:
         }
         
         .terminal {
-            
-            background: #1e1e1e;
-            color: #00ff00;
+            background: #2d3748; /* Темный сине-серый */
+            color: #e2e8f0;      /* Светло-серый текст */
+            border: 2px solid #667eea;
             padding: 10px;
             border-radius: 8px;
             font-family: 'Courier New', monospace;
@@ -1456,8 +1456,7 @@ if "DYNO" in os.environ:
             line-height: 1.4;
             overflow: auto;
             white-space: pre-wrap;
-            max-height: 700px;
-            border: 2px solid #333;
+            max-height: 700px;       
             margin-bottom: 20px;
         }
          
