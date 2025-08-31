@@ -340,7 +340,7 @@ def format_terminal_output(data, month, transactions_count=0):
     # Убираем пробелы в начале, если они есть
     # if centered_title.startswith(''):
     #     centered_title = centered_title.lstrip()
-    output.append(centered_title)
+    # output.append(centered_title)
     output.append(f"Income: {data['income']:8.2f}€ [{'■' * 20}] 100.0%")
     output.append(f"Expenses: {data['expenses']:8.2f}€ [{'■' * int(expense_rate/5)}] {expense_rate:.1f}%")
     output.append(f"Savings: {data['savings']:8.2f}€ [{'■' * int(savings_rate/5)}] {savings_rate:.1f}%")
@@ -1459,7 +1459,7 @@ if "DYNO" in os.environ:
             border: 2px solid #333;
             margin-bottom: 20px;
         }
-         .terminal :first-child 
+         centered_titl 
          {
             white-space: nowrap !important;
             display: block;
