@@ -336,7 +336,7 @@ def format_terminal_output(data, month, transactions_count=0):
     expense_rate = (data['expenses'] / data['income'] * 100) if data['income'] > 0 else 0
     savings_rate = (data['savings'] / data['income'] * 100) if data['income'] > 0 else 0
     
-    centered_title = f" {month.upper()} FINANCIAL OVERVIEW ".center()
+    centered_title = f" {month.upper()} FINANCIAL OVERVIEW "
     # Убираем пробелы в начале, если они есть
     # if centered_title.startswith(''):
     #     centered_title = centered_title.lstrip()
@@ -347,7 +347,7 @@ def format_terminal_output(data, month, transactions_count=0):
     # output.append("")  # Пустая строка
     
     # Категории расходов в 3 колонки с гистограммами (строка 10-15)
-    output.append(" EXPENSE CATEGORIES ".center())
+    output.append(" EXPENSE CATEGORIES ")
     
     # Топ 9 категорий в 3 колонки
     top_categories = sorted(data['categories'].items(), key=lambda x: x[1], reverse=True)[:9]
@@ -403,7 +403,7 @@ def format_terminal_output(data, month, transactions_count=0):
     # output.append("")  # Пустая строка
     
     # Ежедневные траты и нормы (строка 16-19)
-    output.append(" DAILY SPENDING and NORMS ".center())
+    output.append(" DAILY SPENDING and NORMS ")
     
     sorted_categories = sorted(
         [(cat, avg) for cat, avg in data['daily_averages'].items() if cat in DAILY_NORMS],
@@ -420,7 +420,7 @@ def format_terminal_output(data, month, transactions_count=0):
     # output.append("")  # Пустая строка
     
     # Рекомендации (строка 20-23)
-    output.append(" DAILY SPENDING RECOMMENDATIONS ".center())
+    output.append(" DAILY SPENDING RECOMMENDATIONS ")
     
     recommendations = generate_daily_recommendations(data)[:3]
     for i, rec in enumerate(recommendations, 1):
@@ -549,7 +549,7 @@ def terminal_visualization(data):
     # print("")
     
     # Categories breakdown в 3 колонки с гистограммами
-    print(" EXPENSE CATEGORIES ".center())
+    print(" EXPENSE CATEGORIES ")
     
     top_categories = sorted(data['categories'].items(), key=lambda x: x[1], reverse=True)[:9]
     
@@ -600,7 +600,7 @@ def terminal_visualization(data):
     # print("")
     
     # Daily spending and norms
-    print(" DAILY SPENDING and NORMS ".center())
+    print(" DAILY SPENDING and NORMS ")
     
     sorted_categories = sorted(
         [(cat, avg) for cat, avg in data['daily_averages'].items() if cat in DAILY_NORMS],
@@ -617,7 +617,7 @@ def terminal_visualization(data):
     # print("")
     
     # Recommendations
-    print(" DAILY SPENDING RECOMMENDATIONS ".center())
+    print(" DAILY SPENDING RECOMMENDATIONS ")
     
     recommendations = generate_daily_recommendations(data)[:3]
     for i, rec in enumerate(recommendations, 1):
@@ -899,7 +899,7 @@ def main():
     data = analyze(transactions, daily_categories, MONTH)
     terminal_visualization(data)
     # Recommendations
-    print(f" DAILY SPENDING RECOMMENDATIONS ".center())
+    print(f" DAILY SPENDING RECOMMENDATIONS ")
     for i, rec in enumerate(generate_daily_recommendations(data), 1):
         print(f"{i}. {rec}")
     # Optional Google Sheets update
@@ -1436,6 +1436,7 @@ if "DYNO" in os.environ:
         }
         
         .terminal {
+            text-align:center;
             background: #1e1e1e;
             color: #00ff00;
             padding: 10px;
