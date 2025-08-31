@@ -534,15 +534,16 @@ def terminal_visualization(data):
     # print(f"Loading file: hsbc_{data['month'].lower()}.csv")
     # print("")
     
-    # Summary bars
-    expense_rate = (data['expenses'] / data['income'] * 100) if data['income'] > 0 else 0
-    savings_rate = (data['savings'] / data['income'] * 100) if data['income'] > 0 else 0
     
-    centered_title = f"{data['month'].upper()} FINANCIAL OVERVIEW".center(77, "=")
+    
+    centered_title = f" {data['month'].upper()} FINANCIAL OVERVIEW".center(77, "=")
     if centered_title.startswith(' '):
         centered_title = centered_title.lstrip()
     print(centered_title)
     print(f"Income:   {data['income']:8.2f}€ [{'■' * 20}] 100.0%")
+    # Summary bars
+    expense_rate = (data['expenses'] / data['income'] * 100) if data['income'] > 0 else 0
+    savings_rate = (data['savings'] / data['income'] * 100) if data['income'] > 0 else 0
     print(f"Expenses: {data['expenses']:8.2f}€ [{'■' * int(expense_rate/5)}] {expense_rate:.1f}%")
     print(f"Savings:  {data['savings']:8.2f}€ [{'■' * int(savings_rate/5)}] {savings_rate:.1f}%")
     print("")
