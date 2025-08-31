@@ -336,7 +336,7 @@ def format_terminal_output(data, month, transactions_count=0):
     expense_rate = (data['expenses'] / data['income'] * 100) if data['income'] > 0 else 0
     savings_rate = (data['savings'] / data['income'] * 100) if data['income'] > 0 else 0
     
-    centered_title = f" {month.upper()} FINANCIAL OVERVIEW ".center(77)
+    centered_title = f" {month.upper()} FINANCIAL OVERVIEW "
     # Убираем пробелы в начале, если они есть
     # if centered_title.startswith(''):
     #     centered_title = centered_title.lstrip()
@@ -344,7 +344,7 @@ def format_terminal_output(data, month, transactions_count=0):
     output.append(f"Income:   {data['income']:8.2f}€ [{'■' * 20}] 100.0%")
     output.append(f"Expenses: {data['expenses']:8.2f}€ [{'■' * int(expense_rate/5)}] {expense_rate:.1f}%")
     output.append(f"Savings:  {data['savings']:8.2f}€ [{'■' * int(savings_rate/5)}] {savings_rate:.1f}%")
-    output.append("")  # Пустая строка
+    # output.append("")  # Пустая строка
     
     # Категории расходов в 3 колонки с гистограммами (строка 10-15)
     output.append(" EXPENSE CATEGORIES ".center(77))
@@ -400,7 +400,7 @@ def format_terminal_output(data, month, transactions_count=0):
         
         output.append(line)
     
-    output.append("")  # Пустая строка
+    # output.append("")  # Пустая строка
     
     # Ежедневные траты и нормы (строка 16-19)
     output.append(" DAILY SPENDING and NORMS ".center(77))
@@ -417,7 +417,7 @@ def format_terminal_output(data, month, transactions_count=0):
         arrow = "▲" if diff > 0 else "▼"
         output.append(f"{category[:12]:<12} Avg: {avg:5.2f}€ Norm: {norm:5.2f}€ {arrow} {abs(diff):.2f}€")
     
-    output.append("")  # Пустая строка
+    # output.append("")  # Пустая строка
     
     # Рекомендации (строка 20-23)
     output.append(" DAILY SPENDING RECOMMENDATIONS ".center(77))
@@ -434,8 +434,8 @@ def format_terminal_output(data, month, transactions_count=0):
     #     output.append(f"Updating {transactions_count} transactions in Google Sheets...")
     
     # Проверяем, что вывод точно 24 строки
-    while len(output) < 24:
-        output.append("")
+    # while len(output) < 24:
+    #     output.append("")
     while len(output) > 24:
         output.pop()
     
@@ -536,7 +536,7 @@ def terminal_visualization(data):
     
     
     
-    centered_title = f" {data['month'].upper()} FINANCIAL OVERVIEW ".center(77)
+    centered_title = f" {data['month'].upper()} FINANCIAL OVERVIEW "
     # if centered_title.startswith(''):
     #     centered_title = centered_title.lstrip()
     print(centered_title)
