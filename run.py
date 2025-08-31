@@ -343,7 +343,7 @@ def format_terminal_output(data, month, transactions_count=0):
     output.append("")  # Пустая строка
     
     # Категории расходов в 3 колонки с гистограммами (строка 10-15)
-    output.append(" EXPENSE CATEGORIES ".center(80, "-"))
+    output.append(" EXPENSE CATEGORIES ".center(77, "-"))
     
     # Топ 9 категорий в 3 колонки
     top_categories = sorted(data['categories'].items(), key=lambda x: x[1], reverse=True)[:9]
@@ -399,7 +399,7 @@ def format_terminal_output(data, month, transactions_count=0):
     output.append("")  # Пустая строка
     
     # Ежедневные траты и нормы (строка 16-19)
-    output.append(" DAILY SPENDING and NORMS ".center(80, "="))
+    output.append(" DAILY SPENDING and NORMS ".center(77, "="))
     
     sorted_categories = sorted(
         [(cat, avg) for cat, avg in data['daily_averages'].items() if cat in DAILY_NORMS],
@@ -416,7 +416,7 @@ def format_terminal_output(data, month, transactions_count=0):
     output.append("")  # Пустая строка
     
     # Рекомендации (строка 20-23)
-    output.append(" DAILY SPENDING RECOMMENDATIONS ".center(80, "="))
+    output.append(" DAILY SPENDING RECOMMENDATIONS ".center(77, "="))
     
     recommendations = generate_daily_recommendations(data)[:3]
     for i, rec in enumerate(recommendations, 1):
@@ -425,9 +425,9 @@ def format_terminal_output(data, month, transactions_count=0):
         output.append(f"{i}. {rec}")
     
     # Информация о Google Sheets (строка 24)
-    output.append("")  # Пустая строка перед updating
-    if transactions_count > 0:
-        output.append(f"Updating {transactions_count} transactions in Google Sheets...")
+    # output.append("")  # Пустая строка перед updating
+    # if transactions_count > 0:
+    #     output.append(f"Updating {transactions_count} transactions in Google Sheets...")
     
     # Проверяем, что вывод точно 24 строки
     while len(output) < 24:
@@ -534,14 +534,14 @@ def terminal_visualization(data):
     expense_rate = (data['expenses'] / data['income'] * 100) if data['income'] > 0 else 0
     savings_rate = (data['savings'] / data['income'] * 100) if data['income'] > 0 else 0
     
-    print(f" {data['month'].upper()} FINANCIAL OVERVIEW ".center(80, "="))
+    print(f" {data['month'].upper()} FINANCIAL OVERVIEW ".center(77, "="))
     print(f"Income:   {data['income']:8.2f}€ [{'■' * 20}] 100.0%")
     print(f"Expenses: {data['expenses']:8.2f}€ [{'■' * int(expense_rate/5)}] {expense_rate:.1f}%")
     print(f"Savings:  {data['savings']:8.2f}€ [{'■' * int(savings_rate/5)}] {savings_rate:.1f}%")
     print("")
     
     # Categories breakdown в 3 колонки с гистограммами
-    print(" EXPENSE CATEGORIES ".center(80, "-"))
+    print(" EXPENSE CATEGORIES ".center(77, "-"))
     
     top_categories = sorted(data['categories'].items(), key=lambda x: x[1], reverse=True)[:9]
     
@@ -592,7 +592,7 @@ def terminal_visualization(data):
     print("")
     
     # Daily spending and norms
-    print(" DAILY SPENDING and NORMS ".center(80, "="))
+    print(" DAILY SPENDING and NORMS ".center(77, "="))
     
     sorted_categories = sorted(
         [(cat, avg) for cat, avg in data['daily_averages'].items() if cat in DAILY_NORMS],
@@ -609,7 +609,7 @@ def terminal_visualization(data):
     print("")
     
     # Recommendations
-    print(" DAILY SPENDING RECOMMENDATIONS ".center(80, "="))
+    print(" DAILY SPENDING RECOMMENDATIONS ".center(77, "="))
     
     recommendations = generate_daily_recommendations(data)[:3]
     for i, rec in enumerate(recommendations, 1):
