@@ -341,9 +341,9 @@ def format_terminal_output(data, month, transactions_count=0):
     # if centered_title.startswith(''):
     #     centered_title = centered_title.lstrip()
     output.append(centered_title)
-    output.append(f"Income:   {data['income']:8.2f}€ [{'■' * 20}] 100.0%")
+    output.append(f"Income: {data['income']:8.2f}€ [{'■' * 20}] 100.0%")
     output.append(f"Expenses: {data['expenses']:8.2f}€ [{'■' * int(expense_rate/5)}] {expense_rate:.1f}%")
-    output.append(f"Savings:  {data['savings']:8.2f}€ [{'■' * int(savings_rate/5)}] {savings_rate:.1f}%")
+    output.append(f"Savings: {data['savings']:8.2f}€ [{'■' * int(savings_rate/5)}] {savings_rate:.1f}%")
     # output.append("")  # Пустая строка
     
     # Категории расходов в 3 колонки с гистограммами (строка 10-15)
@@ -405,17 +405,15 @@ def format_terminal_output(data, month, transactions_count=0):
     # Ежедневные траты и нормы (строка 16-19)
     output.append("DAILY SPENDING and NORMS: ")
     
-    sorted_categories = sorted(
-        [(cat, avg) for cat, avg in data['daily_averages'].items() if cat in DAILY_NORMS],
-        key=lambda x: x[1] - DAILY_NORMS.get(x[0], 0),
-        reverse=True
-    )[:3]
+    top_categories = sorted(data['categories'].items(), key=lambda x: x[1], reverse=True)[:12]
     
-    for category, avg in sorted_categories:
-        norm = DAILY_NORMS.get(category, 0)
-        diff = avg - norm
-        arrow = "▲" if diff > 0 else "▼"
-        output.append(f"{category[:12]:<12} Avg: {avg:5.2f}€ Norm: {norm:5.2f}€ {arrow} {abs(diff):.2f}€")
+    for category, amount in top_categories:
+        if data['expenses'] > 0:
+            percent = (amount / data['expenses'] * 100)
+            bar_length = max(1, int(percent / 5))  # Масштабируем гистограмму
+            output.append(f"{category[:15]:<15} {amount:8.2f}€ {'■' * bar_length} ({percent:.1f}%)")
+        else:
+            output.append(f"{category[:15]:<15} {amount:8.2f}€")
     
     # output.append("")  # Пустая строка
     
