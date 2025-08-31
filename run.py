@@ -1320,6 +1320,261 @@ def main():
 
 
 if "DYNO" in os.environ:
+    HTML = '''
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Finance Analyzer</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .main-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            width: 700px;
+            max-width: 95%;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            padding: 25px;
+            text-align: center;
+            color: white;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .header p {
+            margin: 10px 0 0 0;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .form-container {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        input[type="text"] {
+            padding: 14px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            width: 250px;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+        
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        input[type="text"]::placeholder {
+            color: #9e9e9e;
+        }
+        
+        button {
+            padding: 14px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .terminal {
+            background: #1e1e1e;
+            color: #00ff00;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.4;
+            overflow: auto;
+            white-space: pre;
+            max-height: 400px;
+            border: 2px solid #333;
+            margin-bottom: 20px;
+        }
+        
+        .status {
+            text-align: center;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: 500;
+            margin: 10px 0;
+        }
+        
+        .status-loading {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .instructions {
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            margin-top: 15px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+        
+        .feature-list {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .feature {
+            background: #f8f9fa;
+            padding: 12px 18px;
+            border-radius: 8px;
+            font-size: 12px;
+            color: #666;
+            border-left: 4px solid #667eea;
+        }
+        
+        @media (max-width: 600px) {
+            .input-group {
+                flex-direction: column;
+            }
+            
+            input[type="text"] {
+                width: 100%;
+                max-width: 300px;
+            }
+            
+            button {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <div class="header">
+            <h1>💰 PERSONAL FINANCE ANALYZER</h1>
+            <p>Analyze your monthly expenses and get smart recommendations</p>
+        </div>
+        
+        <div class="content">
+            <div class="form-container">
+                <form method="POST">
+                    <div class="input-group">
+                        <input type="text" name="month" placeholder="Enter month (e.g. March, April)" required>
+                        <button type="submit">Analyze</button>
+                    </div>
+                </form>
+                
+                <div class="instructions">
+                    💡 Enter the month name to analyze your financial data
+                </div>
+                
+                <div class="feature-list">
+                    <div class="feature">📊 Expense Analysis</div>
+                    <div class="feature">💡 Smart Recommendations</div>
+                    <div class="feature">📈 Google Sheets Integration</div>
+                </div>
+            </div>
+            
+            {% if result %}
+            <div class="terminal">
+                {{ result }}
+            </div>
+            
+            <div class="status status-loading" id="statusMessage">
+                ⏳ Processing your financial data... Google Sheets update in progress
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <script>
+        // Обновление статуса после завершения операции
+        setTimeout(function() {
+            const statusElement = document.getElementById('statusMessage');
+            if (statusElement) {
+                statusElement.textContent = '✅ Successfully updated transactions in Google Sheets';
+                statusElement.className = 'status status-success';
+            }
+        }, 5000);
+        
+        // Плавная анимация появления элементов
+        document.addEventListener('DOMContentLoaded', function() {
+            const elements = document.querySelectorAll('.header, .form-container, .feature');
+            elements.forEach((element, index) => {
+                setTimeout(() => {
+                    element.style.opacity = '1';
+                    element.style.transform = 'translateY(0)';
+                }, index * 200);
+            });
+        });
+    </script>
+</body>
+</html>
+'''
     # Режим Heroku - запускаем как веб-приложение
     
     
@@ -1362,98 +1617,106 @@ if "DYNO" in os.environ:
 # </body>
 # </html>
 #     '''
-        HTML = '''
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Finance Analyzer</title>
-    <style>
-        body { 
-            font-family: Arial;
-            margin: 40px;
-            background: #f5f5f5;
+
+
+
+
+#         HTML = '''
+# <!DOCTYPE html>
+# <html>
+# <head>
+#     <title>Finance Analyzer</title>
+#     <style>
+#         body { 
+#             font-family: Arial;
+#             margin: 40px;
+#             background: #f5f5f5;
              
-#           color: #f8f8f2; 
-            overflow: hidden;
-        }
-        .container { 
-            max-width: 800px;  background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            width: 640px; 
-            height: 384px;
-            margin: 10px auto; 
+# #           color: #f8f8f2; 
+#             overflow: hidden;
+#         }
+#         .container { 
+#             max-width: 800px;  background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+#             width: 640px; 
+#             height: 384px;
+#             margin: 10px auto; 
              
-            padding: 0;
-        }
-        .terminal {
-            width: 640px;
-            height: 384px;
-            background: #2d2d2d; 
-            color: #f8f8f2; 
-            padding: 10px;
-            overflow: auto;
-            white-space: pre;
-            font-family: 'Courier New', monospace;
-            font-size: 14px;
-            line-height: 1.1;
-        }
-        h1 { 
-            color: #f8f8f2 
-            text-align: center; 
-            font-size: 16px;
-            margin: 5px 0;
-        }
-        input, button { 
-            background: #2d2d2d; 
-            color: #f8f8f2; 
-            border: 1px solid #0f0; 
-            padding: 5px; 
-            margin: 5px 0; 
-            font-family: 'Courier New', monospace;
-            font-size: 14px;
-            width: 200px;
-        }
-        .form-container {
-            text-align: center;
-            margin: 10px 0;
-        }
-        .status {
-            #f8f8f2;
-            text-align: center;
-            font-size: 12px;
-            margin: 5px 0;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>💰 PERSONAL FINANCE ANALYZER</h1>
-        <div class="form-container">
-            <form method="POST">
-                <input type="text" name="month" placeholder="Month (e.g. March)" required>
-                <button type="submit">Analyze</button>
-            </form>
-        </div>
+#             padding: 0;
+#         }
+#         .terminal {
+#             width: 640px;
+#             height: 384px;
+#             background: #2d2d2d; 
+#             color: #f8f8f2; 
+#             padding: 10px;
+#             overflow: auto;
+#             white-space: pre;
+#             font-family: 'Courier New', monospace;
+#             font-size: 14px;
+#             line-height: 1.1;
+#         }
+#         h1 { 
+#             color: #f8f8f2 
+#             text-align: center; 
+#             font-size: 16px;
+#             margin: 5px 0;
+#         }
+#         input, button { 
+#             background: #2d2d2d; 
+#             color: #f8f8f2; 
+#             border: 1px solid #0f0; 
+#             padding: 5px; 
+#             margin: 5px 0; 
+#             font-family: 'Courier New', monospace;
+#             font-size: 14px;
+#             width: 200px;
+#         }
+#         .form-container {
+#             text-align: center;
+#             margin: 10px 0;
+#         }
+#         .status {
+#             #f8f8f2;
+#             text-align: center;
+#             font-size: 12px;
+#             margin: 5px 0;
+#         }
+#     </style>
+# </head>
+# <body>
+#     <div class="container">
+#         <h1>💰 PERSONAL FINANCE ANALYZER</h1>
+#         <div class="form-container">
+#             <form method="POST">
+#                 <input type="text" name="month" placeholder="Month (e.g. March)" required>
+#                 <button type="submit">Analyze</button>
+#             </form>
+#         </div>
         
-        {% if result %}
-        <div class="terminal">
-{{ result }}
-        </div>
-        <div class="status" id="statusMessage">⏳ Google Sheets update in progress...</div>
-        {% endif %}
-    </div>
-    <script>
-        // Обновление статуса после завершения операции
-        setTimeout(function() {
-            const statusElement = document.getElementById('statusMessage');
-            if (statusElement) {
-                statusElement.textContent = '✓ Successfully updated 15 transactions in Google Sheets';
-                statusElement.style.color = '#0f0';
-            }
-        }, 5000); // Через 5 секунд меняем статус
-    </script>
-</body>
-</html>
-'''
+#         {% if result %}
+#         <div class="terminal">
+# {{ result }}
+#         </div>
+#         <div class="status" id="statusMessage">⏳ Google Sheets update in progress...</div>
+#         {% endif %}
+#     </div>
+#     <script>
+#         // Обновление статуса после завершения операции
+#         setTimeout(function() {
+#             const statusElement = document.getElementById('statusMessage');
+#             if (statusElement) {
+#                 statusElement.textContent = '✓ Successfully updated 15 transactions in Google Sheets';
+#                 statusElement.style.color = '#0f0';
+#             }
+#         }, 5000); // Через 5 секунд меняем статус
+#     </script>
+# </body>
+# </html>
+# '''
+
+        
+    
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
     result = None
