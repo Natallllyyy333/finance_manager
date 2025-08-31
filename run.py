@@ -336,7 +336,7 @@ def format_terminal_output(data, month, transactions_count=0):
     expense_rate = (data['expenses'] / data['income'] * 100) if data['income'] > 0 else 0
     savings_rate = (data['savings'] / data['income'] * 100) if data['income'] > 0 else 0
     
-    output.append(f" {month.upper()} FINANCIAL OVERVIEW ".center(80, "="))
+    output.append(f" {month.upper()} FINANCIAL OVERVIEW ".center(77, "="))
     output.append(f"Income:   {data['income']:8.2f}€ [{'■' * 20}] 100.0%")
     output.append(f"Expenses: {data['expenses']:8.2f}€ [{'■' * int(expense_rate/5)}] {expense_rate:.1f}%")
     output.append(f"Savings:  {data['savings']:8.2f}€ [{'■' * int(savings_rate/5)}] {savings_rate:.1f}%")
@@ -617,8 +617,8 @@ def terminal_visualization(data):
             rec = rec[:67] + "..."
         print(f"{i}. {rec}")
     
-    print("")
-    print("Updating 15 transactions in Google Sheets...")
+    # print("")
+    # print("Updating 15 transactions in Google Sheets...")
 
 def generate_daily_recommendations(data):
     """Generate daily category-specific recommendations."""
