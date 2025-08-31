@@ -1444,14 +1444,12 @@ if "DYNO" in os.environ:
             font-size: 14px;
             line-height: 1.4;
             overflow: auto;
-            white-space: pre;
+            white-space: pre-wrap;
             max-height: 400px;
             border: 2px solid #333;
             margin-bottom: 20px;
         }
-        .terminal::first-line {
-        white-space: normal;
-        }
+        
         .status {
             text-align: center;
             padding: 15px;
