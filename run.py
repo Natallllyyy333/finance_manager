@@ -535,8 +535,8 @@ def terminal_visualization(data):
     # print("")
     
     
-    
-    centered_title = f" {data['month'].upper()} FINANCIAL OVERVIEW ".center(40)
+    print(f" ")
+    centered_title = f"{data['month'].upper()} FINANCIAL OVERVIEW "
     # if centered_title.startswith(''):
     #     centered_title = centered_title.lstrip()
     print(centered_title)
@@ -549,7 +549,7 @@ def terminal_visualization(data):
     # print("")
     
     # Categories breakdown в 3 колонки с гистограммами
-    print(" EXPENSE CATEGORIES: ")
+    print("EXPENSE CATEGORIES: ")
     
     top_categories = sorted(data['categories'].items(), key=lambda x: x[1], reverse=True)[:9]
     
@@ -600,7 +600,7 @@ def terminal_visualization(data):
     # print("")
     
     # Daily spending and norms
-    print(" DAILY SPENDING and NORMS: ")
+    print("DAILY SPENDING and NORMS: ")
     
     sorted_categories = sorted(
         [(cat, avg) for cat, avg in data['daily_averages'].items() if cat in DAILY_NORMS],
@@ -617,7 +617,7 @@ def terminal_visualization(data):
     # print("")
     
     # Recommendations
-    print(" DAILY SPENDING RECOMMENDATIONS: ")
+    print("DAILY SPENDING RECOMMENDATIONS: ")
     
     recommendations = generate_daily_recommendations(data)[:3]
     for i, rec in enumerate(recommendations, 1):
