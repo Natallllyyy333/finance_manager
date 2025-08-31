@@ -537,7 +537,7 @@ def terminal_visualization(data):
     
     
     centered_title = f" {data['month'].upper()} FINANCIAL OVERVIEW".center(77, "=")
-    if centered_title.startswith(' '):
+    if centered_title.startswith(''):
         centered_title = centered_title.lstrip()
     print(centered_title)
     print(f"Income:   {data['income']:8.2f}€ [{'■' * 20}] 100.0%")
