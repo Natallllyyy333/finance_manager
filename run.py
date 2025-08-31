@@ -1369,17 +1369,19 @@ if "DYNO" in os.environ:
     <title>Finance Analyzer</title>
     <style>
         body { 
-            font-family: 'Courier New', monospace; 
-            margin: 0; 
-            background: #000; 
-            color: #0f0;
+            font-family: Arial;
+            margin: 40px;
+            background: #f5f5f5;
+             
+#           color: #f8f8f2; 
             overflow: hidden;
         }
         .container { 
+            max-width: 800px;  background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             width: 640px; 
             height: 384px;
             margin: 10px auto; 
-            background: #000; 
+             
             padding: 0;
         }
         .terminal {
