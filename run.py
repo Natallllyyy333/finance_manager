@@ -621,7 +621,7 @@ def terminal_visualization(data):
         norm = DAILY_NORMS.get(category, 0)
         diff = avg - norm
         arrow = "▲" if diff > 0 else "▼"
-        print(f"{category[:12]:<12} Avg: {avg:5.2f}€ Norm: {norm:5.2f}€ {arrow} {abs(diff):.2f}€")
+        print(f"{category[:10]:<10} Avg: {avg:5.2f}€ Norm: {norm:5.2f}€ {arrow} {abs(diff):.2f}€")
     
     # print("")
     
@@ -1459,7 +1459,22 @@ if "DYNO" in os.environ:
             border: 2px solid #333;
             margin-bottom: 20px;
         }
+         .terminal br:first-child + *,
+        .terminal > :first-child {
+            white-space: nowrap !important;
+            display: block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
         
+        /* Вторая строка терминала - nowrap */
+        .terminal br:first-child + * + *,
+        .terminal > :nth-child(2) {
+            white-space: nowrap !important;
+            display: block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
         .status {
             text-align: center;
             padding: 15px;
