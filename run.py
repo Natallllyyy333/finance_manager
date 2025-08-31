@@ -1390,7 +1390,6 @@ if "DYNO" in os.environ:
             background: #2d2d2d; 
             color: #f8f8f2; 
             padding: 10px;
-            border: 2px solid #0f0;
             overflow: auto;
             white-space: pre;
             font-family: 'Courier New', monospace;
@@ -1404,7 +1403,7 @@ if "DYNO" in os.environ:
             margin: 5px 0;
         }
         input, button { 
-            background: #000; 
+            background: #2d2d2d; 
             color: #f8f8f2; 
             border: 1px solid #0f0; 
             padding: 5px; 
@@ -1418,7 +1417,7 @@ if "DYNO" in os.environ:
             margin: 10px 0;
         }
         .status {
-            color: #0f0;
+            #f8f8f2;
             text-align: center;
             font-size: 12px;
             margin: 5px 0;
