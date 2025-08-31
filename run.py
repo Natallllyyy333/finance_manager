@@ -336,7 +336,7 @@ def format_terminal_output(data, month, transactions_count=0):
     expense_rate = (data['expenses'] / data['income'] * 100) if data['income'] > 0 else 0
     savings_rate = (data['savings'] / data['income'] * 100) if data['income'] > 0 else 0
     
-    centered_title = f"{month.upper()} FINANCIAL OVERVIEW".center(70, "=")
+    centered_title = f" {month.upper()} FINANCIAL OVERVIEW ".center(70, "=")
     # Убираем пробелы в начале, если они есть
     # if centered_title.startswith(''):
     #     centered_title = centered_title.lstrip()
@@ -536,7 +536,7 @@ def terminal_visualization(data):
     
     
     
-    centered_title = f" {data['month'].upper()} FINANCIAL OVERVIEW".center(70, "")
+    centered_title = f" {data['month'].upper()} FINANCIAL OVERVIEW ".center(70, "=")
     # if centered_title.startswith(''):
     #     centered_title = centered_title.lstrip()
     print(centered_title)
