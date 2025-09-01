@@ -460,22 +460,23 @@ def get_month_column_name(month_input):
     return month_mapping.get(month, month)
 def analyze(transactions, daily_categories, month):
     """Perform financial analysis with daily tracking"""
-
     analysis = {
         'income': 0, 'expenses': 0, 'categories': defaultdict(float),
         'income_categories': defaultdict(float),
         'month': month, 'daily_categories': daily_categories,
-        'days_count':  30,
+        'days_count': 30,
         'daily_averages': defaultdict(float),
         'norms_violations': []
     }
+    
     for t in transactions:
         if t['type'] == 'income':
             analysis['income'] += t['amount']
             analysis['income_categories'][t['category']] += t['amount']
         else:
-            analysis['expenses'] += t['amount']
-            analysis['categories'][t['category']] += t['amount']
+            analysis['expenses'] += abs(t['amount'])  # Ensure positive values for expenses
+            analysis['categories'][t['category']] += abs(t['amount'])
+    
     # Calculate daily averages
     for category, total in analysis['categories'].items():
         daily_avg = total / analysis['days_count']
@@ -483,12 +484,44 @@ def analyze(transactions, daily_categories, month):
         if category in DAILY_NORMS:
             if daily_avg > DAILY_NORMS[category] * 1.1:  # 10% over norm
                 analysis['norms_violations'].append(
-                    f"Daily average for {category}"
-                    f" overspent: {daily_avg:.2f}€ "
+                    f"Daily average for {category} "
+                    f"overspent: {daily_avg:.2f}€ "
                     f"vs norm: {DAILY_NORMS[category]:.2f}€"
                 )
+    
     analysis['savings'] = analysis['income'] - analysis['expenses']
     return analysis
+# def analyze(transactions, daily_categories, month):
+#     """Perform financial analysis with daily tracking"""
+
+#     analysis = {
+#         'income': 0, 'expenses': 0, 'categories': defaultdict(float),
+#         'income_categories': defaultdict(float),
+#         'month': month, 'daily_categories': daily_categories,
+#         'days_count':  30,
+#         'daily_averages': defaultdict(float),
+#         'norms_violations': []
+#     }
+#     for t in transactions:
+#         if t['type'] == 'income':
+#             analysis['income'] += t['amount']
+#             analysis['income_categories'][t['category']] += t['amount']
+#         else:
+#             analysis['expenses'] += t['amount']
+#             analysis['categories'][t['category']] += t['amount']
+#     # Calculate daily averages
+#     for category, total in analysis['categories'].items():
+#         daily_avg = total / analysis['days_count']
+#         analysis['daily_averages'][category] = daily_avg
+#         if category in DAILY_NORMS:
+#             if daily_avg > DAILY_NORMS[category] * 1.1:  # 10% over norm
+#                 analysis['norms_violations'].append(
+#                     f"Daily average for {category}"
+#                     f" overspent: {daily_avg:.2f}€ "
+#                     f"vs norm: {DAILY_NORMS[category]:.2f}€"
+#                 )
+#     analysis['savings'] = analysis['income'] - analysis['expenses']
+#     return analysis
 
 def format_terminal_output(data, month, transactions_count=0):
     """Форматирует вывод для терминала 80x24 символов как на скриншоте"""
@@ -2105,6 +2138,39 @@ HTML = '''
 </html>
 '''
 
+def load_transactions_from_content(content):
+    """Load transactions from file content string"""
+    transactions = []
+    lines = content.split('\n')
+    
+    for line in lines:
+        line = line.strip()
+        if line and not line.startswith('#'):  # Skip empty lines and comments
+            try:
+                parts = line.split(',')
+                if len(parts) >= 3:
+                    date_str = parts[0].strip()
+                    amount = float(parts[1].strip())
+                    description = parts[2].strip()
+                    category = parts[3].strip() if len(parts) > 3 else "Other"
+                    
+                    # Convert date
+                    date = datetime.strptime(date_str, "%Y-%m-%d").date()
+                    
+                    transactions.append({
+                        'date': date,
+                        'amount': amount,
+                        'description': description,
+                        'category': category,
+                        'type': 'income' if amount > 0 else 'expense',
+                        'desc': description[:30]  # For compatibility
+                    })
+            except (ValueError, IndexError) as e:
+                print(f"Warning: Error parsing line '{line}' - {e}")
+                continue
+                
+    return transactions
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
     result = None
@@ -2112,7 +2178,7 @@ def index():
     filename = None
 
     if request.method == 'POST':
-        month = request.form['month'].strip()
+        month = request.form['month'].strip().lower()
         
         if 'file' not in request.files:
             return render_template_string(HTML, result="No file uploaded", month=month)
@@ -2126,22 +2192,36 @@ def index():
             try:
                 filename = secure_filename(file.filename)
                 
-                # Читаем содержимое файла
+                # Читаем содержимое файла полностью в память
                 file_content = file.read()
+                
+                # Декодируем если это bytes
                 if isinstance(file_content, bytes):
-                    file_content = file_content.decode('utf-8')
+                    try:
+                        file_content = file_content.decode('utf-8')
+                    except UnicodeDecodeError:
+                        try:
+                            file_content = file_content.decode('latin-1')
+                        except UnicodeDecodeError:
+                            return render_template_string(HTML, result="Unsupported file encoding", month=month)
                 
                 # Создаем временный файл для фоновой обработки
                 temp_dir = tempfile.mkdtemp()
-                temp_file_path = os.path.join(temp_dir, f"hsbc_{month.lower()}.csv")
+                temp_file_path = os.path.join(temp_dir, f"hsbc_{month}.csv")
                 
                 with open(temp_file_path, 'w', encoding='utf-8') as temp_file:
                     temp_file.write(file_content)
                 
                 # Загружаем транзакции для немедленного отображения
-                transactions, daily_categories = load_transactions(StringIO(file_content))
+                transactions = load_transactions_from_content(file_content)
                 
                 if transactions:
+                    # Создаем daily_categories для анализа
+                    daily_categories = defaultdict(lambda: defaultdict(float))
+                    for t in transactions:
+                        date_str = t['date'].strftime("%Y-%m-%d")
+                        daily_categories[date_str][t['category']] += t['amount']
+                    
                     data = analyze(transactions, daily_categories, month)
                     result = format_terminal_output(data, month, len(transactions))
                     
@@ -2155,10 +2235,66 @@ def index():
                     
             except Exception as e:
                 result = f"Error processing file: {str(e)}"
+                import traceback
+                print(f"Error traceback: {traceback.format_exc()}")
         else:
             result = "Invalid file type. Please upload a CSV file."
     
     return render_template_string(HTML, result=result, month=month, filename=filename)
+# @app.route('/', methods=['GET', 'POST'])
+# def index():
+#     result = None
+#     month = None
+#     filename = None
+
+#     if request.method == 'POST':
+#         month = request.form['month'].strip()
+        
+#         if 'file' not in request.files:
+#             return render_template_string(HTML, result="No file uploaded", month=month)
+        
+#         file = request.files['file']
+        
+#         if file.filename == '':
+#             return render_template_string(HTML, result="No file selected", month=month)
+        
+#         if file and allowed_file(file.filename):
+#             try:
+#                 filename = secure_filename(file.filename)
+                
+#                 # Читаем содержимое файла
+#                 file_content = file.read()
+#                 if isinstance(file_content, bytes):
+#                     file_content = file_content.decode('utf-8')
+                
+#                 # Создаем временный файл для фоновой обработки
+#                 temp_dir = tempfile.mkdtemp()
+#                 temp_file_path = os.path.join(temp_dir, f"hsbc_{month.lower()}.csv")
+                
+#                 with open(temp_file_path, 'w', encoding='utf-8') as temp_file:
+#                     temp_file.write(file_content)
+                
+#                 # Загружаем транзакции для немедленного отображения
+#                 transactions, daily_categories = load_transactions(StringIO(file_content))
+                
+#                 if transactions:
+#                     data = analyze(transactions, daily_categories, month)
+#                     result = format_terminal_output(data, month, len(transactions))
+                    
+#                     # Запускаем полную фоновую обработку
+#                     thread = threading.Thread(target=run_full_analysis_with_file, 
+#                                             args=(month, temp_file_path, temp_dir))
+#                     thread.daemon = True
+#                     thread.start()
+#                 else:
+#                     result = f"No valid transactions found in {filename}"
+                    
+#             except Exception as e:
+#                 result = f"Error processing file: {str(e)}"
+#         else:
+#             result = "Invalid file type. Please upload a CSV file."
+    
+#     return render_template_string(HTML, result=result, month=month, filename=filename)
 # def index():
 #     result = None
 #     month = None
