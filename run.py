@@ -3476,8 +3476,26 @@ def write_to_month_sheet(month_name, transactions, data):
         worksheet.update('A2', summary_data)
         
         # Format summary section
+        # worksheet.format('A2:C4', {
+        #     "textFormat": {"bold": True},
+        #     "borders": {
+        #         "top": {"style": "SOLID", "width": 1},
+        #         "bottom": {"style": "SOLID", "width": 1},
+        #         "left": {"style": "SOLID", "width": 1},
+        #         "right": {"style": "SOLID", "width": 1}
+        #     }
+        # })
+        worksheet.format('A2:A4', {
+    "textFormat": {"bold": True}
+})
+
+# Значения summary секции - обычный шрифт
+        worksheet.format('B2:C4', {
+            "textFormat": {"bold": False}
+        })
+
+        # Границы для всей summary секции
         worksheet.format('A2:C4', {
-            "textFormat": {"bold": True},
             "borders": {
                 "top": {"style": "SOLID", "width": 1},
                 "bottom": {"style": "SOLID", "width": 1},
