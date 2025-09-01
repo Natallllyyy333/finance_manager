@@ -2286,6 +2286,53 @@ def index():
             #     result = f"Error: {str(e)}"
     
     # return render_template_string(HTML, result=result, month=month)
+# def run_full_analysis_with_file(month, file_path, temp_dir):
+#     """Полная обработка в фоновом режиме с использованием загруженного файла"""
+#     try:
+#         print(f"🚀 Starting FULL background analysis for {month} with uploaded file")
+        
+#         # Загружаем транзакции из временного файла
+#         transactions, daily_categories = load_transactions(file_path)
+        
+#         if not transactions:
+#             print("No transactions found in uploaded file")
+#             return
+            
+#         data = analyze(transactions, daily_categories, month)
+
+#         # Выводим основные результаты
+#         print(f"{month.upper()} ANALYSIS COMPLETED")
+#         print(f"Income: {data['income']:.2f}€")
+#         print(f"Expenses: {data['expenses']:.2f}€")
+#         print(f"Savings: {data['savings']:.2f}€")
+        
+#         # Запись в лист месяца
+#         print(f"📝 Writing to {month} worksheet...")
+#         write_to_month_sheet(month, transactions, data)
+        
+#         time.sleep(10)
+#         print("⏳ Starting Google Sheets update...")
+        
+#         # Запускаем Google Sheets
+#         table_data = prepare_summary_data(data, transactions)
+#         MONTH_NORMALIZED = get_month_column_name(month)
+#         write_to_target_sheet(table_data, MONTH_NORMALIZED)
+        
+#         print("🎉 All background tasks completed!")
+        
+#     except Exception as e:
+#         print(f"Background analysis error: {e}")
+#         import traceback
+#         print(f"Traceback: {traceback.format_exc()}")
+#     finally:
+#         # Очищаем временные файлы
+#         try:
+#             if os.path.exists(temp_dir):
+#                 shutil.rmtree(temp_dir)
+#                 print(f"Cleaned up temporary directory: {temp_dir}")
+#         except Exception as cleanup_error:
+#             print(f"Error cleaning up temporary files: {cleanup_error}")
+
 def run_full_analysis_with_file(month, file_path, temp_dir):
     """Полная обработка в фоновом режиме с использованием загруженного файла"""
     try:
@@ -2316,6 +2363,8 @@ def run_full_analysis_with_file(month, file_path, temp_dir):
         # Запускаем Google Sheets
         table_data = prepare_summary_data(data, transactions)
         MONTH_NORMALIZED = get_month_column_name(month)
+        
+        # ДОБАВЛЕНО: Вызов функции для записи в SUMMARY
         write_to_target_sheet(table_data, MONTH_NORMALIZED)
         
         print("🎉 All background tasks completed!")
