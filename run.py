@@ -3286,6 +3286,251 @@ def index():
 #                 print(f"Cleaned up temporary directory: {temp_dir}")
 #         except Exception as cleanup_error:
 #             print(f"Error cleaning up temporary files: {cleanup_error}")
+# def write_to_month_sheet(month_name, transactions, data):
+#     """Запись данных в лист месяца в формате как на скриншоте"""
+#     try:
+#         print(f"📊 Writing to {month_name} worksheet...")
+        
+#         # 1. Authentification
+#         creds = get_google_credentials()
+#         if not creds:
+#             print("❌ No credentials for month sheet")
+#             return False
+            
+#         gc = gspread.authorize(creds)
+#         sh = gc.open("Personal Finances")
+        
+#         # 2. Get or create worksheet
+#         try:
+#             worksheet = sh.worksheet(month_name)
+#             print(f"✅ Worksheet '{month_name}' found")
+#         except gspread.WorksheetNotFound:
+#             print(f"📝 Creating new worksheet '{month_name}'...")
+#             worksheet = sh.add_worksheet(title=month_name, rows="100", cols="20")
+#             print(f"✅ Worksheet '{month_name}' created")
+        
+#         # 3. Clear existing data
+#         worksheet.clear()
+#         time.sleep(2)
+        
+#         # 4. Create the layout as shown in the screenshot
+#         # Financial Overview header
+#         worksheet.update('A6', [['FINANCIAL OVERVIEW']])
+#         worksheet.merge_cells('A6:E6')
+#         worksheet.format('A6', {
+#             "textFormat": {"bold": True, "fontSize": 14},
+#             "horizontalAlignment": "CENTER"
+#         })
+        
+#         worksheet.format("A1:Z100", {"horizontalAlignment": "CENTER"})
+#         worksheet.format("A1:Z100", {
+#         "padding": {
+#             "top": 8,
+#             "right": 12,
+#             "bottom": 8,
+#             "left": 12
+#         }
+#     })
+ 
+        
+#         # Table headers
+#         headers = ["Date", "Description", "Amount", "Type", "Category"]
+#         worksheet.update('A7', [headers])
+#         worksheet.format('A7:E7', {
+#             "textFormat": {"bold": True, "fontSize": 12},
+#             "backgroundColor": {"red": 0.9, "green": 0.9, "blue": 0.9},
+#             "borders": {
+#                 "top": {"style": "SOLID", "width": 1},
+#                 "bottom": {"style": "SOLID", "width": 1},
+#                 "left": {"style": "SOLID", "width": 1},
+#                 "right": {"style": "SOLID", "width": 1}
+#             }
+#         })
+        
+#         # Write transactions
+#         all_data = []
+#         for t in transactions:
+#             all_data.append([t['date'], t['desc'][:30], t['amount'], t['type'], t['category']])
+        
+#         if all_data:
+#             worksheet.update('A8', all_data)
+        
+#         # Format transaction table
+#         last_transaction_row = 7 + len(transactions)
+#         worksheet.format(f'A8:E{last_transaction_row}', {
+#             "borders": {
+#                 "top": {"style": "SOLID", "width": 1},
+#                 "bottom": {"style": "SOLID", "width": 1},
+#                 "left": {"style": "SOLID", "width": 1},
+#                 "right": {"style": "SOLID", "width": 1}
+#             }
+#         })
+        
+#         # Format currency columns
+#         worksheet.format(f'C8:C{last_transaction_row}', {
+#             "numberFormat": {"type": "CURRENCY", "pattern": "€#,##0.00"}
+#         })
+        
+#         # Transaction Categories header
+#         worksheet.update('G6', [['TRANSACTION CATEGORIES']])
+#         worksheet.merge_cells('G6:I6')
+#         worksheet.format('G6', {
+#             "textFormat": {"bold": True, "fontSize": 14},
+#             "horizontalAlignment": "CENTER"
+#         })
+        
+#         # Categories table headers
+#         category_headers = ["Category", "Amount", "Percentage"]
+#         worksheet.update('G7', [category_headers])
+#         worksheet.format('G7:I7', {
+#             "textFormat": {"bold": True, "fontSize": 12},
+#             "backgroundColor": {"red": 0.9, "green": 0.9, "blue": 0.9},
+#             "borders": {
+#                 "top": {"style": "SOLID", "width": 1},
+#                 "bottom": {"style": "SOLID", "width": 1},
+#                 "left": {"style": "SOLID", "width": 1},
+#                 "right": {"style": "SOLID", "width": 1}
+#             }
+#         })
+        
+#         # Prepare and write category data
+#         table_data = prepare_summary_data(data, transactions)
+#         category_data = []
+#         for row in table_data:
+#             if row[0] and row[0] not in ['', 'INCOME CATEGORIES:', 'EXPENSE CATEGORIES:']:
+#                 category_data.append([row[0], row[1], row[2]])
+        
+#         if category_data:
+#             worksheet.update('G8', category_data)
+        
+#         # Format category table
+#         last_category_row = 7 + len(category_data)
+#         worksheet.format(f'G8:I{last_category_row}', {
+#             "borders": {
+#                 "top": {"style": "SOLID", "width": 1},
+#                 "bottom": {"style": "SOLID", "width": 1},
+#                 "left": {"style": "SOLID", "width": 1},
+#                 "right": {"style": "SOLID", "width": 1}
+#             }
+#         })
+        
+#         # Format currency and percentage columns
+#         worksheet.format(f'H8:H{last_category_row}', {
+#             "numberFormat": {"type": "CURRENCY", "pattern": "€#,##0.00"}
+#         })
+#         worksheet.format(f'I8:I{last_category_row}', {
+#             "numberFormat": {"type": "PERCENT", "pattern": "0.00%"}
+#         })
+        
+#         # Daily Recommendations header
+#         worksheet.update('K6', [['DAILY RECOMMENDATIONS']])
+#         worksheet.merge_cells('K6:L6')
+#         worksheet.format('K6', {
+#             "textFormat": {"bold": True, "fontSize": 14},
+#             "horizontalAlignment": "CENTER"
+#         })
+        
+#         # Recommendations headers
+#         rec_headers = ["Priority", "Recommendation"]
+#         worksheet.update('K7', [rec_headers])
+#         worksheet.format('K7:L7', {
+#             "textFormat": {"bold": True, "fontSize": 12},
+#             "backgroundColor": {"red": 0.9, "green": 0.9, "blue": 0.9},
+#             "borders": {
+#                 "top": {"style": "SOLID", "width": 1},
+#                 "bottom": {"style": "SOLID", "width": 1},
+#                 "left": {"style": "SOLID", "width": 1},
+#                 "right": {"style": "SOLID", "width": 1}
+#             }
+#         })
+        
+#         # Write recommendations
+#         recommendations = generate_daily_recommendations(data)
+#         rec_data = []
+#         for i, rec in enumerate(recommendations, 1):
+#             rec_data.append([f"{i}", rec])
+        
+#         if rec_data:
+#             worksheet.update('K8', rec_data)
+        
+#         # Format recommendations table
+#         last_rec_row = 7 + len(rec_data)
+#         worksheet.format(f'K8:L{last_rec_row}', {
+#             "borders": {
+#                 "top": {"style": "SOLID", "width": 1},
+#                 "bottom": {"style": "SOLID", "width": 1},
+#                 "left": {"style": "SOLID", "width": 1},
+#                 "right": {"style": "SOLID", "width": 1}
+#             },
+#             "wrapStrategy": "WRAP"
+#         })
+#          # Calculate percentages
+#         expense_percentage = (data['expenses'] / data['income']) if data['income'] > 0 else 0
+#         savings_percentage = (data['savings'] / data['income']) if data['income'] > 0 else 0
+#         # Summary section at the top
+#         summary_data = [
+#             ["Total Income:", data['income'], 1.0],
+#             ["Total Expenses:", data['expenses'], expense_percentage],
+#             ["Savings:", data['savings'], savings_percentage]
+#         ]
+#         worksheet.update('A2', summary_data)
+        
+#         # Format summary section
+#         # worksheet.format('A2:C4', {
+#         #     "textFormat": {"bold": True},
+#         #     "borders": {
+#         #         "top": {"style": "SOLID", "width": 1},
+#         #         "bottom": {"style": "SOLID", "width": 1},
+#         #         "left": {"style": "SOLID", "width": 1},
+#         #         "right": {"style": "SOLID", "width": 1}
+#         #     }
+#         # })
+#         worksheet.format('A2:A4', {
+#     "textFormat": {"bold": True}
+# })
+
+# # Значения summary секции - обычный шрифт
+#         worksheet.format('B2:B4', {
+#             "textFormat": {"bold": False}
+#         })
+#         worksheet.format('C2:C4', {
+#             "textFormat": {"bold": False}
+#         })
+
+#         # Границы для всей summary секции
+#         worksheet.format('A2:C4', {
+#             "borders": {
+#                 "top": {"style": "SOLID", "width": 1},
+#                 "bottom": {"style": "SOLID", "width": 1},
+#                 "left": {"style": "SOLID", "width": 1},
+#                 "right": {"style": "SOLID", "width": 1}
+#             }
+#         })
+        
+#         worksheet.format('B2:B4', {
+#             "numberFormat": {"type": "CURRENCY", "pattern": "€#,##0.00"}
+#         })
+#         worksheet.format('C2:C4', {'numberFormat': {'type': 'PERCENT', 'pattern': '0.00%'}})
+#         # Set column widths to match the screenshot
+#         set_column_width(worksheet, 'A', 100)  # Date
+#         set_column_width(worksheet, 'B', 200)  # Description
+#         set_column_width(worksheet, 'C', 80)   # Amount
+#         set_column_width(worksheet, 'D', 80)   # Type
+#         set_column_width(worksheet, 'E', 100)  # Category
+#         set_column_width(worksheet, 'G', 150)  # Category name
+#         set_column_width(worksheet, 'H', 80)   # Amount
+#         set_column_width(worksheet, 'I', 100)   # Percentage
+#         set_column_width(worksheet, 'K', 70)   # Priority
+#         set_column_width(worksheet, 'L', 300)  # Recommendation
+        
+#         print(f"✅ Successfully formatted {month_name} worksheet to match screenshot")
+#         return True
+        
+#     except Exception as e:
+#         print(f"❌ Error writing to {month_name} worksheet: {e}")
+#         import traceback
+#         print(f"🔍 Traceback: {traceback.format_exc()}")
+#         return False
 def write_to_month_sheet(month_name, transactions, data):
     """Запись данных в лист месяца в формате как на скриншоте"""
     try:
@@ -3322,17 +3567,6 @@ def write_to_month_sheet(month_name, transactions, data):
             "horizontalAlignment": "CENTER"
         })
         
-        worksheet.format("A1:Z100", {"horizontalAlignment": "CENTER"})
-        worksheet.format("A1:Z100", {
-        "padding": {
-            "top": 8,
-            "right": 12,
-            "bottom": 8,
-            "left": 12
-        }
-    })
- 
-        
         # Table headers
         headers = ["Date", "Description", "Amount", "Type", "Category"]
         worksheet.update('A7', [headers])
@@ -3355,9 +3589,12 @@ def write_to_month_sheet(month_name, transactions, data):
         if all_data:
             worksheet.update('A8', all_data)
         
-        # Format transaction table
+        # Format transaction table with alternating column backgrounds
         last_transaction_row = 7 + len(transactions)
-        worksheet.format(f'A8:E{last_transaction_row}', {
+        
+        # Column A (Date) - светло-серый фон
+        worksheet.format(f'A8:A{last_transaction_row}', {
+            "backgroundColor": {"red": 0.95, "green": 0.95, "blue": 0.95},
             "borders": {
                 "top": {"style": "SOLID", "width": 1},
                 "bottom": {"style": "SOLID", "width": 1},
@@ -3366,9 +3603,49 @@ def write_to_month_sheet(month_name, transactions, data):
             }
         })
         
-        # Format currency columns
+        # Column B (Description) - белый фон
+        worksheet.format(f'B8:B{last_transaction_row}', {
+            "backgroundColor": {"red": 1.0, "green": 1.0, "blue": 1.0},
+            "borders": {
+                "top": {"style": "SOLID", "width": 1},
+                "bottom": {"style": "SOLID", "width": 1},
+                "left": {"style": "SOLID", "width": 1},
+                "right": {"style": "SOLID", "width": 1}
+            }
+        })
+        
+        # Column C (Amount) - светло-серый фон
         worksheet.format(f'C8:C{last_transaction_row}', {
+            "backgroundColor": {"red": 0.95, "green": 0.95, "blue": 0.95},
+            "borders": {
+                "top": {"style": "SOLID", "width": 1},
+                "bottom": {"style": "SOLID", "width": 1},
+                "left": {"style": "SOLID", "width": 1},
+                "right": {"style": "SOLID", "width": 1}
+            },
             "numberFormat": {"type": "CURRENCY", "pattern": "€#,##0.00"}
+        })
+        
+        # Column D (Type) - белый фон
+        worksheet.format(f'D8:D{last_transaction_row}', {
+            "backgroundColor": {"red": 1.0, "green": 1.0, "blue": 1.0},
+            "borders": {
+                "top": {"style": "SOLID", "width": 1},
+                "bottom": {"style": "SOLID", "width": 1},
+                "left": {"style": "SOLID", "width": 1},
+                "right": {"style": "SOLID", "width": 1}
+            }
+        })
+        
+        # Column E (Category) - светло-серый фон
+        worksheet.format(f'E8:E{last_transaction_row}', {
+            "backgroundColor": {"red": 0.95, "green": 0.95, "blue": 0.95},
+            "borders": {
+                "top": {"style": "SOLID", "width": 1},
+                "bottom": {"style": "SOLID", "width": 1},
+                "left": {"style": "SOLID", "width": 1},
+                "right": {"style": "SOLID", "width": 1}
+            }
         })
         
         # Transaction Categories header
@@ -3403,9 +3680,12 @@ def write_to_month_sheet(month_name, transactions, data):
         if category_data:
             worksheet.update('G8', category_data)
         
-        # Format category table
+        # Format category table with alternating column backgrounds
         last_category_row = 7 + len(category_data)
-        worksheet.format(f'G8:I{last_category_row}', {
+        
+        # Column G (Category) - светло-серый фон
+        worksheet.format(f'G8:G{last_category_row}', {
+            "backgroundColor": {"red": 0.95, "green": 0.95, "blue": 0.95},
             "borders": {
                 "top": {"style": "SOLID", "width": 1},
                 "bottom": {"style": "SOLID", "width": 1},
@@ -3414,11 +3694,27 @@ def write_to_month_sheet(month_name, transactions, data):
             }
         })
         
-        # Format currency and percentage columns
+        # Column H (Amount) - белый фон
         worksheet.format(f'H8:H{last_category_row}', {
+            "backgroundColor": {"red": 1.0, "green": 1.0, "blue": 1.0},
+            "borders": {
+                "top": {"style": "SOLID", "width": 1},
+                "bottom": {"style": "SOLID", "width": 1},
+                "left": {"style": "SOLID", "width": 1},
+                "right": {"style": "SOLID", "width": 1}
+            },
             "numberFormat": {"type": "CURRENCY", "pattern": "€#,##0.00"}
         })
+        
+        # Column I (Percentage) - светло-серый фон
         worksheet.format(f'I8:I{last_category_row}', {
+            "backgroundColor": {"red": 0.95, "green": 0.95, "blue": 0.95},
+            "borders": {
+                "top": {"style": "SOLID", "width": 1},
+                "bottom": {"style": "SOLID", "width": 1},
+                "left": {"style": "SOLID", "width": 1},
+                "right": {"style": "SOLID", "width": 1}
+            },
             "numberFormat": {"type": "PERCENT", "pattern": "0.00%"}
         })
         
@@ -3453,9 +3749,23 @@ def write_to_month_sheet(month_name, transactions, data):
         if rec_data:
             worksheet.update('K8', rec_data)
         
-        # Format recommendations table
+        # Format recommendations table with alternating column backgrounds
         last_rec_row = 7 + len(rec_data)
-        worksheet.format(f'K8:L{last_rec_row}', {
+        
+        # Column K (Priority) - светло-серый фон
+        worksheet.format(f'K8:K{last_rec_row}', {
+            "backgroundColor": {"red": 0.95, "green": 0.95, "blue": 0.95},
+            "borders": {
+                "top": {"style": "SOLID", "width": 1},
+                "bottom": {"style": "SOLID", "width": 1},
+                "left": {"style": "SOLID", "width": 1},
+                "right": {"style": "SOLID", "width": 1}
+            }
+        })
+        
+        # Column L (Recommendation) - белый фон
+        worksheet.format(f'L8:L{last_rec_row}', {
+            "backgroundColor": {"red": 1.0, "green": 1.0, "blue": 1.0},
             "borders": {
                 "top": {"style": "SOLID", "width": 1},
                 "bottom": {"style": "SOLID", "width": 1},
@@ -3464,9 +3774,11 @@ def write_to_month_sheet(month_name, transactions, data):
             },
             "wrapStrategy": "WRAP"
         })
-         # Calculate percentages
+        
+        # Calculate percentages
         expense_percentage = (data['expenses'] / data['income']) if data['income'] > 0 else 0
         savings_percentage = (data['savings'] / data['income']) if data['income'] > 0 else 0
+        
         # Summary section at the top
         summary_data = [
             ["Total Income:", data['income'], 1.0],
@@ -3475,30 +3787,10 @@ def write_to_month_sheet(month_name, transactions, data):
         ]
         worksheet.update('A2', summary_data)
         
-        # Format summary section
-        # worksheet.format('A2:C4', {
-        #     "textFormat": {"bold": True},
-        #     "borders": {
-        #         "top": {"style": "SOLID", "width": 1},
-        #         "bottom": {"style": "SOLID", "width": 1},
-        #         "left": {"style": "SOLID", "width": 1},
-        #         "right": {"style": "SOLID", "width": 1}
-        #     }
-        # })
+        # Format summary section with alternating backgrounds
         worksheet.format('A2:A4', {
-    "textFormat": {"bold": True}
-})
-
-# Значения summary секции - обычный шрифт
-        worksheet.format('B2:B4', {
-            "textFormat": {"bold": False}
-        })
-        worksheet.format('C2:C4', {
-            "textFormat": {"bold": False}
-        })
-
-        # Границы для всей summary секции
-        worksheet.format('A2:C4', {
+            "textFormat": {"bold": True},
+            "backgroundColor": {"red": 0.95, "green": 0.95, "blue": 0.95},
             "borders": {
                 "top": {"style": "SOLID", "width": 1},
                 "bottom": {"style": "SOLID", "width": 1},
@@ -3508,9 +3800,29 @@ def write_to_month_sheet(month_name, transactions, data):
         })
         
         worksheet.format('B2:B4', {
+            "textFormat": {"bold": False},
+            "backgroundColor": {"red": 1.0, "green": 1.0, "blue": 1.0},
+            "borders": {
+                "top": {"style": "SOLID", "width": 1},
+                "bottom": {"style": "SOLID", "width": 1},
+                "left": {"style": "SOLID", "width": 1},
+                "right": {"style": "SOLID", "width": 1}
+            },
             "numberFormat": {"type": "CURRENCY", "pattern": "€#,##0.00"}
         })
-        worksheet.format('C2:C4', {'numberFormat': {'type': 'PERCENT', 'pattern': '0.00%'}})
+        
+        worksheet.format('C2:C4', {
+            "textFormat": {"bold": False},
+            "backgroundColor": {"red": 0.95, "green": 0.95, "blue": 0.95},
+            "borders": {
+                "top": {"style": "SOLID", "width": 1},
+                "bottom": {"style": "SOLID", "width": 1},
+                "left": {"style": "SOLID", "width": 1},
+                "right": {"style": "SOLID", "width": 1}
+            },
+            "numberFormat": {"type": "PERCENT", "pattern": "0.00%"}
+        })
+        
         # Set column widths to match the screenshot
         set_column_width(worksheet, 'A', 100)  # Date
         set_column_width(worksheet, 'B', 200)  # Description
@@ -3519,7 +3831,7 @@ def write_to_month_sheet(month_name, transactions, data):
         set_column_width(worksheet, 'E', 100)  # Category
         set_column_width(worksheet, 'G', 150)  # Category name
         set_column_width(worksheet, 'H', 80)   # Amount
-        set_column_width(worksheet, 'I', 100)   # Percentage
+        set_column_width(worksheet, 'I', 100)  # Percentage
         set_column_width(worksheet, 'K', 70)   # Priority
         set_column_width(worksheet, 'L', 300)  # Recommendation
         
@@ -3531,7 +3843,7 @@ def write_to_month_sheet(month_name, transactions, data):
         import traceback
         print(f"🔍 Traceback: {traceback.format_exc()}")
         return False
-    
+        
 def run_full_analysis(month):
     """Полная обработка в фоновом режиме"""
     try:
