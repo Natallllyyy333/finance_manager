@@ -1385,7 +1385,28 @@ def main():
 if "DYNO" in os.environ:
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
-    HTML = '''
+else:
+        # Локальный режим
+        print(f" PERSONAL FINANCE ANALYZER ")
+        MONTH = input("Enter the month (e.g. 'March, April, May'): ").strip().lower()
+        FILE = f"hsbc_{MONTH}.csv"
+        print(f"Loading file: {FILE}")
+
+        transactions, daily_categories = load_transactions(FILE)
+        if not transactions:
+            print(f"No transactions found")
+            import sys
+            sys.exit(1)
+            
+        data = analyze(transactions, daily_categories, MONTH)
+        terminal_visualization(data)
+        
+        # Recommendations
+        print(f"DAILY SPENDING RECOMMENDATIONS: ")
+        for i, rec in enumerate(generate_daily_recommendations(data), 1):
+            print(f"{i}. {rec}")
+
+HTML = '''
 <!DOCTYPE html>
 <html>
 <head>
@@ -1665,20 +1686,58 @@ if "DYNO" in os.environ:
 </body>
 </html>
 '''
-else:
-     # Локальный режим - используем существующую логику
-        print(f" PERSONAL FINANCE ANALYZER ".center(77, "="))
-        MONTH = input("Enter the month (e.g. 'March, April, May'): ").strip().lower()
-        FILE = f"hsbc_{MONTH}.csv"
-        print(f"Loading file: {FILE}")
+@app.route('/', methods=['GET', 'POST'])
+def index():
+    result = None
+    month = None
+    filename = None
 
-        transactions, daily_categories = load_transactions(FILE)
-        if not transactions:
-            print(f"No transactions found")
-            
-            
-        data = analyze(transactions, daily_categories, MONTH)
-        terminal_visualization(data)
+    if request.method == 'POST':
+        month = request.form['month'].strip()
+        
+        # Проверяем, был ли загружен файл
+        if 'file' not in request.files:
+            return render_template_string(HTML, result="No file uploaded", month=month)
+        
+        file = request.files['file']
+        
+        if file.filename == '':
+            return render_template_string(HTML, result="No file selected", month=month)
+        
+        if file and allowed_file(file.filename):
+            try:
+                filename = secure_filename(file.filename)
+                
+                # Используем файловый объект напрямую
+                file.seek(0)  # Перемещаемся в начало файла
+                
+                # Загружаем транзакции из загруженного файла
+                transactions, daily_categories = load_transactions(file)
+                
+                if transactions:
+                    data = analyze(transactions, daily_categories, month)
+                    result = format_terminal_output(data, month, len(transactions))
+                    
+                    # Сохраняем файл временно для фоновой обработки
+                    temp_dir = tempfile.mkdtemp()
+                    temp_file_path = os.path.join(temp_dir, f"hsbc_{month.lower()}.csv")
+                    file.seek(0)  # Снова перемещаемся в начало
+                    file.save(temp_file_path)
+                    
+                    # Запускаем полную фоновую обработку
+                    thread = threading.Thread(target=run_full_analysis_with_file, 
+                                            args=(month, temp_file_path, temp_dir))
+                    thread.daemon = True
+                    thread.start()
+                else:
+                    result = f"No valid transactions found in {filename}"
+                    
+            except Exception as e:
+                result = f"Error processing file: {str(e)}"
+        else:
+            result = "Invalid file type. Please upload a CSV file."
+    
+    return render_template_string(HTML, result=result, month=month, filename=filename)
         
     # Режим Heroku - запускаем как веб-приложение
     
@@ -1822,59 +1881,59 @@ else:
         
     
 
-@app.route('/', methods=['GET', 'POST'])
-def index():
-    result = None
-    month = None
-    filename = None
+# @app.route('/', methods=['GET', 'POST'])
+# def index():
+#     result = None
+#     month = None
+#     filename = None
 
-    if request.method == 'POST':
-        month = request.form['month'].strip()
-        if 'file' not in request.files:
-            return render_template_string(HTML, result="No file uploaded", month=month)
+#     if request.method == 'POST':
+#         month = request.form['month'].strip()
+#         if 'file' not in request.files:
+#             return render_template_string(HTML, result="No file uploaded", month=month)
         
-        file = request.files['file']
+#         file = request.files['file']
         
-        if file.filename == '':
-            return render_template_string(HTML, result="No file selected", month=month)
+#         if file.filename == '':
+#             return render_template_string(HTML, result="No file selected", month=month)
         
-        if file and allowed_file(file.filename):
-            try:
-                filename = secure_filename(file.filename)
+#         if file and allowed_file(file.filename):
+#             try:
+#                 filename = secure_filename(file.filename)
                 
-                # Создаем временный файл или используем файловый объект напрямую
-                file.seek(0)  # Перемещаемся в начало файла
+#                 # Создаем временный файл или используем файловый объект напрямую
+#                 file.seek(0)  # Перемещаемся в начало файла
                 
-                # Загружаем транзакции из загруженного файла
-                transactions, daily_categories = load_transactions(file)
+#                 # Загружаем транзакции из загруженного файла
+#                 transactions, daily_categories = load_transactions(file)
         
                
-                FILE = f"hsbc_{month.lower()}.csv"
-                transactions, daily_categories = load_transactions(FILE)
+#                 FILE = f"hsbc_{month.lower()}.csv"
+#                 transactions, daily_categories = load_transactions(FILE)
             
-                if transactions:
-                    data = analyze(transactions, daily_categories, month)
-                    result = format_terminal_output(data, month, len(transactions))
+#                 if transactions:
+#                     data = analyze(transactions, daily_categories, month)
+#                     result = format_terminal_output(data, month, len(transactions))
 
-                    # Сохраняем файл временно для фоновой обработки
-                    temp_dir = tempfile.mkdtemp()
-                    temp_file_path = os.path.join(temp_dir, f"hsbc_{month.lower()}.csv")
-                    file.seek(0)  # Снова перемещаемся в начало
-                    file.save(temp_file_path)
+#                     # Сохраняем файл временно для фоновой обработки
+#                     temp_dir = tempfile.mkdtemp()
+#                     temp_file_path = os.path.join(temp_dir, f"hsbc_{month.lower()}.csv")
+#                     file.seek(0)  # Снова перемещаемся в начало
+#                     file.save(temp_file_path)
                     
-                    # Запускаем полную фоновую обработку
-                    thread = threading.Thread(target=run_full_analysis_with_file, 
-                                            args=(month, temp_file_path, temp_dir))
-                    thread.daemon = True
-                    thread.start()
-                else:
-                    result = f"No valid transactions found in {filename}"
-            except Exception as e:
-                result = f"Error processing file: {str(e)}"
-        else:
-            result = "Invalid file type. Please upload a CSV file."
+#                     # Запускаем полную фоновую обработку
+#                     thread = threading.Thread(target=run_full_analysis_with_file, 
+#                                             args=(month, temp_file_path, temp_dir))
+#                     thread.daemon = True
+#                     thread.start()
+#                 else:
+#                     result = f"No valid transactions found in {filename}"
+#             except Exception as e:
+#                 result = f"Error processing file: {str(e)}"
+#         else:
+#             result = "Invalid file type. Please upload a CSV file."
     
-    return render_template_string(HTML, result=result, month=month, filename=filename)
+#     return render_template_string(HTML, result=result, month=month, filename=filename)
 
 
 
