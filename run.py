@@ -3127,7 +3127,7 @@ def write_to_month_sheet(month_name, transactions, data):
         worksheet.format('B2:B4', {
             "numberFormat": {"type": "CURRENCY", "pattern": "€#,##0.00"}
         })
-        
+        worksheet.format('C2:C4', {'numberFormat': {'type': 'PERCENT', 'pattern': '0.00%'}})
         # Set column widths to match the screenshot
         set_column_width(worksheet, 'A', 100)  # Date
         set_column_width(worksheet, 'B', 200)  # Description
