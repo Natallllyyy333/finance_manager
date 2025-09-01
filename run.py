@@ -227,48 +227,88 @@ def get_google_credentials():
         from google.oauth2 import service_account
         return service_account.Credentials.from_service_account_file('creds.json')
     
-
-
 def load_transactions(file_path_or_object):
-        """Load and categorize transactions with daily tracking"""
-        transactions = []
-        daily_categories = defaultdict(lambda: defaultdict(float))
-        try:
+    """Load and categorize transactions with daily tracking"""
+    transactions = []
+    daily_categories = defaultdict(lambda: defaultdict(float))
+    try:
         # Определяем, является ли вход файловым объектом или путем
-            if hasattr(file_path_or_object, 'read'):
+        if hasattr(file_path_or_object, 'read'):
             # Это файловый объект
-                file_content = file_path_or_object.read().decode('utf-8')
-                file_lines = file_content.splitlines()
-                reader = csv.reader(file_lines)
-            else:
+            file_content = file_path_or_object.read().decode('utf-8')
+            file_lines = file_content.splitlines()
+            reader = csv.reader(file_lines)
+        else:
             # Это путь к файлу
-                with open(file_path_or_object, 'r', encoding='utf-8') as f:
-                    reader = csv.reader(f)
+            with open(file_path_or_object, 'r', encoding='utf-8') as f:
+                reader = csv.reader(f)
         
-            for row in reader:
-                if len(row) < 5:
-                    continue
-                try:
-                    amount = float(row[2])
-                    category = categorize(row[1])
-                    date = row[0]
-                    transactions.append({
-                        'date': date,
-                        'desc': row[1][:30],
-                        'amount': amount,
-                        'type': 'income' if row[4] == 'Credit' else 'expense',
-                        'category': category
-                    })
-                    if row[4] != 'Credit':
-                        daily_categories[date][category] += amount
-                except ValueError:
-                    continue  # Skip rows with invalid data
+        for row in reader:
+            if len(row) < 5:
+                continue
+            try:
+                amount = float(row[2])
+                category = categorize(row[1])
+                date = row[0]
+                transactions.append({
+                    'date': date,
+                    'desc': row[1][:30],
+                    'amount': amount,
+                    'type': 'income' if row[4] == 'Credit' else 'expense',
+                    'category': category
+                })
+                if row[4] != 'Credit':
+                    daily_categories[date][category] += amount
+            except ValueError:
+                continue  # Skip rows with invalid data
                 
-        except Exception as e:
-                print(f"Error loading transactions: {e}")
+    except Exception as e:
+        print(f"Error loading transactions: {e}")
         return [], defaultdict(lambda: defaultdict(float))
         
-        return transactions, daily_categories
+    return transactions, daily_categories
+
+# def load_transactions(file_path_or_object):
+#         """Load and categorize transactions with daily tracking"""
+#         transactions = []
+#         daily_categories = defaultdict(lambda: defaultdict(float))
+#         try:
+#         # Определяем, является ли вход файловым объектом или путем
+#             if hasattr(file_path_or_object, 'read'):
+#             # Это файловый объект
+#                 file_content = file_path_or_object.read().decode('utf-8')
+#                 file_lines = file_content.splitlines()
+#                 reader = csv.reader(file_lines)
+#             else:
+#             # Это путь к файлу
+#                 with open(file_path_or_object, 'r', encoding='utf-8') as f:
+#                     reader = csv.reader(f)
+        
+#             for row in reader:
+#                 if len(row) < 5:
+#                     continue
+#                 try:
+#                     amount = float(row[2])
+#                     category = categorize(row[1])
+#                     date = row[0]
+#                     transactions.append({
+#                         'date': date,
+#                         'desc': row[1][:30],
+#                         'amount': amount,
+#                         'type': 'income' if row[4] == 'Credit' else 'expense',
+#                         'category': category
+#                     })
+#                     if row[4] != 'Credit':
+#                         daily_categories[date][category] += amount
+#                 except ValueError:
+#                     continue  # Skip rows with invalid data
+                
+#         except Exception as e:
+#                 print(f"Error loading transactions: {e}")
+#         return [], defaultdict(lambda: defaultdict(float))
+        
+#         return transactions, daily_categories
+# ---
         # try:
         #     with open(filename, 'r', encoding='utf-8') as f:
         #         for row in csv.reader(f):
@@ -939,115 +979,122 @@ def write_to_target_sheet(table_data, month_name):
     #     return False
 
 
-def main():
+# def main():
     
-    # print(f" PERSONAL FINANCE ANALYZER ".center(77, "="))
-    MONTH = input(
-        "Enter the month (e.g. 'March, April, May'): ").strip().lower()
-    FILE = f"hsbc_{MONTH}.csv"
-    # print(f"Loading file: {FILE}")
+#     # print(f" PERSONAL FINANCE ANALYZER ".center(77, "="))
+#     MONTH = input(
+#         "Enter the month (e.g. 'March, April, May'): ").strip().lower()
+#     FILE = f"hsbc_{MONTH}.csv"
+#     # print(f"Loading file: {FILE}")
 
-    transactions, daily_categories = load_transactions(FILE)
-    if not transactions:
-        print(f"No transactions found")
-        return
-    data = analyze(transactions, daily_categories, MONTH)
-    terminal_visualization(data)
-    # Recommendations
-    print(f"DAILY SPENDING RECOMMENDATIONS: ")
-    for i, rec in enumerate(generate_daily_recommendations(data), 1):
-        print(f"{i}. {rec}")
-    # Optional Google Sheets update
-    try:
-        # Authenticate and open Google Sheets
-        creds = get_google_credentials()
-        gc = gspread.authorize(creds)
-        sh = gc.open("Personal Finances")
-        # Check if worksheet exists
-        worksheet = None
-        try:
-            worksheet = sh.worksheet(MONTH)
-            print(f"\n"+ f"Worksheet '{MONTH}' found. Updating...")
-        except gspread.WorksheetNotFound:
-            print(f"Worksheet for {MONTH} not found. Creating a new one...")
-            # First check if we've reached the sheet limit (max 200 sheets)
-            if len(sh.worksheets()) >= 200:
-                raise Exception("Maximum number of sheets (200) reached")
-            """Check if sheet exists but with
-            different case (e.g. "march" vs "March")"""
-            existing_sheets = [ws.title for ws in sh.worksheets()]
-            if MONTH.lower() in [sheet.lower() for sheet in existing_sheets]:
-                # Find the existing sheet with case-insensitive match
-                for sheet in sh.worksheets():
-                    if sheet.title.lower() == MONTH.lower():
-                        worksheet = sheet
-                        print(
-                            f"Using existing worksheet '{sheet.title}'"
-                            f"(case difference)")
-                        break
-            else:
-                # Create new worksheet with unique name if needed
-                try:
-                    worksheet = sh.add_worksheet(
-                        title=MONTH, rows="100", cols="20")
-                    print(f"New worksheet '{MONTH}' created successfully.")
-                except gspread.exceptions.APIError as e:
-                    if "already exists" in str(e):
-                        """If we get here, it means the sheet
-                        exists but wasn't found earlier"""
-                        worksheet = sh.worksheet(MONTH)
-                        print(f"Worksheet '{MONTH}' exists. Using it.")
-                    else:
-                        raise e
-        if worksheet is None:
-            raise Exception("Failed to access or create worksheet")
-        # Clear existing data (keep headers)
-        all_values = worksheet.get_all_values()
-        if len(all_values) > 1:
-            worksheet.delete_rows(1, len(all_values)+1)
-        time.sleep(20)
-        all_data = [["Date", "Description", "Amount", "Type", "Category"]]
-        for t in transactions:
-            all_data.append([t['date'], t['desc'][:50],
-                            t['amount'], t['type'], t['category']])
-        worksheet.update('A7', all_data)
-        time.sleep(3)
-        total_income = sum(t['amount']
-                        for t in transactions if t['type'] == 'income')
-        total_expense = sum(t['amount']
-                            for t in transactions if t['type'] == 'expense')
-        savings = total_income - total_expense
-        expense_rate = (
-            total_expense / total_income) if total_income > 0 else 0
-        savings_rate = (
-            savings / total_income) if total_income > 0 else 0
-        # Группируем все операции форматирования
-        try:
-            format_operations = [
-                ('B2:B4', {
-                    'numberFormat': {'type': 'CURRENCY', 'pattern': '€#,##0.00'},
-                    "textFormat": {'bold': True, 'fontSize': 12}
-                }),
-                ('C8:C31', {'numberFormat': {'type': 'CURRENCY', 'pattern': '€#,##0.00'}}),
-                ('A7:E7', {
-                    "textFormat": {'bold': True, 'fontSize': 12},
-                    "backgroundColor": {"red": 0.9, "green": 0.9, "blue": 0.9}
-                }),
-                ('C2:C4', {'numberFormat': {'type': 'PERCENT', 'pattern': '0%'}}),
-                ('G7:I7', {
-                    "textFormat": {"bold": True, "fontSize": 12},
-                    "backgroundColor": {"red": 0.9, "green": 0.9, "blue": 0.9}
-                }),
-                (f'H8:H{end_row}', {"numberFormat": {"type": "CURRENCY", "pattern": "€#,##0.00"}}),
-                (f'I8:I{end_row}', {"numberFormat": {"type": "PERCENT", "pattern": "0.00%"}})
-            ]
+#     transactions, daily_categories = load_transactions(FILE)
+#     if not transactions:
+#         print(f"No transactions found")
+#         return
+#     data = analyze(transactions, daily_categories, MONTH)
+#     terminal_visualization(data)
+#     # Recommendations
+#     print(f"DAILY SPENDING RECOMMENDATIONS: ")
+#     for i, rec in enumerate(generate_daily_recommendations(data), 1):
+#         print(f"{i}. {rec}")
+#     # Optional Google Sheets update
+#     try:
+#         # Authenticate and open Google Sheets
+#         creds = get_google_credentials()
+#         gc = gspread.authorize(creds)
+#         sh = gc.open("Personal Finances")
+#         # Check if worksheet exists
+#         worksheet = None
+#         try:
+#             worksheet = sh.worksheet(MONTH)
+#             print(f"\n"+ f"Worksheet '{MONTH}' found. Updating...")
+#         except gspread.WorksheetNotFound:
+#             print(f"Worksheet for {MONTH} not found. Creating a new one...")
+#             # First check if we've reached the sheet limit (max 200 sheets)
+#             if len(sh.worksheets()) >= 200:
+#                 raise Exception("Maximum number of sheets (200) reached")
+#             """Check if sheet exists but with
+#             different case (e.g. "march" vs "March")"""
+#             existing_sheets = [ws.title for ws in sh.worksheets()]
+#             if MONTH.lower() in [sheet.lower() for sheet in existing_sheets]:
+#                 # Find the existing sheet with case-insensitive match
+#                 for sheet in sh.worksheets():
+#                     if sheet.title.lower() == MONTH.lower():
+#                         worksheet = sheet
+#                         print(
+#                             f"Using existing worksheet '{sheet.title}'"
+#                             f"(case difference)")
+#                         break
+#             else:
+#                 # Create new worksheet with unique name if needed
+#                 try:
+#                     worksheet = sh.add_worksheet(
+#                         title=MONTH, rows="100", cols="20")
+#                     print(f"New worksheet '{MONTH}' created successfully.")
+#                 except gspread.exceptions.APIError as e:
+#                     if "already exists" in str(e):
+#                         """If we get here, it means the sheet
+#                         exists but wasn't found earlier"""
+#                         worksheet = sh.worksheet(MONTH)
+#                         print(f"Worksheet '{MONTH}' exists. Using it.")
+#                     else:
+#                         raise e
+#         if worksheet is None:
+#             raise Exception("Failed to access or create worksheet")
+#         # Clear existing data (keep headers)
+#         all_values = worksheet.get_all_values()
+#         if len(all_values) > 1:
+#             worksheet.delete_rows(1, len(all_values)+1)
+#         time.sleep(20)
+#         all_data = [["Date", "Description", "Amount", "Type", "Category"]]
+#         for t in transactions:
+#             all_data.append([t['date'], t['desc'][:50],
+#                             t['amount'], t['type'], t['category']])
+#         worksheet.update('A7', all_data)
+#         time.sleep(3)
+#         total_income = sum(t['amount']
+#                         for t in transactions if t['type'] == 'income')
+#         total_expense = sum(t['amount']
+#                             for t in transactions if t['type'] == 'expense')
+#         savings = total_income - total_expense
+#         expense_rate = (
+#             total_expense / total_income) if total_income > 0 else 0
+#         savings_rate = (
+#             savings / total_income) if total_income > 0 else 0
+#         # Группируем все операции форматирования
+#         try:
+#             format_operations = [
+#                 ('B2:B4', {
+#                     'numberFormat': {'type': 'CURRENCY', 'pattern': '€#,##0.00'},
+#                     "textFormat": {'bold': True, 'fontSize': 12}
+#                 }),
+#                 ('C8:C31', {'numberFormat': {'type': 'CURRENCY', 'pattern': '€#,##0.00'}}),
+#                 ('A7:E7', {
+#                     "textFormat": {'bold': True, 'fontSize': 12},
+#                     "backgroundColor": {"red": 0.9, "green": 0.9, "blue": 0.9}
+#                 }),
+#                 ('C2:C4', {'numberFormat': {'type': 'PERCENT', 'pattern': '0%'}}),
+#                 ('G7:I7', {
+#                     "textFormat": {"bold": True, "fontSize": 12},
+#                     "backgroundColor": {"red": 0.9, "green": 0.9, "blue": 0.9}
+#                 }),
+#                 (f'H8:H{end_row}', {"numberFormat": {"type": "CURRENCY", "pattern": "€#,##0.00"}}),
+#                 (f'I8:I{end_row}', {"numberFormat": {"type": "PERCENT", "pattern": "0.00%"}})
+#             ]
             
-            for range_name, format_dict in format_operations:
-                worksheet.format(range_name, format_dict)
-                time.sleep(10)  # Уменьшите задержку между операциями
+#             for range_name, format_dict in format_operations:
+#                 worksheet.format(range_name, format_dict)
+#                 time.sleep(10)  # Уменьшите задержку между операциями
             
-        except Exception as e:
-            print(f"Formatting error: {e}")
+#         except Exception as e:
+#             print(f"Formatting error: {e}")
+
+
+# -------
+
+
+
+
     # Продолжаем выполнение даже если форматирование не удалось
         # worksheet.format('B2:B4', {
         #     'numberFormat': {
@@ -1079,313 +1126,677 @@ def main():
         #     'type': 'PERCENT',
         #     'pattern': '0%'}})
         # time.sleep(20)
-        if transactions:
-            expenses_by_category = defaultdict(float)
-            for t in transactions:
-                if t['type'] == 'expense':
-                    expenses_by_category[t['category']] += t['amount']
-        sorted_categories = sorted(
-            expenses_by_category.items(), key=lambda x: x[1], reverse=True)
-        category_data = []
-        total_expenses = data['expenses']
-        for category, amount in sorted_categories:
-            percentage = (amount / total_expenses *
-                        100) if total_expenses > 0 else 0
-            category_data.append([
-                f"{category}: {amount:.2f}€ ({percentage:.1f}%)"])
-            time.sleep(5)
-        if category_data:
-            last_row = 7 + len(category_data)
-            last_row_transactions = 7 + len(transactions)
-            table_data = []
-            table_data = prepare_summary_data(data, transactions)
-            time.sleep(20)
-            if last_row < 7 + len(table_data):
-                rows_to_add = (7 + len(table_data)) - last_row
-                worksheet.add_rows(rows_to_add)
-                time.sleep(20)
-            MONTH_NORMALIZED = get_month_column_name(MONTH)
-            write_to_target_sheet(table_data, MONTH_NORMALIZED)  # Убрали success =
-            time.sleep(20)
-            # MONTH_NORMALIZED = get_month_column_name(
-            #     MONTH)
-            # success = write_to_target_sheet(table_data, MONTH_NORMALIZED)
-            # time.sleep(20)
-            category_headers = [['Category', 'Amount', 'Percentage']]
-            worksheet.update('G7:I7', category_headers)
-            time.sleep(20)
-            category_table_data = []
-            for category, amount, percentage in table_data:
-                if isinstance(percentage, (int, float)):
-                    category_table_data.append([category, amount, percentage])
-                else:
-                    category_table_data.append([category, amount, 0])
-            end_row = 7 + len(category_table_data)
-            current_rows = worksheet.row_count
-            if end_row > current_rows:
-                rows_to_add = end_row - current_rows
-                worksheet.add_rows(rows_to_add)
-                time.sleep(20)
-            worksheet.update(f'G8:I{end_row}', category_table_data)
-            time.sleep(20)
-            category_end_row = 7 + len(table_data)
-            if category_end_row > worksheet.row_count:
-                rows_to_add = category_end_row - worksheet.row_count
-                worksheet.add_rows(rows_to_add)
-                time.sleep(20)
-            worksheet.update(f'G8:I{category_end_row}', table_data)
-            time.sleep(20)
-            worksheet.format('G7:I7', {
-                "textFormat": {"bold": True, "fontSize": 12},
-                "backgroundColor": {"red": 0.9, "green": 0.9, "blue": 0.9}
-            })
-            worksheet.format(
-                f'H8:H{end_row}',
-                {
-                    "numberFormat": {
-                        "type": "CURRENCY",
-                        "pattern": "€#,##0.00"
-                                    }
-                })
-            time.sleep(20)
-            worksheet.format(f'I8:I{end_row}', {
-                "numberFormat": {
-                    "type": "PERCENT",
-                    "pattern": "0.00%"
-                }
-            })
-            time.sleep(20)
-            column_formats = [
-                (f'A8:A{last_row_transactions}', {"backgroundColor": {
-                "red": 0.90, "green": 0.90, "blue": 0.90}}),
-                (f'B8:B{last_row_transactions}', {"backgroundColor": {
-                "red": 0.96, "green": 0.96, "blue": 0.96}}),
-                (f'C8:C{last_row_transactions}', {"backgroundColor": {
-                "red": 0.94, "green": 0.94, "blue": 0.94}}),
-                (f'D8:D{last_row_transactions}', {"backgroundColor": {
-                "red": 0.92, "green": 0.92, "blue": 0.92}}),
-                (f'E8:E{last_row_transactions}', {"backgroundColor": {
-                "red": 0.90, "green": 0.90, "blue": 0.90}})
-            ]
-            for range_, format_ in column_formats:
-                worksheet.format(range_, format_)
-            time.sleep(20)
-            category_column_formats = [
-                (f'G8:G{end_row}', {"backgroundColor": {
-                "red": 0.94, "green": 0.94, "blue": 0.94}}),
-                (f'H8:H{end_row}', {"backgroundColor": {
-                "red": 0.96, "green": 0.96, "blue": 0.96}}),
-                (f'I8:I{end_row}', {"backgroundColor": {
-                "red": 0.94, "green": 0.94, "blue": 0.94}})
-            ]
-            for range_, format_ in category_column_formats:
-                worksheet.format(range_, format_)
-            time.sleep(20)
-            worksheet.update('A2:A4', [['Total Income:'], [
-                            'Total Expenses:'], ['Savings:']])
-            time.sleep(20)
-            worksheet.update('B2:B4', [[total_income], [
-                            total_expense], [savings]])
-            time.sleep(20)
-            worksheet.update('C2:C4', [[1], [
-                            expense_rate], [savings_rate]])
-            time.sleep(20)
-            worksheet.format('C2:C4', {'numberFormat': {
-                'type': 'PERCENT',
-                'pattern': '0%'}})
+
+
+
+
+        # -------
+#         if transactions:
+#             expenses_by_category = defaultdict(float)
+#             for t in transactions:
+#                 if t['type'] == 'expense':
+#                     expenses_by_category[t['category']] += t['amount']
+#         sorted_categories = sorted(
+#             expenses_by_category.items(), key=lambda x: x[1], reverse=True)
+#         category_data = []
+#         total_expenses = data['expenses']
+#         for category, amount in sorted_categories:
+#             percentage = (amount / total_expenses *
+#                         100) if total_expenses > 0 else 0
+#             category_data.append([
+#                 f"{category}: {amount:.2f}€ ({percentage:.1f}%)"])
+#             time.sleep(5)
+#         if category_data:
+#             last_row = 7 + len(category_data)
+#             last_row_transactions = 7 + len(transactions)
+#             table_data = []
+#             table_data = prepare_summary_data(data, transactions)
+#             time.sleep(20)
+#             if last_row < 7 + len(table_data):
+#                 rows_to_add = (7 + len(table_data)) - last_row
+#                 worksheet.add_rows(rows_to_add)
+#                 time.sleep(20)
+#             MONTH_NORMALIZED = get_month_column_name(MONTH)
+#             write_to_target_sheet(table_data, MONTH_NORMALIZED)  # Убрали success =
+#             time.sleep(20)
+#             # MONTH_NORMALIZED = get_month_column_name(
+#             #     MONTH)
+#             # success = write_to_target_sheet(table_data, MONTH_NORMALIZED)
+#             # time.sleep(20)
+#             category_headers = [['Category', 'Amount', 'Percentage']]
+#             worksheet.update('G7:I7', category_headers)
+#             time.sleep(20)
+#             category_table_data = []
+#             for category, amount, percentage in table_data:
+#                 if isinstance(percentage, (int, float)):
+#                     category_table_data.append([category, amount, percentage])
+#                 else:
+#                     category_table_data.append([category, amount, 0])
+#             end_row = 7 + len(category_table_data)
+#             current_rows = worksheet.row_count
+#             if end_row > current_rows:
+#                 rows_to_add = end_row - current_rows
+#                 worksheet.add_rows(rows_to_add)
+#                 time.sleep(20)
+#             worksheet.update(f'G8:I{end_row}', category_table_data)
+#             time.sleep(20)
+#             category_end_row = 7 + len(table_data)
+#             if category_end_row > worksheet.row_count:
+#                 rows_to_add = category_end_row - worksheet.row_count
+#                 worksheet.add_rows(rows_to_add)
+#                 time.sleep(20)
+#             worksheet.update(f'G8:I{category_end_row}', table_data)
+#             time.sleep(20)
+#             worksheet.format('G7:I7', {
+#                 "textFormat": {"bold": True, "fontSize": 12},
+#                 "backgroundColor": {"red": 0.9, "green": 0.9, "blue": 0.9}
+#             })
+#             worksheet.format(
+#                 f'H8:H{end_row}',
+#                 {
+#                     "numberFormat": {
+#                         "type": "CURRENCY",
+#                         "pattern": "€#,##0.00"
+#                                     }
+#                 })
+#             time.sleep(20)
+#             worksheet.format(f'I8:I{end_row}', {
+#                 "numberFormat": {
+#                     "type": "PERCENT",
+#                     "pattern": "0.00%"
+#                 }
+#             })
+#             time.sleep(20)
+#             column_formats = [
+#                 (f'A8:A{last_row_transactions}', {"backgroundColor": {
+#                 "red": 0.90, "green": 0.90, "blue": 0.90}}),
+#                 (f'B8:B{last_row_transactions}', {"backgroundColor": {
+#                 "red": 0.96, "green": 0.96, "blue": 0.96}}),
+#                 (f'C8:C{last_row_transactions}', {"backgroundColor": {
+#                 "red": 0.94, "green": 0.94, "blue": 0.94}}),
+#                 (f'D8:D{last_row_transactions}', {"backgroundColor": {
+#                 "red": 0.92, "green": 0.92, "blue": 0.92}}),
+#                 (f'E8:E{last_row_transactions}', {"backgroundColor": {
+#                 "red": 0.90, "green": 0.90, "blue": 0.90}})
+#             ]
+#             for range_, format_ in column_formats:
+#                 worksheet.format(range_, format_)
+#             time.sleep(20)
+#             category_column_formats = [
+#                 (f'G8:G{end_row}', {"backgroundColor": {
+#                 "red": 0.94, "green": 0.94, "blue": 0.94}}),
+#                 (f'H8:H{end_row}', {"backgroundColor": {
+#                 "red": 0.96, "green": 0.96, "blue": 0.96}}),
+#                 (f'I8:I{end_row}', {"backgroundColor": {
+#                 "red": 0.94, "green": 0.94, "blue": 0.94}})
+#             ]
+#             for range_, format_ in category_column_formats:
+#                 worksheet.format(range_, format_)
+#             time.sleep(20)
+#             worksheet.update('A2:A4', [['Total Income:'], [
+#                             'Total Expenses:'], ['Savings:']])
+#             time.sleep(20)
+#             worksheet.update('B2:B4', [[total_income], [
+#                             total_expense], [savings]])
+#             time.sleep(20)
+#             worksheet.update('C2:C4', [[1], [
+#                             expense_rate], [savings_rate]])
+#             time.sleep(20)
+#             worksheet.format('C2:C4', {'numberFormat': {
+#                 'type': 'PERCENT',
+#                 'pattern': '0%'}})
             
-            # Упрощенное форматирование границ - делаем одним вызовом если возможно
-            try:
-                border_format = {
-                    "borders": {
-                        "top": {"style": "SOLID", "width": 1, "color": {"red": 0.6, "green": 0.6, "blue": 0.6}},
-                        "bottom": {"style": "SOLID", "width": 1, "color": {"red": 0.6, "green": 0.6, "blue": 0.6}},
-                        "left": {"style": "SOLID", "width": 1, "color": {"red": 0.6, "green": 0.6, "blue": 0.6}},
-                        "right": {"style": "SOLID", "width": 1, "color": {"red": 0.6, "green": 0.6, "blue": 0.6}}
-                    }
-                }
+#             # Упрощенное форматирование границ - делаем одним вызовом если возможно
+#             try:
+#                 border_format = {
+#                     "borders": {
+#                         "top": {"style": "SOLID", "width": 1, "color": {"red": 0.6, "green": 0.6, "blue": 0.6}},
+#                         "bottom": {"style": "SOLID", "width": 1, "color": {"red": 0.6, "green": 0.6, "blue": 0.6}},
+#                         "left": {"style": "SOLID", "width": 1, "color": {"red": 0.6, "green": 0.6, "blue": 0.6}},
+#                         "right": {"style": "SOLID", "width": 1, "color": {"red": 0.6, "green": 0.6, "blue": 0.6}}
+#                     }
+#                 }
                 
-                # Форматируем все таблицы одним batch если возможно
-                worksheet.format(f'A7:E{7 + len(transactions)}', border_format)
-                worksheet.format(f'G7:I{end_row}', border_format)
-                worksheet.format('A2:C4', border_format)
-                time.sleep(15)
+#                 # Форматируем все таблицы одним batch если возможно
+#                 worksheet.format(f'A7:E{7 + len(transactions)}', border_format)
+#                 worksheet.format(f'G7:I{end_row}', border_format)
+#                 worksheet.format('A2:C4', border_format)
+#                 time.sleep(15)
                 
-            except Exception as e:
-                print(f"Border formatting error: {e}")
-            # border_style = {
-            #     "style": "SOLID",
-            #     "width": 1,
-            #     "color": {"red": 0.6, "green": 0.6, "blue": 0.6}
-            # }
-            # border_format = {
-            #     "borders": {
-            #         "top": border_style,
-            #         "bottom": border_style,
-            #         "left": border_style,
-            #         "right": border_style
-            #     }
-            # }
-            # tables = [
-            #     f'A7:E{7 + len(transactions)}',  # Основная таблица транзакций
-            #     f'G7:I{end_row}',  # Таблица категорий
-            #     'A2:C4'                          # Блок с итогами
-            # ]
-            # for table_range in tables:
-            #     worksheet.format(table_range, border_format)
-            # time.sleep(20)
-            header_bottom_border = {
-                "borders": {
-                    "bottom": {
-                        "style": "SOLID",
-                        "width": 2,
-                        "color": {"red": 0.4, "green": 0.4, "blue": 0.4}
-                    }
-                }
-            }
-            header_left_border = {
-                "borders": {
-                    "left": {
-                        "style": "SOLID",
-                        "width": 2,
-                        "color": {"red": 0.4, "green": 0.4, "blue": 0.4}
-                    }
-                }
-            }
-            header_top_border = {
-                "borders": {
-                    "top": {
-                        "style": "SOLID",
-                        "width": 2,
-                        "color": {"red": 0.4, "green": 0.4, "blue": 0.4}
-                    }
-                }
-            }
-            worksheet.format('A7:E7', header_bottom_border)
-            time.sleep(20)
-            worksheet.format('G7:I7', header_bottom_border)
-            time.sleep(20)
-            worksheet.format('D2:D4', header_left_border)
-            time.sleep(20)
-            worksheet.format('A2:C4', border_format)
-            time.sleep(20)
-            worksheet.format('A1:C1', header_bottom_border)
-            time.sleep(20)
-            worksheet.format('A4:C4', border_format)
-            time.sleep(20)
-            worksheet.format('A5:C5', header_top_border)
-            time.sleep(20)
-            recommendations = generate_daily_recommendations(data)
-            time.sleep(20)
-            rec_headers = ["Priority", "Recommendation"]
-            rec_data = [[f"{i+1}.", rec]
-                        for i, rec in enumerate(recommendations)]
-            rec_start_row = 7
-            rec_start_col = 11
-            worksheet.update(
-                values=[rec_headers],
-                range_name=f"K{rec_start_row}:L{rec_start_row}"
-            )
-            time.sleep(20)
-            for i, row in enumerate(rec_data, start=rec_start_row+1):
-                worksheet.update(f"K{i}:L{i}", [row])
-            time.sleep(20)
-            fmt = cellFormat(
-                horizontalAlignment='CENTER',
-                padding=Padding(top=8, right=12, bottom=8, left=12),
-                wrapStrategy='WRAP'
-            )
-            time.sleep(20)
-            worksheet.format(
-                f"K{rec_start_row}:L{rec_start_row}",
-                {
-                    "textFormat": {"bold": True, "fontSize": 12},
-                    "backgroundColor": {"red": 0.9, "green": 0.9, "blue": 0.9},
-                    "borders": {
-                        "top": {"style": "SOLID", "width": 1},
-                        "bottom": {"style": "SOLID", "width": 1},
-                        "left": {"style": "SOLID", "width": 1},
-                        "right": {"style": "SOLID", "width": 1}
-                    }
-                }
-            )
-            time.sleep(20)
-            worksheet.format(
-                f"K{rec_start_row + 1}:L{rec_start_row + len(rec_data)}",
-                {
-                    "borders": {
-                        "top": {"style": "SOLID", "width": 1},
-                        "bottom": {"style": "SOLID", "width": 1},
-                        "left": {"style": "SOLID", "width": 1},
-                        "right": {"style": "SOLID", "width": 1}
-                    },
-                    "wrapStrategy": "WRAP",
-                }
-            )
-            time.sleep(20)
-            set_column_width(worksheet, 'A', 120)
-            set_column_width(worksheet,  'C',  80)
-            set_column_width(worksheet,  'D',  80)
-            set_column_width(worksheet, 'E', 80)
-            set_column_width(worksheet,  'K',  90)
-            set_column_width(worksheet,   'G',  200)
-            set_column_width(worksheet,  'H', 80)
-            set_column_width(worksheet, 'B', 200)
-            set_column_width(worksheet, 'L', 300)
-            set_column_width(worksheet, 'F', 30)
-            set_column_width(worksheet, 'J', 30)
-            time.sleep(20)
-            worksheet.update(f"K6", [['DAILY RECOMMENDATIONS']])
-            time.sleep(20)
-            worksheet.format("K6", {
-                "textFormat": {"bold": True, "fontSize": 14},
-                "horizontalAlignment": "CENTER"
-            })
-            time.sleep(20)
-            worksheet.merge_cells(f"K6:L6")
-            time.sleep(20)
-            worksheet.update(f"A6", [['FINANCIAL OVERVIEW']])
-            time.sleep(20)
-            worksheet.format("A6", {
-                "textFormat": {"bold": True, "fontSize": 14},
-                "horizontalAlignment": "CENTER"
-            })
-            time.sleep(20)
-            worksheet.merge_cells(f"A6:E6")
-            time.sleep(20)
-            worksheet.update(f"G6", [['TRANSACTION CATEGORIES']])
-            time.sleep(20)
-            worksheet.format("G6", {
-                "textFormat": {"bold": True, "fontSize": 14},
-                "horizontalAlignment": "CENTER"
-            })
-            time.sleep(20)
-            worksheet.merge_cells(f"G6:I6")
-            time.sleep(20)
-            worksheet.format("A1:Z100", {"horizontalAlignment": "CENTER"})
-            time.sleep(20)
+#             except Exception as e:
+#                 print(f"Border formatting error: {e}")
+#             # border_style = {
+#             #     "style": "SOLID",
+#             #     "width": 1,
+#             #     "color": {"red": 0.6, "green": 0.6, "blue": 0.6}
+#             # }
+#             # border_format = {
+#             #     "borders": {
+#             #         "top": border_style,
+#             #         "bottom": border_style,
+#             #         "left": border_style,
+#             #         "right": border_style
+#             #     }
+#             # }
+#             # tables = [
+#             #     f'A7:E{7 + len(transactions)}',  # Основная таблица транзакций
+#             #     f'G7:I{end_row}',  # Таблица категорий
+#             #     'A2:C4'                          # Блок с итогами
+#             # ]
+#             # for table_range in tables:
+#             #     worksheet.format(table_range, border_format)
+#             # time.sleep(20)
+#             header_bottom_border = {
+#                 "borders": {
+#                     "bottom": {
+#                         "style": "SOLID",
+#                         "width": 2,
+#                         "color": {"red": 0.4, "green": 0.4, "blue": 0.4}
+#                     }
+#                 }
+#             }
+#             header_left_border = {
+#                 "borders": {
+#                     "left": {
+#                         "style": "SOLID",
+#                         "width": 2,
+#                         "color": {"red": 0.4, "green": 0.4, "blue": 0.4}
+#                     }
+#                 }
+#             }
+#             header_top_border = {
+#                 "borders": {
+#                     "top": {
+#                         "style": "SOLID",
+#                         "width": 2,
+#                         "color": {"red": 0.4, "green": 0.4, "blue": 0.4}
+#                     }
+#                 }
+#             }
+#             worksheet.format('A7:E7', header_bottom_border)
+#             time.sleep(20)
+#             worksheet.format('G7:I7', header_bottom_border)
+#             time.sleep(20)
+#             worksheet.format('D2:D4', header_left_border)
+#             time.sleep(20)
+#             worksheet.format('A2:C4', border_format)
+#             time.sleep(20)
+#             worksheet.format('A1:C1', header_bottom_border)
+#             time.sleep(20)
+#             worksheet.format('A4:C4', border_format)
+#             time.sleep(20)
+#             worksheet.format('A5:C5', header_top_border)
+#             time.sleep(20)
+#             recommendations = generate_daily_recommendations(data)
+#             time.sleep(20)
+#             rec_headers = ["Priority", "Recommendation"]
+#             rec_data = [[f"{i+1}.", rec]
+#                         for i, rec in enumerate(recommendations)]
+#             rec_start_row = 7
+#             rec_start_col = 11
+#             worksheet.update(
+#                 values=[rec_headers],
+#                 range_name=f"K{rec_start_row}:L{rec_start_row}"
+#             )
+#             time.sleep(20)
+#             for i, row in enumerate(rec_data, start=rec_start_row+1):
+#                 worksheet.update(f"K{i}:L{i}", [row])
+#             time.sleep(20)
+#             fmt = cellFormat(
+#                 horizontalAlignment='CENTER',
+#                 padding=Padding(top=8, right=12, bottom=8, left=12),
+#                 wrapStrategy='WRAP'
+#             )
+#             time.sleep(20)
+#             worksheet.format(
+#                 f"K{rec_start_row}:L{rec_start_row}",
+#                 {
+#                     "textFormat": {"bold": True, "fontSize": 12},
+#                     "backgroundColor": {"red": 0.9, "green": 0.9, "blue": 0.9},
+#                     "borders": {
+#                         "top": {"style": "SOLID", "width": 1},
+#                         "bottom": {"style": "SOLID", "width": 1},
+#                         "left": {"style": "SOLID", "width": 1},
+#                         "right": {"style": "SOLID", "width": 1}
+#                     }
+#                 }
+#             )
+#             time.sleep(20)
+#             worksheet.format(
+#                 f"K{rec_start_row + 1}:L{rec_start_row + len(rec_data)}",
+#                 {
+#                     "borders": {
+#                         "top": {"style": "SOLID", "width": 1},
+#                         "bottom": {"style": "SOLID", "width": 1},
+#                         "left": {"style": "SOLID", "width": 1},
+#                         "right": {"style": "SOLID", "width": 1}
+#                     },
+#                     "wrapStrategy": "WRAP",
+#                 }
+#             )
+#             time.sleep(20)
+#             set_column_width(worksheet, 'A', 120)
+#             set_column_width(worksheet,  'C',  80)
+#             set_column_width(worksheet,  'D',  80)
+#             set_column_width(worksheet, 'E', 80)
+#             set_column_width(worksheet,  'K',  90)
+#             set_column_width(worksheet,   'G',  200)
+#             set_column_width(worksheet,  'H', 80)
+#             set_column_width(worksheet, 'B', 200)
+#             set_column_width(worksheet, 'L', 300)
+#             set_column_width(worksheet, 'F', 30)
+#             set_column_width(worksheet, 'J', 30)
+#             time.sleep(20)
+#             worksheet.update(f"K6", [['DAILY RECOMMENDATIONS']])
+#             time.sleep(20)
+#             worksheet.format("K6", {
+#                 "textFormat": {"bold": True, "fontSize": 14},
+#                 "horizontalAlignment": "CENTER"
+#             })
+#             time.sleep(20)
+#             worksheet.merge_cells(f"K6:L6")
+#             time.sleep(20)
+#             worksheet.update(f"A6", [['FINANCIAL OVERVIEW']])
+#             time.sleep(20)
+#             worksheet.format("A6", {
+#                 "textFormat": {"bold": True, "fontSize": 14},
+#                 "horizontalAlignment": "CENTER"
+#             })
+#             time.sleep(20)
+#             worksheet.merge_cells(f"A6:E6")
+#             time.sleep(20)
+#             worksheet.update(f"G6", [['TRANSACTION CATEGORIES']])
+#             time.sleep(20)
+#             worksheet.format("G6", {
+#                 "textFormat": {"bold": True, "fontSize": 14},
+#                 "horizontalAlignment": "CENTER"
+#             })
+#             time.sleep(20)
+#             worksheet.merge_cells(f"G6:I6")
+#             time.sleep(20)
+#             worksheet.format("A1:Z100", {"horizontalAlignment": "CENTER"})
+#             time.sleep(20)
 
-            # MONTH_NORMALIZED = get_month_column_name(MONTH)
-            # write_to_target_sheet(table_data, MONTH_NORMALIZED)  # Убрали success = 
-            # print(
-            #     f"Google Sheets update initiated for {len(transactions)} transactions")
+#             # MONTH_NORMALIZED = get_month_column_name(MONTH)
+#             # write_to_target_sheet(table_data, MONTH_NORMALIZED)  # Убрали success = 
+#             # print(
+#             #     f"Google Sheets update initiated for {len(transactions)} transactions")
 
-            # MONTH_NORMALIZED = get_month_column_name(MONTH)
-            # success = write_to_target_sheet(table_data, MONTH_NORMALIZED)
-            # print(
-            #     f"Successfully updated {len(transactions)} "
-            #     f"transactions in Google Sheets")
+#             # MONTH_NORMALIZED = get_month_column_name(MONTH)
+#             # success = write_to_target_sheet(table_data, MONTH_NORMALIZED)
+#             # print(
+#             #     f"Successfully updated {len(transactions)} "
+#             #     f"transactions in Google Sheets")
             
-        else:
-            print("\nNo transactions to update in Google Sheets")
-    except Exception as e:
-        print(f"\nError in Google Sheets operation: {str(e)}")
+#         else:
+#             print("\nNo transactions to update in Google Sheets")
+#     except Exception as e:
+#         print(f"\nError in Google Sheets operation: {str(e)}")
 
 
-if "DYNO" in os.environ:
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port)
-else:
+# if "DYNO" in os.environ:
+#     port = int(os.environ.get('PORT', 5000))
+#     app.run(host='0.0.0.0', port=port)
+# else:
+#         # Локальный режим
+#         print(f" PERSONAL FINANCE ANALYZER ")
+#         MONTH = input("Enter the month (e.g. 'March, April, May'): ").strip().lower()
+#         FILE = f"hsbc_{MONTH}.csv"
+#         print(f"Loading file: {FILE}")
+
+#         transactions, daily_categories = load_transactions(FILE)
+#         if not transactions:
+#             print(f"No transactions found")
+#             import sys
+#             sys.exit(1)
+            
+#         data = analyze(transactions, daily_categories, MONTH)
+#         terminal_visualization(data)
+        
+#         # Recommendations
+#         print(f"DAILY SPENDING RECOMMENDATIONS: ")
+#         for i, rec in enumerate(generate_daily_recommendations(data), 1):
+#             print(f"{i}. {rec}")
+
+# HTML = '''
+# <!DOCTYPE html>
+# <html>
+# <head>
+#     <title>Finance Analyzer</title>
+#     <style>
+#         body { 
+#             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+#             margin: 0;
+#             padding: 20px;
+#             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+#             min-height: 100vh;
+#             display: flex;
+#             justify-content: center;
+#             align-items: center;
+#         }
+        
+#         .main-container {
+#             background: white;
+#             border-radius: 15px;
+#             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+#             overflow: hidden;
+#             width: 700px;
+#             max-width: 95%;
+#         }
+        
+#         .header {
+#             background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+#             padding: 25px;
+#             text-align: center;
+#             color: white;
+#         }
+        
+#         .header h1 {
+#             margin: 0;
+#             font-size: 28px;
+#             font-weight: 600;
+#             letter-spacing: 1px;
+#             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+#         }
+        
+#         .header p {
+#             margin: 10px 0 0 0;
+#             font-size: 14px;
+#             opacity: 0.9;
+#         }
+        
+#         .content {
+#             padding: 30px;
+#         }
+        
+#         .form-container {
+#             text-align: center;
+#             margin-bottom: 25px;
+#         }
+        
+#         .input-group {
+#             display: flex;
+#             gap: 12px;
+#             justify-content: center;
+#             align-items: center;
+#             margin-bottom: 20px;
+#         }
+        
+#         input[type="text"], input[type="file"] {
+#             padding: 14px 20px;
+#             border: 2px solid #e0e0e0;
+#             border-radius: 8px;
+#             font-size: 16px;
+#             width: 250px;
+#             transition: all 0.3s ease;
+#             background: #f8f9fa;
+#         }
+        
+#         input[type="text"]:focus, input[type="file"]:focus {
+#             outline: none;
+#             border-color: #667eea;
+#             background: white;
+#             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+#         }
+        
+#         input[type="text"]::placeholder {
+#             color: #9e9e9e;
+#         }
+#         input[type="file"] {
+#             padding: 12px;
+#             cursor: pointer;
+#         }
+#         button {
+#             padding: 14px 30px;
+#             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+#             color: white;
+#             border: none;
+#             border-radius: 8px;
+#             font-size: 16px;
+#             font-weight: 600;
+#             cursor: pointer;
+#             transition: all 0.3s ease;
+#             box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+#         }
+        
+#         button:hover {
+#             transform: translateY(-2px);
+#             box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+#         }
+        
+#         button:active {
+#             transform: translateY(0);
+#         }
+        
+#         .terminal {
+#             background: #2d3748; /* Темный сине-серый */
+#             color: #e2e8f0;      /* Светло-серый текст */
+#             border: 2px solid #667eea;
+#             padding: 10px;
+#             border-radius: 8px;
+#             font-family: 'Courier New', monospace;
+#             font-size: 14px;
+#             line-height: 1.4;
+#             overflow: auto;
+#             white-space: pre-wrap;
+#             max-height: 700px;       
+#             margin-bottom: 20px;
+#         }
+         
+#         .status {
+#             text-align: center;
+#             padding: 15px;
+#             border-radius: 8px;
+#             font-weight: 500;
+#             margin: 10px 0;
+#         }
+        
+#         .status-loading {
+#             background: #fff3cd;
+#             color: #856404;
+#             border: 1px solid #ffeaa7;
+#         }
+        
+#         .status-success {
+#             background: #d4edda;
+#             color: #155724;
+#             border: 1px solid #c3e6cb;
+#         }
+        
+#         .status-error {
+#             background: #f8d7da;
+#             color: #721c24;
+#             border: 1px solid #f5c6cb;
+#         }
+        
+#         .instructions {
+#             text-align: center;
+#             color: #666;
+#             font-size: 14px;
+#             margin-top: 15px;
+#             padding: 10px;
+#             background: #f8f9fa;
+#             border-radius: 6px;
+#         }
+        
+#         .feature-list {
+#             display: flex;
+#             justify-content: center;
+#             gap: 20px;
+#             margin-top: 20px;
+#             flex-wrap: wrap;
+#         }
+        
+#         .feature {
+#             background: #f8f9fa;
+#             padding: 12px 18px;
+#             border-radius: 8px;
+#             font-size: 12px;
+#             color: #666;
+#             border-left: 4px solid #667eea;
+#         }
+#         .file-info {
+#             margin-top: 10px;
+#             padding: 10px;
+#             background: #e8f4f8;
+#             border-radius: 6px;
+#             border-left: 4px solid #2196F3;
+#         }
+#         @media (max-width: 600px) {
+#             .input-group {
+#                 flex-direction: column;
+#             }
+            
+#             input[type="text"] {
+#                 width: 100%;
+#                 max-width: 300px;
+#             }
+            
+#             button {
+#                 width: 100%;
+#                 max-width: 300px;
+#             }
+#         }
+#     </style>
+# </head>
+# <body>
+#     <div class="main-container">
+#         <div class="header">
+#             <h1>💰 PERSONAL FINANCE ANALYZER</h1>
+#             <p>Analyze your monthly expenses and get smart recommendations</p>
+#             <p>Upload your CSV file and analyze your finances</p>
+#         </div>
+        
+#         <div class="content">
+#             <div class="form-container">
+#                 <form method="POST" enctype="multipart/form-data">
+#                     <div class="input-group">
+#                         <input type="text" name="month" placeholder="Enter month (e.g. March, April)" required>
+#                         <input type="file" name="file" accept=".csv" required>
+#                         <button type="submit">Analyze</button>
+#                     </div>
+#                 </form>
+#                 {% if filename %}
+#                 <div class="file-info">
+#                     📁 Using file: <strong>{{ filename }}</strong>
+#                 </div>
+#                 {% endif %}
+#             </div>
+            
+#             {% if result %}
+#             <div class="terminal">
+#                 {{ result }}
+#             </div>
+            
+#             <div class="status status-loading" id="statusMessage">
+#                 ⏳ Processing your financial data... Google Sheets update in progress
+#             </div>
+#             {% endif %}
+#         </div>
+#     </div>
+    
+#     <script>
+#         // Обновление статуса после завершения операции
+#         setTimeout(function() {
+#             const statusElement = document.getElementById('statusMessage');
+#             if (statusElement) {
+#                 statusElement.textContent = '✅ Analysis completed successfully';
+#                 statusElement.className = 'status status-success';
+#             }
+#         }, 5000);
+        
+#         // Показ имени выбранного файла
+#         document.querySelector('input[type="file"]').addEventListener('change', function(e) {
+#             const fileName = e.target.files[0]?.name;
+#             if (fileName) {
+#                 // Можно добавить отображение имени файла, если нужно
+#                 console.log('Selected file:', fileName);
+#             }
+#         });
+#     </script>
+#     <script>
+#         // Обновление статуса после завершения операции
+#         setTimeout(function() {
+#             const statusElement = document.getElementById('statusMessage');
+#             if (statusElement) {
+#                 statusElement.textContent = '✅ Successfully updated transactions in Google Sheets';
+#                 statusElement.className = 'status status-success';
+#             }
+#         }, 5000);
+        
+#         // Плавная анимация появления элементов
+#         document.addEventListener('DOMContentLoaded', function() {
+#             const elements = document.querySelectorAll('.header, .form-container, .feature');
+#             elements.forEach((element, index) => {
+#                 setTimeout(() => {
+#                     element.style.opacity = '1';
+#                     element.style.transform = 'translateY(0)';
+#                 }, index * 200);
+#             });
+#         });
+#     </script>
+# </body>
+# </html>
+# '''
+# @app.route('/', methods=['GET', 'POST'])
+# def index():
+#     result = None
+#     month = None
+#     filename = None
+
+#     if request.method == 'POST':
+#         month = request.form['month'].strip()
+        
+#         # Проверяем, был ли загружен файл
+#         if 'file' not in request.files:
+#             return render_template_string(HTML, result="No file uploaded", month=month)
+        
+#         file = request.files['file']
+        
+#         if file.filename == '':
+#             return render_template_string(HTML, result="No file selected", month=month)
+        
+#         if file and allowed_file(file.filename):
+#             try:
+#                 filename = secure_filename(file.filename)
+                
+#                 # Используем файловый объект напрямую
+#                 file.seek(0)  # Перемещаемся в начало файла
+                
+#                 # Загружаем транзакции из загруженного файла
+#                 transactions, daily_categories = load_transactions(file)
+                
+#                 if transactions:
+#                     data = analyze(transactions, daily_categories, month)
+#                     result = format_terminal_output(data, month, len(transactions))
+                    
+#                     # Сохраняем файл временно для фоновой обработки
+#                     temp_dir = tempfile.mkdtemp()
+#                     temp_file_path = os.path.join(temp_dir, f"hsbc_{month.lower()}.csv")
+#                     file.seek(0)  # Снова перемещаемся в начало
+#                     file.save(temp_file_path)
+                    
+#                     # Запускаем полную фоновую обработку
+#                     thread = threading.Thread(target=run_full_analysis_with_file, 
+#                                             args=(month, temp_file_path, temp_dir))
+#                     thread.daemon = True
+#                     thread.start()
+#                 else:
+#                     result = f"No valid transactions found in {filename}"
+                    
+#             except Exception as e:
+#                 result = f"Error processing file: {str(e)}"
+#         else:
+#             result = "Invalid file type. Please upload a CSV file."
+    
+#     return render_template_string(HTML, result=result, month=month, filename=filename)
+        # --------------
+def main():
+    if "DYNO" in os.environ:
+        # Heroku mode - запускаем веб-сервер
+        port = int(os.environ.get('PORT', 5000))
+        app.run(host='0.0.0.0', port=port)
+    else:
         # Локальный режим
         print(f" PERSONAL FINANCE ANALYZER ")
         MONTH = input("Enter the month (e.g. 'March, April, May'): ").strip().lower()
@@ -1406,6 +1817,7 @@ else:
         for i, rec in enumerate(generate_daily_recommendations(data), 1):
             print(f"{i}. {rec}")
 
+# HTML шаблон должен быть определен ДО функции index()
 HTML = '''
 <!DOCTYPE html>
 <html>
@@ -1464,7 +1876,8 @@ HTML = '''
         
         .input-group {
             display: flex;
-            gap: 12px;
+            flex-direction: column;
+            gap: 15px;
             justify-content: center;
             align-items: center;
             margin-bottom: 20px;
@@ -1475,7 +1888,7 @@ HTML = '''
             border: 2px solid #e0e0e0;
             border-radius: 8px;
             font-size: 16px;
-            width: 250px;
+            width: 300px;
             transition: all 0.3s ease;
             background: #f8f9fa;
         }
@@ -1487,13 +1900,11 @@ HTML = '''
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
         
-        input[type="text"]::placeholder {
-            color: #9e9e9e;
-        }
         input[type="file"] {
             padding: 12px;
             cursor: pointer;
         }
+        
         button {
             padding: 14px 30px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -1512,13 +1923,9 @@ HTML = '''
             box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
         }
         
-        button:active {
-            transform: translateY(0);
-        }
-        
         .terminal {
-            background: #2d3748; /* Темный сине-серый */
-            color: #e2e8f0;      /* Светло-серый текст */
+            background: #2d3748;
+            color: #e2e8f0;
             border: 2px solid #667eea;
             padding: 10px;
             border-radius: 8px;
@@ -1527,10 +1934,10 @@ HTML = '''
             line-height: 1.4;
             overflow: auto;
             white-space: pre-wrap;
-            max-height: 700px;       
+            max-height: 700px;
             margin-bottom: 20px;
         }
-         
+        
         .status {
             text-align: center;
             padding: 15px;
@@ -1557,32 +1964,6 @@ HTML = '''
             border: 1px solid #f5c6cb;
         }
         
-        .instructions {
-            text-align: center;
-            color: #666;
-            font-size: 14px;
-            margin-top: 15px;
-            padding: 10px;
-            background: #f8f9fa;
-            border-radius: 6px;
-        }
-        
-        .feature-list {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin-top: 20px;
-            flex-wrap: wrap;
-        }
-        
-        .feature {
-            background: #f8f9fa;
-            padding: 12px 18px;
-            border-radius: 8px;
-            font-size: 12px;
-            color: #666;
-            border-left: 4px solid #667eea;
-        }
         .file-info {
             margin-top: 10px;
             padding: 10px;
@@ -1590,28 +1971,12 @@ HTML = '''
             border-radius: 6px;
             border-left: 4px solid #2196F3;
         }
-        @media (max-width: 600px) {
-            .input-group {
-                flex-direction: column;
-            }
-            
-            input[type="text"] {
-                width: 100%;
-                max-width: 300px;
-            }
-            
-            button {
-                width: 100%;
-                max-width: 300px;
-            }
-        }
     </style>
 </head>
 <body>
     <div class="main-container">
         <div class="header">
             <h1>💰 PERSONAL FINANCE ANALYZER</h1>
-            <p>Analyze your monthly expenses and get smart recommendations</p>
             <p>Upload your CSV file and analyze your finances</p>
         </div>
         
@@ -1624,6 +1989,7 @@ HTML = '''
                         <button type="submit">Analyze</button>
                     </div>
                 </form>
+                
                 {% if filename %}
                 <div class="file-info">
                     📁 Using file: <strong>{{ filename }}</strong>
@@ -1644,7 +2010,6 @@ HTML = '''
     </div>
     
     <script>
-        // Обновление статуса после завершения операции
         setTimeout(function() {
             const statusElement = document.getElementById('statusMessage');
             if (statusElement) {
@@ -1652,40 +2017,11 @@ HTML = '''
                 statusElement.className = 'status status-success';
             }
         }, 5000);
-        
-        // Показ имени выбранного файла
-        document.querySelector('input[type="file"]').addEventListener('change', function(e) {
-            const fileName = e.target.files[0]?.name;
-            if (fileName) {
-                // Можно добавить отображение имени файла, если нужно
-                console.log('Selected file:', fileName);
-            }
-        });
-    </script>
-    <script>
-        // Обновление статуса после завершения операции
-        setTimeout(function() {
-            const statusElement = document.getElementById('statusMessage');
-            if (statusElement) {
-                statusElement.textContent = '✅ Successfully updated transactions in Google Sheets';
-                statusElement.className = 'status status-success';
-            }
-        }, 5000);
-        
-        // Плавная анимация появления элементов
-        document.addEventListener('DOMContentLoaded', function() {
-            const elements = document.querySelectorAll('.header, .form-container, .feature');
-            elements.forEach((element, index) => {
-                setTimeout(() => {
-                    element.style.opacity = '1';
-                    element.style.transform = 'translateY(0)';
-                }, index * 200);
-            });
-        });
     </script>
 </body>
 </html>
 '''
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
     result = None
@@ -1738,7 +2074,7 @@ def index():
             result = "Invalid file type. Please upload a CSV file."
     
     return render_template_string(HTML, result=result, month=month, filename=filename)
-        
+
     # Режим Heroku - запускаем как веб-приложение
     
     
