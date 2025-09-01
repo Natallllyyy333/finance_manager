@@ -2125,6 +2125,12 @@ HTML = '''
             border: 1px solid #c3e6cb;
         }
         
+        .status-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        
         .status-error {
             background: #f8d7da;
             color: #721c24;
@@ -2169,25 +2175,235 @@ HTML = '''
                 {{ result }}
             </div>
             
-            <div class="status status-loading" id="statusMessage">
-                ⏳ Processing your financial data... Google Sheets update in progress
+            <div class="status {% if status_message and 'success' in status_message %}status-success{% elif status_message and 'failed' in status_message %}status-error{% elif status_message and 'warning' in status_message %}status-warning{% else %}status-loading{% endif %}" id="statusMessage">
+                {% if status_message %}
+                    {{ status_message }}
+                {% else %}
+                    ⏳ Processing your financial data... Google Sheets update in progress
+                {% endif %}
             </div>
             {% endif %}
         </div>
     </div>
     
     <script>
+        // Обновление статуса, если он еще не установлен
+        {% if not status_message %}
         setTimeout(function() {
             const statusElement = document.getElementById('statusMessage');
-            if (statusElement) {
+            if (statusElement && !statusElement.textContent.includes('failed')) {
                 statusElement.textContent = '✅ Analysis completed successfully';
                 statusElement.className = 'status status-success';
             }
         }, 5000);
+        {% endif %}
     </script>
 </body>
 </html>
 '''
+# HTML = '''
+# <!DOCTYPE html>
+# <html>
+# <head>
+#     <title>Finance Analyzer</title>
+#     <style>
+#         body { 
+#             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+#             margin: 0;
+#             padding: 20px;
+#             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+#             min-height: 100vh;
+#             display: flex;
+#             justify-content: center;
+#             align-items: center;
+#         }
+        
+#         .main-container {
+#             background: white;
+#             border-radius: 15px;
+#             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+#             overflow: hidden;
+#             width: 700px;
+#             max-width: 95%;
+#         }
+        
+#         .header {
+#             background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+#             padding: 25px;
+#             text-align: center;
+#             color: white;
+#         }
+        
+#         .header h1 {
+#             margin: 0;
+#             font-size: 28px;
+#             font-weight: 600;
+#             letter-spacing: 1px;
+#             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+#         }
+        
+#         .header p {
+#             margin: 10px 0 0 0;
+#             font-size: 14px;
+#             opacity: 0.9;
+#         }
+        
+#         .content {
+#             padding: 30px;
+#         }
+        
+#         .form-container {
+#             text-align: center;
+#             margin-bottom: 25px;
+#         }
+        
+#         .input-group {
+#             display: flex;
+#             flex-direction: column;
+#             gap: 15px;
+#             justify-content: center;
+#             align-items: center;
+#             margin-bottom: 20px;
+#         }
+        
+#         input[type="text"], input[type="file"] {
+#             padding: 14px 20px;
+#             border: 2px solid #e0e0e0;
+#             border-radius: 8px;
+#             font-size: 16px;
+#             width: 300px;
+#             transition: all 0.3s ease;
+#             background: #f8f9fa;
+#         }
+        
+#         input[type="text"]:focus, input[type="file"]:focus {
+#             outline: none;
+#             border-color: #667eea;
+#             background: white;
+#             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+#         }
+        
+#         input[type="file"] {
+#             padding: 12px;
+#             cursor: pointer;
+#         }
+        
+#         button {
+#             padding: 14px 30px;
+#             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+#             color: white;
+#             border: none;
+#             border-radius: 8px;
+#             font-size: 16px;
+#             font-weight: 600;
+#             cursor: pointer;
+#             transition: all 0.3s ease;
+#             box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+#         }
+        
+#         button:hover {
+#             transform: translateY(-2px);
+#             box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+#         }
+        
+#         .terminal {
+#             background: #2d3748;
+#             color: #e2e8f0;
+#             border: 2px solid #667eea;
+#             padding: 10px;
+#             border-radius: 8px;
+#             font-family: 'Courier New', monospace;
+#             font-size: 14px;
+#             line-height: 1.4;
+#             overflow: auto;
+#             white-space: pre-wrap;
+#             max-height: 700px;
+#             margin-bottom: 20px;
+#         }
+        
+#         .status {
+#             text-align: center;
+#             padding: 15px;
+#             border-radius: 8px;
+#             font-weight: 500;
+#             margin: 10px 0;
+#         }
+        
+#         .status-loading {
+#             background: #fff3cd;
+#             color: #856404;
+#             border: 1px solid #ffeaa7;
+#         }
+        
+#         .status-success {
+#             background: #d4edda;
+#             color: #155724;
+#             border: 1px solid #c3e6cb;
+#         }
+        
+#         .status-error {
+#             background: #f8d7da;
+#             color: #721c24;
+#             border: 1px solid #f5c6cb;
+#         }
+        
+#         .file-info {
+#             margin-top: 10px;
+#             padding: 10px;
+#             background: #e8f4f8;
+#             border-radius: 6px;
+#             border-left: 4px solid #2196F3;
+#         }
+#     </style>
+# </head>
+# <body>
+#     <div class="main-container">
+#         <div class="header">
+#             <h1>💰 PERSONAL FINANCE ANALYZER</h1>
+#             <p>Upload your CSV file and analyze your finances</p>
+#         </div>
+        
+#         <div class="content">
+#             <div class="form-container">
+#                 <form method="POST" enctype="multipart/form-data">
+#                     <div class="input-group">
+#                         <input type="text" name="month" placeholder="Enter month (e.g. March, April)" required>
+#                         <input type="file" name="file" accept=".csv" required>
+#                         <button type="submit">Analyze</button>
+#                     </div>
+#                 </form>
+                
+#                 {% if filename %}
+#                 <div class="file-info">
+#                     📁 Using file: <strong>{{ filename }}</strong>
+#                 </div>
+#                 {% endif %}
+#             </div>
+            
+#             {% if result %}
+#             <div class="terminal">
+#                 {{ result }}
+#             </div>
+            
+#             <div class="status status-loading" id="statusMessage">
+#                 ⏳ Processing your financial data... Google Sheets update in progress
+#             </div>
+#             {% endif %}
+#         </div>
+#     </div>
+    
+#     <script>
+#         setTimeout(function() {
+#             const statusElement = document.getElementById('statusMessage');
+#             if (statusElement) {
+#                 statusElement.textContent = '✅ Analysis completed successfully';
+#                 statusElement.className = 'status status-success';
+#             }
+#         }, 5000);
+#     </script>
+# </body>
+# </html>
+# '''
 def load_transactions(file_path_or_object):
     """Load transactions from uploaded file with proper CSV parsing"""
     transactions = []
@@ -2282,61 +2498,64 @@ def load_transactions(file_path_or_object):
 #                 continue
                 
 #     return transactions
-@app.route('/', methods=['GET', 'POST'])
-def index():
-    result = None
-    month = None
-    filename = None
+# @app.route('/', methods=['GET', 'POST'])
+# def index():
+#     result = None
+#     month = None
+#     filename = None
 
-    if request.method == 'POST':
-        month = request.form['month'].strip().lower()
+#     if request.method == 'POST':
+#         month = request.form['month'].strip().lower()
         
-        if 'file' not in request.files:
-            return render_template_string(HTML, result="No file uploaded", month=month)
+#         if 'file' not in request.files:
+#             return render_template_string(HTML, result="No file uploaded", month=month)
         
-        file = request.files['file']
+#         file = request.files['file']
         
-        if file.filename == '':
-            return render_template_string(HTML, result="No file selected", month=month)
+#         if file.filename == '':
+#             return render_template_string(HTML, result="No file selected", month=month)
         
-        if file and allowed_file(file.filename):
-            try:
-                filename = secure_filename(file.filename)
+#         if file and allowed_file(file.filename):
+#             try:
+#                 filename = secure_filename(file.filename)
                 
-                # Create temporary file for processing
-                temp_dir = tempfile.mkdtemp()
-                temp_file_path = os.path.join(temp_dir, f"hsbc_{month}.csv")
+#                 # Create temporary file for processing
+#                 temp_dir = tempfile.mkdtemp()
+#                 temp_file_path = os.path.join(temp_dir, f"hsbc_{month}.csv")
                 
-                # Save uploaded file
-                file.save(temp_file_path)
+#                 # Save uploaded file
+#                 file.save(temp_file_path)
                 
-                # Load transactions for immediate display
-                transactions, daily_categories = load_transactions(temp_file_path)
+#                 # Load transactions for immediate display
+#                 transactions, daily_categories = load_transactions(temp_file_path)
                 
-                if transactions:
-                    data = analyze(transactions, daily_categories, month)
-                    result = format_terminal_output(data, month, len(transactions))
+#                 if transactions:
+#                     data = analyze(transactions, daily_categories, month)
+#                     result = format_terminal_output(data, month, len(transactions))
                     
-                    # Start background processing
-                    thread = threading.Thread(target=run_full_analysis_with_file, 
-                                            args=(month, temp_file_path, temp_dir))
-                    thread.daemon = True
-                    thread.start()
-                else:
-                    result = f"No valid transactions found in {filename}"
-                    # Clean up if no transactions
-                    if os.path.exists(temp_dir):
-                        shutil.rmtree(temp_dir)
+#                     # Start background processing
+#                     thread = threading.Thread(target=run_full_analysis_with_file, 
+#                                             args=(month, temp_file_path, temp_dir))
+#                     thread.daemon = True
+#                     thread.start()
+#                 else:
+#                     result = f"No valid transactions found in {filename}"
+#                     # Clean up if no transactions
+#                     if os.path.exists(temp_dir):
+#                         shutil.rmtree(temp_dir)
                     
-            except Exception as e:
-                result = f"Error processing file: {str(e)}"
-                # Clean up on error
-                if 'temp_dir' in locals() and os.path.exists(temp_dir):
-                    shutil.rmtree(temp_dir)
-        else:
-            result = "Invalid file type. Please upload a CSV file."
+#             except Exception as e:
+#                 result = f"Error processing file: {str(e)}"
+#                 # Clean up on error
+#                 if 'temp_dir' in locals() and os.path.exists(temp_dir):
+#                     shutil.rmtree(temp_dir)
+#         else:
+#             result = "Invalid file type. Please upload a CSV file."
     
-    return render_template_string(HTML, result=result, month=month, filename=filename)
+#     return render_template_string(HTML, result=result, month=month, filename=filename)
+
+# ---
+
 # @app.route('/', methods=['GET', 'POST'])
 # def index():
 #     result = None
@@ -2822,9 +3041,22 @@ def index():
 #                 print(f"Cleaned up temporary directory: {temp_dir}")
 #         except Exception as cleanup_error:
 #             print(f"Error cleaning up temporary files: {cleanup_error}")
+def get_operation_status(analysis_success, sheets_success):
+    """Возвращает сообщение о статусе операций"""
+    if analysis_success and sheets_success:
+        return "✅ Analysis completed successfully and data written to Google Sheets"
+    elif analysis_success and not sheets_success:
+        return "⚠️ Analysis completed but failed to write data to Google Sheets"
+    elif not analysis_success and sheets_success:
+        return "⚠️ Analysis failed but Google Sheets operation completed"
+    else:
+        return "❌ Both analysis and Google Sheets operations failed"
 
 def run_full_analysis_with_file(month, file_path, temp_dir):
     """Полная обработка в фоновом режиме с использованием загруженного файла"""
+    analysis_success = False
+    sheets_success = False
+    
     try:
         print(f"🚀 Starting FULL background analysis for {month} with uploaded file")
         
@@ -2836,6 +3068,7 @@ def run_full_analysis_with_file(month, file_path, temp_dir):
             return
             
         data = analyze(transactions, daily_categories, month)
+        analysis_success = True
 
         # Выводим основные результаты
         print(f"{month.upper()} ANALYSIS COMPLETED")
@@ -2843,7 +3076,7 @@ def run_full_analysis_with_file(month, file_path, temp_dir):
         print(f"Expenses: {data['expenses']:.2f}€")
         print(f"Savings: {data['savings']:.2f}€")
         
-        # 1. ЗАПИСЬ В ЛИСТ МЕСЯЦА (новый формат)
+        # 1. ЗАПИСЬ В ЛИСТ МЕСЯЦА
         print(f"📝 Writing to {month} worksheet...")
         monthly_success = write_to_month_sheet(month, transactions, data)
         
@@ -2860,13 +3093,16 @@ def run_full_analysis_with_file(month, file_path, temp_dir):
         MONTH_NORMALIZED = get_month_column_name(month)
         
         summary_success = write_to_target_sheet(table_data, MONTH_NORMALIZED)
+        sheets_success = summary_success
         
         if summary_success:
             print("✅ Successfully updated Google Sheets SUMMARY")
         else:
             print("❌ Failed to update Google Sheets SUMMARY")
         
-        print("🎉 All background tasks completed!")
+        # Выводим итоговый статус
+        status_message = get_operation_status(analysis_success, sheets_success)
+        print(f"🎉 {status_message}")
         
     except Exception as e:
         print(f"Background analysis error: {e}")
@@ -2880,6 +3116,121 @@ def run_full_analysis_with_file(month, file_path, temp_dir):
                 print(f"Cleaned up temporary directory: {temp_dir}")
         except Exception as cleanup_error:
             print(f"Error cleaning up temporary files: {cleanup_error}")
+        
+        # Возвращаем статус операций
+        return analysis_success, sheets_success
+
+# Модифицируйте функцию index для отображения правильных сообщений
+@app.route('/', methods=['GET', 'POST'])
+def index():
+    result = None
+    month = None
+    filename = None
+    status_message = None
+
+    if request.method == 'POST':
+        month = request.form['month'].strip().lower()
+        
+        if 'file' not in request.files:
+            return render_template_string(HTML, result="No file uploaded", month=month)
+        
+        file = request.files['file']
+        
+        if file.filename == '':
+            return render_template_string(HTML, result="No file selected", month=month)
+        
+        if file and allowed_file(file.filename):
+            try:
+                filename = secure_filename(file.filename)
+                
+                # Create temporary file for processing
+                temp_dir = tempfile.mkdtemp()
+                temp_file_path = os.path.join(temp_dir, f"hsbc_{month}.csv")
+                
+                # Save uploaded file
+                file.save(temp_file_path)
+                
+                # Load transactions for immediate display
+                transactions, daily_categories = load_transactions(temp_file_path)
+                
+                if transactions:
+                    data = analyze(transactions, daily_categories, month)
+                    result = format_terminal_output(data, month, len(transactions))
+                    
+                    # Start background processing and get status
+                    analysis_success, sheets_success = run_full_analysis_with_file(month, temp_file_path, temp_dir)
+                    status_message = get_operation_status(analysis_success, sheets_success)
+                else:
+                    result = f"No valid transactions found in {filename}"
+                    status_message = "❌ Analysis failed - no transactions found"
+                    
+            except Exception as e:
+                result = f"Error processing file: {str(e)}"
+                status_message = "❌ Analysis failed due to error"
+        else:
+            result = "Invalid file type. Please upload a CSV file."
+            status_message = "❌ Invalid file type"
+    
+    return render_template_string(HTML, result=result, month=month, filename=filename, status_message=status_message)
+
+
+# def run_full_analysis_with_file(month, file_path, temp_dir):
+#     """Полная обработка в фоновом режиме с использованием загруженного файла"""
+#     try:
+#         print(f"🚀 Starting FULL background analysis for {month} with uploaded file")
+        
+#         # Загружаем транзакции из временного файла
+#         transactions, daily_categories = load_transactions(file_path)
+        
+#         if not transactions:
+#             print("No transactions found in uploaded file")
+#             return
+            
+#         data = analyze(transactions, daily_categories, month)
+
+#         # Выводим основные результаты
+#         print(f"{month.upper()} ANALYSIS COMPLETED")
+#         print(f"Income: {data['income']:.2f}€")
+#         print(f"Expenses: {data['expenses']:.2f}€")
+#         print(f"Savings: {data['savings']:.2f}€")
+        
+#         # 1. ЗАПИСЬ В ЛИСТ МЕСЯЦА (новый формат)
+#         print(f"📝 Writing to {month} worksheet...")
+#         monthly_success = write_to_month_sheet(month, transactions, data)
+        
+#         if monthly_success:
+#             print(f"✅ Successfully updated {month} worksheet")
+#         else:
+#             print(f"❌ Failed to update {month} worksheet")
+        
+#         time.sleep(2)
+        
+#         # 2. ЗАПИСЬ В SUMMARY ЛИСТ
+#         print("⏳ Starting Google Sheets SUMMARY update...")
+#         table_data = prepare_summary_data(data, transactions)
+#         MONTH_NORMALIZED = get_month_column_name(month)
+        
+#         summary_success = write_to_target_sheet(table_data, MONTH_NORMALIZED)
+        
+#         if summary_success:
+#             print("✅ Successfully updated Google Sheets SUMMARY")
+#         else:
+#             print("❌ Failed to update Google Sheets SUMMARY")
+        
+#         print("🎉 All background tasks completed!")
+        
+#     except Exception as e:
+#         print(f"Background analysis error: {e}")
+#         import traceback
+#         print(f"Traceback: {traceback.format_exc()}")
+#     finally:
+#         # Очищаем временные файлы
+#         try:
+#             if os.path.exists(temp_dir):
+#                 shutil.rmtree(temp_dir)
+#                 print(f"Cleaned up temporary directory: {temp_dir}")
+#         except Exception as cleanup_error:
+#             print(f"Error cleaning up temporary files: {cleanup_error}")
 
 # def run_full_analysis_with_file(month, file_path, temp_dir):
 #     """Полная обработка в фоновом режиме с использованием загруженного файла"""
