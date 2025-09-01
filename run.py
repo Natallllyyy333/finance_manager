@@ -2970,8 +2970,16 @@ def write_to_month_sheet(month_name, transactions, data):
             "textFormat": {"bold": True, "fontSize": 14},
             "horizontalAlignment": "CENTER"
         })
-        padding=Padding(top=8, right=12, bottom=8, left=12)
-        worksheet.format("A1:Z100", {"horizontalAlignment": "CENTER"}, padding)
+        
+        worksheet.format("A1:Z100", {"horizontalAlignment": "CENTER"})
+        worksheet.format("A1:Z100", {
+        "padding": {
+            "top": 8,
+            "right": 12,
+            "bottom": 8,
+            "left": 12
+        }
+    })
         
         # Table headers
         headers = ["Date", "Description", "Amount", "Type", "Category"]
