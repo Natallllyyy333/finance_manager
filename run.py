@@ -2980,9 +2980,7 @@ def write_to_month_sheet(month_name, transactions, data):
             "left": 12
         }
     })
-        worksheet.format("I1:I{last_transaction_row}", {
-        "width": 20
-    })
+ 
         
         # Table headers
         headers = ["Date", "Description", "Amount", "Type", "Category"]
@@ -3149,7 +3147,7 @@ def write_to_month_sheet(month_name, transactions, data):
         set_column_width(worksheet, 'E', 100)  # Category
         set_column_width(worksheet, 'G', 150)  # Category name
         set_column_width(worksheet, 'H', 80)   # Amount
-        set_column_width(worksheet, 'I', 80)   # Percentage
+        set_column_width(worksheet, 'I', 100)   # Percentage
         set_column_width(worksheet, 'K', 60)   # Priority
         set_column_width(worksheet, 'L', 300)  # Recommendation
         
