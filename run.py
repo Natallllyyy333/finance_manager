@@ -234,15 +234,23 @@ def load_transactions(file_path_or_object):
     try:
         # Определяем, является ли вход файловым объектом или путем
         if hasattr(file_path_or_object, 'read'):
-            # Это файловый объект - читаем его содержимое
-            file_content = file_path_or_object.read().decode('utf-8')
-            file_lines = file_content.splitlines()
-            reader = csv.reader(file_lines)
+            # Это файловый объект - проверяем, является ли он строкой или байтами
+            if hasattr(file_path_or_object, 'getvalue'):
+                # Это StringIO объект - уже содержит строку
+                file_content = file_path_or_object.getvalue()
+                file_lines = file_content.splitlines()
+                reader = csv.reader(file_lines)
+            else:
+                # Это файловый объект из request.files - читаем как байты
+                file_content = file_path_or_object.read()
+                if isinstance(file_content, bytes):
+                    file_content = file_content.decode('utf-8')
+                file_lines = file_content.splitlines()
+                reader = csv.reader(file_lines)
         else:
             # Это путь к файлу
             with open(file_path_or_object, 'r', encoding='utf-8') as f:
                 reader = csv.reader(f)
-                file_lines = f.readlines()
         
         # Обрабатываем строки
         for row in reader:
@@ -268,7 +276,50 @@ def load_transactions(file_path_or_object):
         print(f"Error loading transactions: {e}")
         return [], defaultdict(lambda: defaultdict(float))
         
-    return transactions, daily_categories    
+    return transactions, daily_categories
+# def load_transactions(file_path_or_object):
+#     """Load and categorize transactions with daily tracking"""
+#     transactions = []
+#     daily_categories = defaultdict(lambda: defaultdict(float))
+    
+#     try:
+#         # Определяем, является ли вход файловым объектом или путем
+#         if hasattr(file_path_or_object, 'read'):
+#             # Это файловый объект - читаем его содержимое
+#             file_content = file_path_or_object.read().decode('utf-8')
+#             file_lines = file_content.splitlines()
+#             reader = csv.reader(file_lines)
+#         else:
+#             # Это путь к файлу
+#             with open(file_path_or_object, 'r', encoding='utf-8') as f:
+#                 reader = csv.reader(f)
+#                 file_lines = f.readlines()
+        
+#         # Обрабатываем строки
+#         for row in reader:
+#             if len(row) < 5:
+#                 continue
+#             try:
+#                 amount = float(row[2])
+#                 category = categorize(row[1])
+#                 date = row[0]
+#                 transactions.append({
+#                     'date': date,
+#                     'desc': row[1][:30],
+#                     'amount': amount,
+#                     'type': 'income' if row[4] == 'Credit' else 'expense',
+#                     'category': category
+#                 })
+#                 if row[4] != 'Credit':
+#                     daily_categories[date][category] += amount
+#             except ValueError:
+#                 continue  # Skip rows with invalid data
+                
+#     except Exception as e:
+#         print(f"Error loading transactions: {e}")
+#         return [], defaultdict(lambda: defaultdict(float))
+        
+#     return transactions, daily_categories    
 # def load_transactions(file_path_or_object):
 #     """Load and categorize transactions with daily tracking"""
 #     transactions = []
@@ -2085,9 +2136,10 @@ def index():
             try:
                 filename = secure_filename(file.filename)
                 
-                # Читаем содержимое файла в память
-                file_content = file.read().decode('utf-8')
-                file.seek(0)  # Сбрасываем позицию для возможного повторного чтения
+                # Читаем содержимое файла
+                file_content = file.read()
+                if isinstance(file_content, bytes):
+                    file_content = file_content.decode('utf-8')
                 
                 # Создаем временный файл для фоновой обработки
                 temp_dir = tempfile.mkdtemp()
@@ -2117,6 +2169,58 @@ def index():
             result = "Invalid file type. Please upload a CSV file."
     
     return render_template_string(HTML, result=result, month=month, filename=filename)
+# def index():
+#     result = None
+#     month = None
+#     filename = None
+
+#     if request.method == 'POST':
+#         month = request.form['month'].strip()
+        
+#         if 'file' not in request.files:
+#             return render_template_string(HTML, result="No file uploaded", month=month)
+        
+#         file = request.files['file']
+        
+#         if file.filename == '':
+#             return render_template_string(HTML, result="No file selected", month=month)
+        
+#         if file and allowed_file(file.filename):
+#             try:
+#                 filename = secure_filename(file.filename)
+                
+#                 # Читаем содержимое файла в память
+#                 file_content = file.read().decode('utf-8')
+#                 file.seek(0)  # Сбрасываем позицию для возможного повторного чтения
+                
+#                 # Создаем временный файл для фоновой обработки
+#                 temp_dir = tempfile.mkdtemp()
+#                 temp_file_path = os.path.join(temp_dir, f"hsbc_{month.lower()}.csv")
+                
+#                 with open(temp_file_path, 'w', encoding='utf-8') as temp_file:
+#                     temp_file.write(file_content)
+                
+#                 # Загружаем транзакции для немедленного отображения
+#                 transactions, daily_categories = load_transactions(StringIO(file_content))
+                
+#                 if transactions:
+#                     data = analyze(transactions, daily_categories, month)
+#                     result = format_terminal_output(data, month, len(transactions))
+                    
+#                     # Запускаем полную фоновую обработку
+#                     thread = threading.Thread(target=run_full_analysis_with_file, 
+#                                             args=(month, temp_file_path, temp_dir))
+#                     thread.daemon = True
+#                     thread.start()
+#                 else:
+#                     result = f"No valid transactions found in {filename}"
+                    
+#             except Exception as e:
+#                 result = f"Error processing file: {str(e)}"
+#         else:
+#             result = "Invalid file type. Please upload a CSV file."
+    
+#     return render_template_string(HTML, result=result, month=month, filename=filename)
 # def index():
 #     result = None
 #     month = None
