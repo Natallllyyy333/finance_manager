@@ -2980,6 +2980,9 @@ def write_to_month_sheet(month_name, transactions, data):
             "left": 12
         }
     })
+        worksheet.format("I1:I{last_transaction_row}", {
+        "width": 20
+    })
         
         # Table headers
         headers = ["Date", "Description", "Amount", "Type", "Category"]
