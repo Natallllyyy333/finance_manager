@@ -199,74 +199,101 @@ def async_google_sheets_operation(month_name, table_data):
         print(f"Async Google Sheets error: {e}")
         import traceback
         print(f"🔥 Traceback: {traceback.format_exc()}")
-
 def get_google_credentials():
-    """Get Google credentials from environment variables or file"""
-    if "DYNO" in os.environ:
-        print("🔑 Using environment credentials from Heroku")
-        # import json
-        service_account_json = os.environ.get('GOOGLE_SERVICE_ACCOUNT_JSON')
-        if service_account_json:
-            print("✅ GOOGLE_SERVICE_ACCOUNT_JSON found")
-            try:
-                creds_dict = json.loads(service_account_json)
-                from google.oauth2 import service_account
-                SCOPES = ['https://www.googleapis.com/auth/spreadsheets',
-                         'https://www.googleapis.com/auth/drive']
-                return service_account.Credentials.from_service_account_info(creds_dict, scopes=SCOPES)
-            except json.JSONDecodeError:
-                raise Exception("Invalid JSON in GOOGLE_SERVICE_ACCOUNT_JSON")
-        else:
-            print("❌ GOOGLE_SERVICE_ACCOUNT_JSON not found")
-            
-            raise Exception("GOOGLE_SERVICE_ACCOUNT_JSON environment variable not found")
-            
-    else:
-        # Locally from file
-        print("🔑 Using local credentials file")
-        from google.oauth2 import service_account
-        return service_account.Credentials.from_service_account_file('creds.json')
-def load_transactions(file_path_or_object):
-    """Load transactions from uploaded file with error handling"""
-    transactions = []
+    """Get Google credentials with better error handling"""
     try:
-        # Читаем файл полностью в память
-        with open(file_path_or_object, 'r', encoding='utf-8') as file:
-            content = file.read()
-        
-        # Обрабатываем содержимое как строку
-        lines = content.split('\n')
-        
-        for line in lines:
-            line = line.strip()
-            if line and not line.startswith('#'):  # Пропускаем пустые строки и комментарии
+        if "DYNO" in os.environ:
+            print("🔑 Using environment credentials from Heroku")
+            service_account_json = os.environ.get('GOOGLE_SERVICE_ACCOUNT_JSON')
+            if service_account_json:
                 try:
-                    # Парсим строку
-                    parts = line.split(',')
-                    if len(parts) >= 3:
-                        date_str = parts[0].strip()
-                        amount = float(parts[1].strip())
-                        description = parts[2].strip()
-                        category = parts[3].strip() if len(parts) > 3 else "Other"
-                        
-                        # Преобразуем дату
-                        date = datetime.strptime(date_str, "%Y-%m-%d").date()
-                        
-                        transactions.append({
-                            'date': date,
-                            'amount': amount,
-                            'description': description,
-                            'category': category
-                        })
-                except (ValueError, IndexError) as e:
-                    print(f"Error parsing line: {line} - {e}")
-                    continue
-                    
+                    creds_dict = json.loads(service_account_json)
+                    SCOPES = ['https://www.googleapis.com/auth/spreadsheets',
+                             'https://www.googleapis.com/auth/drive']
+                    return service_account.Credentials.from_service_account_info(creds_dict, scopes=SCOPES)
+                except json.JSONDecodeError:
+                    print("❌ Invalid JSON in GOOGLE_SERVICE_ACCOUNT_JSON")
+                    return None
+            else:
+                print("❌ GOOGLE_SERVICE_ACCOUNT_JSON environment variable not found")
+                return None
+        else:
+            # Local development
+            if os.path.exists('creds.json'):
+                return service_account.Credentials.from_service_account_file('creds.json')
+            else:
+                print("❌ Local creds.json file not found")
+                return None
     except Exception as e:
-        print(f"Error loading transactions: {e}")
-        return []
+        print(f"❌ Error getting credentials: {e}")
+        return None
+# def get_google_credentials():
+#     """Get Google credentials from environment variables or file"""
+#     if "DYNO" in os.environ:
+#         print("🔑 Using environment credentials from Heroku")
+#         # import json
+#         service_account_json = os.environ.get('GOOGLE_SERVICE_ACCOUNT_JSON')
+#         if service_account_json:
+#             print("✅ GOOGLE_SERVICE_ACCOUNT_JSON found")
+#             try:
+#                 creds_dict = json.loads(service_account_json)
+#                 from google.oauth2 import service_account
+#                 SCOPES = ['https://www.googleapis.com/auth/spreadsheets',
+#                          'https://www.googleapis.com/auth/drive']
+#                 return service_account.Credentials.from_service_account_info(creds_dict, scopes=SCOPES)
+#             except json.JSONDecodeError:
+#                 raise Exception("Invalid JSON in GOOGLE_SERVICE_ACCOUNT_JSON")
+#         else:
+#             print("❌ GOOGLE_SERVICE_ACCOUNT_JSON not found")
+            
+#             raise Exception("GOOGLE_SERVICE_ACCOUNT_JSON environment variable not found")
+            
+#     else:
+#         # Locally from file
+#         print("🔑 Using local credentials file")
+#         from google.oauth2 import service_account
+#         return service_account.Credentials.from_service_account_file('creds.json')
+# def load_transactions(file_path_or_object):
+#     """Load transactions from uploaded file with error handling"""
+#     transactions = []
+#     try:
+#         # Читаем файл полностью в память
+#         with open(file_path_or_object, 'r', encoding='utf-8') as file:
+#             content = file.read()
+        
+#         # Обрабатываем содержимое как строку
+#         lines = content.split('\n')
+        
+#         for line in lines:
+#             line = line.strip()
+#             if line and not line.startswith('#'):  # Пропускаем пустые строки и комментарии
+#                 try:
+#                     # Парсим строку
+#                     parts = line.split(',')
+#                     if len(parts) >= 3:
+#                         date_str = parts[0].strip()
+#                         amount = float(parts[1].strip())
+#                         description = parts[2].strip()
+#                         category = parts[3].strip() if len(parts) > 3 else "Other"
+                        
+#                         # Преобразуем дату
+#                         date = datetime.strptime(date_str, "%Y-%m-%d").date()
+                        
+#                         transactions.append({
+#                             'date': date,
+#                             'amount': amount,
+#                             'description': description,
+#                             'category': category
+#                         })
+#                 except (ValueError, IndexError) as e:
+#                     print(f"Error parsing line: {line} - {e}")
+#                     continue
+                    
+#     except Exception as e:
+#         print(f"Error loading transactions: {e}")
+#         return []
     
-    return transactions
+#     return transactions
 # def load_transactions(file_path_or_object):
 #     """Load and categorize transactions with daily tracking"""
 #     transactions = []
@@ -417,36 +444,60 @@ def load_transactions(file_path_or_object):
         #     exit()
         # return transactions, daily_categories
 
-
 def categorize(description):
     """Categorize transaction based on description."""
     desc = description.lower()
+    
     categories = {
-        'Salary': ['salary','wages'],
+        'Salary': ['salary', 'wages', 'salary deposit'],
         'Bonus': ['bonus', 'tip', 'reward'],
-        'Other income': ['stocks', 'exchange', 'earnings', 'prize'],
-        'Rent': ['rent', 'monthly rent'],
-        'Groceries': ['supermarket', 'grocery', 'food'],
+        'Rent': ['rent', 'monthly rent', 'rent payment'],
+        'Groceries': ['supermarket', 'grocery', 'food', 'spinneys', 'carrefour'],
         'Dining': ['restaurant', 'cafe', 'coffee'],
-        'Transport': ['bus', 'train', 'taxi', 'uber'],
-        'Entertainment': ['movie', 'netflix', 'concert'],
-        'Utilities': ['electricity', 'water', 'gas', 'internet', 'phone'],
-        'Gym': ['gym', 'Gym Membership' 'fitness', 'yoga'],
-        'Shopping': ['clothing', 'electronics', 'shopping', 'Supermarket'],
+        'Transport': ['bus', 'train', 'taxi', 'uber', 'fuel', 'enoc'],
+        'Entertainment': ['movie', 'netflix', 'concert', 'spotify'],
+        'Utilities': ['electricity', 'water', 'gas', 'internet', 'phone', 'etisalat'],
+        'Gym': ['gym', 'fitness', 'yoga'],
+        'Shopping': ['clothing', 'electronics', 'shopping', 'sharaf dg', 'ebay'],
         'Health': ['pharmacy', 'doctor', 'health', 'dentist'],
         'Insurance': ['insurance', 'health insurance', 'car insurance'],
-        'Education': ['tuition', 'books', 'courses', 'course'],
-        'Travel': ['flight', 'hotel', 'travel', 'airline'],
-        'Savings': ['savings', 'investment', 'stocks'],
-        'Bank Fees': ['bank fee', 'atm fee', 'service charge'],
-        'Charity': ['donation', 'charity', 'fundraiser'],
-        'Car': ['car', 'vehicle', 'fuel', 'maintenance'],
+        'Travel': ['flight', 'hotel', 'travel', 'airline', 'hilton'],
         'Other': []
     }
+    
     for cat, terms in categories.items():
         if any(term in desc for term in terms):
             return cat
     return 'Other'
+# def categorize(description):
+#     """Categorize transaction based on description."""
+#     desc = description.lower()
+#     categories = {
+#         'Salary': ['salary','wages'],
+#         'Bonus': ['bonus', 'tip', 'reward'],
+#         'Other income': ['stocks', 'exchange', 'earnings', 'prize'],
+#         'Rent': ['rent', 'monthly rent'],
+#         'Groceries': ['supermarket', 'grocery', 'food'],
+#         'Dining': ['restaurant', 'cafe', 'coffee'],
+#         'Transport': ['bus', 'train', 'taxi', 'uber'],
+#         'Entertainment': ['movie', 'netflix', 'concert'],
+#         'Utilities': ['electricity', 'water', 'gas', 'internet', 'phone'],
+#         'Gym': ['gym', 'Gym Membership' 'fitness', 'yoga'],
+#         'Shopping': ['clothing', 'electronics', 'shopping', 'Supermarket'],
+#         'Health': ['pharmacy', 'doctor', 'health', 'dentist'],
+#         'Insurance': ['insurance', 'health insurance', 'car insurance'],
+#         'Education': ['tuition', 'books', 'courses', 'course'],
+#         'Travel': ['flight', 'hotel', 'travel', 'airline'],
+#         'Savings': ['savings', 'investment', 'stocks'],
+#         'Bank Fees': ['bank fee', 'atm fee', 'service charge'],
+#         'Charity': ['donation', 'charity', 'fundraiser'],
+#         'Car': ['car', 'vehicle', 'fuel', 'maintenance'],
+#         'Other': []
+#     }
+#     for cat, terms in categories.items():
+#         if any(term in desc for term in terms):
+#             return cat
+#     return 'Other'
 
 def get_month_column_name(month_input):
     """Привести название месяца к стандартному формату"""
@@ -2137,40 +2188,100 @@ HTML = '''
 </body>
 </html>
 '''
-
-def load_transactions_from_content(content):
-    """Load transactions from file content string"""
+def load_transactions(file_path_or_object):
+    """Load transactions from uploaded file with proper CSV parsing"""
     transactions = []
-    lines = content.split('\n')
+    daily_categories = defaultdict(lambda: defaultdict(float))
     
-    for line in lines:
-        line = line.strip()
-        if line and not line.startswith('#'):  # Skip empty lines and comments
-            try:
-                parts = line.split(',')
-                if len(parts) >= 3:
-                    date_str = parts[0].strip()
-                    amount = float(parts[1].strip())
-                    description = parts[2].strip()
-                    category = parts[3].strip() if len(parts) > 3 else "Other"
+    try:
+        # Handle both file objects and file paths
+        if hasattr(file_path_or_object, 'read'):
+            # File object - read content
+            content = file_path_or_object.read()
+            if isinstance(content, bytes):
+                content = content.decode('utf-8')
+            lines = content.split('\n')
+        else:
+            # File path
+            with open(file_path_or_object, 'r', encoding='utf-8') as file:
+                lines = file.readlines()
+        
+        # Parse CSV lines
+        for line in lines:
+            line = line.strip()
+            if line and not line.startswith(('#', 'Date')):  # Skip headers and comments
+                try:
+                    parts = line.split(',')
+                    if len(parts) >= 5:
+                        # Parse date (assuming format: "31 Mar 2025")
+                        date_str = parts[0].strip()
+                        description = parts[1].strip()
+                        amount = float(parts[2].strip())
+                        currency = parts[3].strip()
+                        transaction_type = parts[4].strip().lower()
+                        
+                        # Convert date to standard format
+                        date_obj = datetime.strptime(date_str, "%d %b %Y")
+                        date_formatted = date_obj.strftime("%Y-%m-%d")
+                        
+                        # Categorize
+                        category = categorize(description)
+                        
+                        transaction = {
+                            'date': date_formatted,
+                            'desc': description[:30],
+                            'amount': amount,
+                            'type': 'income' if transaction_type == 'credit' else 'expense',
+                            'category': category
+                        }
+                        
+                        transactions.append(transaction)
+                        
+                        # Track daily categories for expenses
+                        if transaction_type != 'credit':
+                            daily_categories[date_formatted][category] += amount
+                            
+                except (ValueError, IndexError) as e:
+                    print(f"Warning: Error parsing line '{line}' - {e}")
+                    continue
                     
-                    # Convert date
-                    date = datetime.strptime(date_str, "%Y-%m-%d").date()
+    except Exception as e:
+        print(f"Error loading transactions: {e}")
+        return [], defaultdict(lambda: defaultdict(float))
+    
+    return transactions, daily_categories
+# def load_transactions_from_content(content):
+#     """Load transactions from file content string"""
+#     transactions = []
+#     lines = content.split('\n')
+    
+#     for line in lines:
+#         line = line.strip()
+#         if line and not line.startswith('#'):  # Skip empty lines and comments
+#             try:
+#                 parts = line.split(',')
+#                 if len(parts) >= 3:
+#                     date_str = parts[0].strip()
+#                     amount = float(parts[1].strip())
+#                     description = parts[2].strip()
+#                     category = parts[3].strip() if len(parts) > 3 else "Other"
                     
-                    transactions.append({
-                        'date': date,
-                        'amount': amount,
-                        'description': description,
-                        'category': category,
-                        'type': 'income' if amount > 0 else 'expense',
-                        'desc': description[:30]  # For compatibility
-                    })
-            except (ValueError, IndexError) as e:
-                print(f"Warning: Error parsing line '{line}' - {e}")
-                continue
+#                     # Convert date
+#                     date = datetime.strptime(date_str, "%Y-%m-%d").date()
+                    
+#                     transactions.append({
+#                         'date': date,
+#                         'amount': amount,
+#                         'description': description,
+#                         'category': category,
+#                         'type': 'income' if amount > 0 else 'expense',
+#                         'desc': description[:30]  # For compatibility
+#                     })
+#             except (ValueError, IndexError) as e:
+#                 print(f"Warning: Error parsing line '{line}' - {e}")
+#                 continue
                 
-    return transactions
-
+#     return transactions
 @app.route('/', methods=['GET', 'POST'])
 def index():
     result = None
@@ -2192,55 +2303,110 @@ def index():
             try:
                 filename = secure_filename(file.filename)
                 
-                # Читаем содержимое файла полностью в память
-                file_content = file.read()
-                
-                # Декодируем если это bytes
-                if isinstance(file_content, bytes):
-                    try:
-                        file_content = file_content.decode('utf-8')
-                    except UnicodeDecodeError:
-                        try:
-                            file_content = file_content.decode('latin-1')
-                        except UnicodeDecodeError:
-                            return render_template_string(HTML, result="Unsupported file encoding", month=month)
-                
-                # Создаем временный файл для фоновой обработки
+                # Create temporary file for processing
                 temp_dir = tempfile.mkdtemp()
                 temp_file_path = os.path.join(temp_dir, f"hsbc_{month}.csv")
                 
-                with open(temp_file_path, 'w', encoding='utf-8') as temp_file:
-                    temp_file.write(file_content)
+                # Save uploaded file
+                file.save(temp_file_path)
                 
-                # Загружаем транзакции для немедленного отображения
-                transactions = load_transactions_from_content(file_content)
+                # Load transactions for immediate display
+                transactions, daily_categories = load_transactions(temp_file_path)
                 
                 if transactions:
-                    # Создаем daily_categories для анализа
-                    daily_categories = defaultdict(lambda: defaultdict(float))
-                    for t in transactions:
-                        date_str = t['date'].strftime("%Y-%m-%d")
-                        daily_categories[date_str][t['category']] += t['amount']
-                    
                     data = analyze(transactions, daily_categories, month)
                     result = format_terminal_output(data, month, len(transactions))
                     
-                    # Запускаем полную фоновую обработку
+                    # Start background processing
                     thread = threading.Thread(target=run_full_analysis_with_file, 
                                             args=(month, temp_file_path, temp_dir))
                     thread.daemon = True
                     thread.start()
                 else:
                     result = f"No valid transactions found in {filename}"
+                    # Clean up if no transactions
+                    if os.path.exists(temp_dir):
+                        shutil.rmtree(temp_dir)
                     
             except Exception as e:
                 result = f"Error processing file: {str(e)}"
-                import traceback
-                print(f"Error traceback: {traceback.format_exc()}")
+                # Clean up on error
+                if 'temp_dir' in locals() and os.path.exists(temp_dir):
+                    shutil.rmtree(temp_dir)
         else:
             result = "Invalid file type. Please upload a CSV file."
     
     return render_template_string(HTML, result=result, month=month, filename=filename)
+# @app.route('/', methods=['GET', 'POST'])
+# def index():
+#     result = None
+#     month = None
+#     filename = None
+
+#     if request.method == 'POST':
+#         month = request.form['month'].strip().lower()
+        
+#         if 'file' not in request.files:
+#             return render_template_string(HTML, result="No file uploaded", month=month)
+        
+#         file = request.files['file']
+        
+#         if file.filename == '':
+#             return render_template_string(HTML, result="No file selected", month=month)
+        
+#         if file and allowed_file(file.filename):
+#             try:
+#                 filename = secure_filename(file.filename)
+                
+#                 # Читаем содержимое файла полностью в память
+#                 file_content = file.read()
+                
+#                 # Декодируем если это bytes
+#                 if isinstance(file_content, bytes):
+#                     try:
+#                         file_content = file_content.decode('utf-8')
+#                     except UnicodeDecodeError:
+#                         try:
+#                             file_content = file_content.decode('latin-1')
+#                         except UnicodeDecodeError:
+#                             return render_template_string(HTML, result="Unsupported file encoding", month=month)
+                
+#                 # Создаем временный файл для фоновой обработки
+#                 temp_dir = tempfile.mkdtemp()
+#                 temp_file_path = os.path.join(temp_dir, f"hsbc_{month}.csv")
+                
+#                 with open(temp_file_path, 'w', encoding='utf-8') as temp_file:
+#                     temp_file.write(file_content)
+                
+#                 # Загружаем транзакции для немедленного отображения
+#                 transactions = load_transactions_from_content(file_content)
+                
+#                 if transactions:
+#                     # Создаем daily_categories для анализа
+#                     daily_categories = defaultdict(lambda: defaultdict(float))
+#                     for t in transactions:
+#                         date_str = t['date'].strftime("%Y-%m-%d")
+#                         daily_categories[date_str][t['category']] += t['amount']
+                    
+#                     data = analyze(transactions, daily_categories, month)
+#                     result = format_terminal_output(data, month, len(transactions))
+                    
+#                     # Запускаем полную фоновую обработку
+#                     thread = threading.Thread(target=run_full_analysis_with_file, 
+#                                             args=(month, temp_file_path, temp_dir))
+#                     thread.daemon = True
+#                     thread.start()
+#                 else:
+#                     result = f"No valid transactions found in {filename}"
+                    
+#             except Exception as e:
+#                 result = f"Error processing file: {str(e)}"
+#                 import traceback
+#                 print(f"Error traceback: {traceback.format_exc()}")
+#         else:
+#             result = "Invalid file type. Please upload a CSV file."
+    
+#     return render_template_string(HTML, result=result, month=month, filename=filename)
 # @app.route('/', methods=['GET', 'POST'])
 # def index():
 #     result = None
@@ -2677,25 +2843,28 @@ def run_full_analysis_with_file(month, file_path, temp_dir):
         print(f"Expenses: {data['expenses']:.2f}€")
         print(f"Savings: {data['savings']:.2f}€")
         
-        # Запись в лист месяца
+        # 1. ЗАПИСЬ В ЛИСТ МЕСЯЦА (новый формат)
         print(f"📝 Writing to {month} worksheet...")
-        write_to_month_sheet(month, transactions, data)
+        monthly_success = write_to_month_sheet(month, transactions, data)
         
-        time.sleep(2)  # Уменьшите задержку
+        if monthly_success:
+            print(f"✅ Successfully updated {month} worksheet")
+        else:
+            print(f"❌ Failed to update {month} worksheet")
         
-        print("⏳ Starting Google Sheets update...")
+        time.sleep(2)
         
-        # Подготавливаем и записываем данные в SUMMARY
+        # 2. ЗАПИСЬ В SUMMARY ЛИСТ
+        print("⏳ Starting Google Sheets SUMMARY update...")
         table_data = prepare_summary_data(data, transactions)
         MONTH_NORMALIZED = get_month_column_name(month)
         
-        # ВАЖНО: Убедитесь, что эта функция вызывается
-        success = write_to_target_sheet(table_data, MONTH_NORMALIZED)
+        summary_success = write_to_target_sheet(table_data, MONTH_NORMALIZED)
         
-        if success:
-            print("✅ Successfully updated Google Sheets")
+        if summary_success:
+            print("✅ Successfully updated Google Sheets SUMMARY")
         else:
-            print("❌ Failed to update Google Sheets")
+            print("❌ Failed to update Google Sheets SUMMARY")
         
         print("🎉 All background tasks completed!")
         
@@ -2711,6 +2880,61 @@ def run_full_analysis_with_file(month, file_path, temp_dir):
                 print(f"Cleaned up temporary directory: {temp_dir}")
         except Exception as cleanup_error:
             print(f"Error cleaning up temporary files: {cleanup_error}")
+
+# def run_full_analysis_with_file(month, file_path, temp_dir):
+#     """Полная обработка в фоновом режиме с использованием загруженного файла"""
+#     try:
+#         print(f"🚀 Starting FULL background analysis for {month} with uploaded file")
+        
+#         # Загружаем транзакции из временного файла
+#         transactions, daily_categories = load_transactions(file_path)
+        
+#         if not transactions:
+#             print("No transactions found in uploaded file")
+#             return
+            
+#         data = analyze(transactions, daily_categories, month)
+
+#         # Выводим основные результаты
+#         print(f"{month.upper()} ANALYSIS COMPLETED")
+#         print(f"Income: {data['income']:.2f}€")
+#         print(f"Expenses: {data['expenses']:.2f}€")
+#         print(f"Savings: {data['savings']:.2f}€")
+        
+#         # Запись в лист месяца
+#         print(f"📝 Writing to {month} worksheet...")
+#         write_to_month_sheet(month, transactions, data)
+        
+#         time.sleep(2)  # Уменьшите задержку
+        
+#         print("⏳ Starting Google Sheets update...")
+        
+#         # Подготавливаем и записываем данные в SUMMARY
+#         table_data = prepare_summary_data(data, transactions)
+#         MONTH_NORMALIZED = get_month_column_name(month)
+        
+#         # ВАЖНО: Убедитесь, что эта функция вызывается
+#         success = write_to_target_sheet(table_data, MONTH_NORMALIZED)
+        
+#         if success:
+#             print("✅ Successfully updated Google Sheets")
+#         else:
+#             print("❌ Failed to update Google Sheets")
+        
+#         print("🎉 All background tasks completed!")
+        
+#     except Exception as e:
+#         print(f"Background analysis error: {e}")
+#         import traceback
+#         print(f"Traceback: {traceback.format_exc()}")
+#     finally:
+#         # Очищаем временные файлы
+#         try:
+#             if os.path.exists(temp_dir):
+#                 shutil.rmtree(temp_dir)
+#                 print(f"Cleaned up temporary directory: {temp_dir}")
+#         except Exception as cleanup_error:
+#             print(f"Error cleaning up temporary files: {cleanup_error}")
 def write_to_month_sheet(month_name, transactions, data):
     """Запись данных в лист месяца в формате как на скриншоте"""
     try:
