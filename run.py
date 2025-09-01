@@ -2451,15 +2451,21 @@ def run_full_analysis_with_file(month, file_path, temp_dir):
         print(f"📝 Writing to {month} worksheet...")
         write_to_month_sheet(month, transactions, data)
         
-        time.sleep(10)
+        time.sleep(2)  # Уменьшите задержку
+        
         print("⏳ Starting Google Sheets update...")
         
-        # Запускаем Google Sheets
+        # Подготавливаем и записываем данные в SUMMARY
         table_data = prepare_summary_data(data, transactions)
         MONTH_NORMALIZED = get_month_column_name(month)
         
-        # ДОБАВЛЕНО: Вызов функции для записи в SUMMARY
-        write_to_target_sheet(table_data, MONTH_NORMALIZED)
+        # ВАЖНО: Убедитесь, что эта функция вызывается
+        success = write_to_target_sheet(table_data, MONTH_NORMALIZED)
+        
+        if success:
+            print("✅ Successfully updated Google Sheets")
+        else:
+            print("❌ Failed to update Google Sheets")
         
         print("🎉 All background tasks completed!")
         
@@ -2475,7 +2481,6 @@ def run_full_analysis_with_file(month, file_path, temp_dir):
                 print(f"Cleaned up temporary directory: {temp_dir}")
         except Exception as cleanup_error:
             print(f"Error cleaning up temporary files: {cleanup_error}")
-
 def write_to_month_sheet(month_name, transactions, data):
     """Запись данных в лист месяца в формате как на скриншоте"""
     try:
