@@ -3148,7 +3148,7 @@ def write_to_month_sheet(month_name, transactions, data):
         set_column_width(worksheet, 'G', 150)  # Category name
         set_column_width(worksheet, 'H', 80)   # Amount
         set_column_width(worksheet, 'I', 100)   # Percentage
-        set_column_width(worksheet, 'K', 60)   # Priority
+        set_column_width(worksheet, 'K', 70)   # Priority
         set_column_width(worksheet, 'L', 300)  # Recommendation
         
         print(f"✅ Successfully formatted {month_name} worksheet to match screenshot")
