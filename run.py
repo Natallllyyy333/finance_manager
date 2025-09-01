@@ -2970,7 +2970,7 @@ def write_to_month_sheet(month_name, transactions, data):
             "textFormat": {"bold": True, "fontSize": 14},
             "horizontalAlignment": "CENTER"
         })
-        
+        worksheet.format("A1:Z100", {"horizontalAlignment": "CENTER"})
         # Table headers
         headers = ["Date", "Description", "Amount", "Type", "Category"]
         worksheet.update('A7', [headers])
@@ -3114,7 +3114,7 @@ def write_to_month_sheet(month_name, transactions, data):
         worksheet.update('A2', summary_data)
         
         # Format summary section
-        worksheet.format('A2:B4', {
+        worksheet.format('A2:C4', {
             "textFormat": {"bold": True},
             "borders": {
                 "top": {"style": "SOLID", "width": 1},
