@@ -574,86 +574,155 @@ def analyze(transactions, daily_categories, month):
 #     analysis['savings'] = analysis['income'] - analysis['expenses']
 #     return analysis
 
+# def format_terminal_output(data, month, transactions_count=0):
+#     """Форматирует вывод для терминала 80x24 символов как на скриншоте"""
+#     output = []
+    
+#     # Заголовок (строка 1-3) - все центрировано
+#     # output.append(" PERSONAL FINANCE ANALYZER ".center(80, "="))
+#     # output.append(f"Enter the month (e.g. 'March, April, May'): {month.lower()}")
+#     # output.append(f"Loading file: hsbc_{month.lower()}.csv")
+#     # output.append("")  # Пустая строка
+    
+#     # Финансовый обзор (строка 5-9)
+#     expense_rate = (data['expenses'] / data['income'] * 100) if data['income'] > 0 else 0
+#     savings_rate = (data['savings'] / data['income'] * 100) if data['income'] > 0 else 0
+    
+#     centered_title = f"FINANCIAL OVERVIEW: {month.upper()}"
+#     # Убираем пробелы в начале, если они есть
+#     # if centered_title.startswith(''):
+#     #     centered_title = centered_title.lstrip()
+#     output.append(' ')
+#     output.append(centered_title)
+#     output.append(f"Income: {data['income']:8.2f}€ [{'■' * 20}] 100.0%")
+#     output.append(f"Expenses: {data['expenses']:8.2f}€ [{'■' * int(expense_rate/5)}] {expense_rate:.1f}%")
+#     output.append(f"Savings: {data['savings']:8.2f}€ [{'■' * int(savings_rate/5)}] {savings_rate:.1f}%")
+#     # output.append("")  # Пустая строка
+    
+#     # Категории расходов в 3 колонки с гистограммами (строка 10-15)
+#     output.append("EXPENSE CATEGORIES: ")
+    
+#     # Топ 9 категорий в 3 колонки
+#     # top_categories = sorted(data['categories'].items(), key=lambda x: x[1], reverse=True)[:9]
+    
+#     # # Вычисляем проценты для гистограмм (минимум 1 блок для самой малой категории)
+#     # categories_with_percent = []
+#     # max_percent = max((amount / data['expenses'] * 100) for category, amount in top_categories) if data['expenses'] > 0 else 0
+    
+#     # for category, amount in top_categories:
+#     #     percent = (amount / data['expenses'] * 100) if data['expenses'] > 0 else 0
+#     #     # Масштабируем так, чтобы самая малая категория имела минимум 1 блок
+#     #     if max_percent > 0:
+#     #         scaled_percent = max(1, int(percent / max_percent * 8))
+#     #     else:
+#     #         scaled_percent = 1
+#     #     categories_with_percent.append((category, amount, scaled_percent))
+    
+#     # # Разделяем на 3 колонки
+#     # col1 = categories_with_percent[0:3]
+#     # col2 = categories_with_percent[3:6]
+#     # col3 = categories_with_percent[6:9]
+    
+#     # for i in range(3):
+#     #     line = ""
+        
+#     #     # Колонка 1
+#     #     if i < len(col1):
+#     #         cat1, amt1, bar_len1 = col1[i]
+#     #         line += f"{cat1[:10]:<10} {amt1:6.2f}€ {'■' * bar_len1}"
+#     #     else:
+#     #         line += " " * 25
+            
+#     #     line += " " * 2  # Отступ между колонками
+        
+#     #     # Колонка 2
+#     #     if i < len(col2):
+#     #         cat2, amt2, bar_len2 = col2[i]
+#     #         line += f"{cat2[:10]:<10} {amt2:6.2f}€ {'■' * bar_len2}"
+#     #     else:
+#     #         line += " " * 25
+            
+#     #     line += " " * 2  # Отступ между колонками
+        
+#     #     # Колонка 3
+#     #     if i < len(col3):
+#     #         cat3, amt3, bar_len3 = col3[i]
+#     #         line += f"{cat3[:10]:<10} {amt3:6.2f}€ {'■' * bar_len3}"
+#     #     else:
+#     #         line += " " * 17  # Заполняем оставшееся пространство
+        
+#     #     output.append(line)
+    
+#     # output.append("")  # Пустая строка
+#     top_categories = sorted(data['categories'].items(), key=lambda x: x[1], reverse=True)[:12]
+    
+#     for category, amount in top_categories:
+#         if data['expenses'] > 0:
+#             percent = (amount / data['expenses'] * 100)
+#             bar_length = max(1, int(percent / 5))  # Масштабируем гистограмму
+#             output.append(f"{category[:15]:<15} {amount:8.2f}€ {'■' * bar_length} ({percent:.1f}%)")
+#         else:
+#             output.append(f"{category[:15]:<15} {amount:8.2f}€")
+    
+#     # Ежедневные траты и нормы (строка 16-19)
+#     output.append("DAILY SPENDING and NORMS: ")
+    
+#     sorted_categories = sorted(
+#         [(cat, avg) for cat, avg in data['daily_averages'].items() if cat in DAILY_NORMS],
+#         key=lambda x: x[1] - DAILY_NORMS.get(x[0], 0),
+#         reverse=True
+#     )[:3]
+    
+#     for category, avg in sorted_categories:
+#         norm = DAILY_NORMS.get(category, 0)
+#         diff = avg - norm
+#         arrow = "▲" if diff > 0 else "▼"
+#         output.append(f"{category[:12]:<12} Avg: {avg:5.2f}€ Norm: {norm:5.2f}€ {arrow} {abs(diff):.2f}€")
+    
+#     # output.append("")  # Пустая строка
+    
+#     # Рекомендации (строка 20-23)
+#     output.append("DAILY SPENDING RECOMMENDATIONS: ")
+    
+#     recommendations = generate_daily_recommendations(data)[:3]
+#     for i, rec in enumerate(recommendations, 1):
+#         if len(rec) > 70:
+#             rec = rec[:67] + "..."
+#         output.append(f"{i}. {rec}")
+    
+#     # Информация о Google Sheets (строка 24)
+#     # output.append("")  # Пустая строка перед updating
+#     # if transactions_count > 0:
+#     #     output.append(f"Updating {transactions_count} transactions in Google Sheets...")
+    
+#     # Проверяем, что вывод точно 24 строки
+#     # while len(output) < 24:
+#     #     output.append("")
+#     while len(output) > 24:
+#         output.pop()
+    
+#     return "\n".join(output)
 def format_terminal_output(data, month, transactions_count=0):
     """Форматирует вывод для терминала 80x24 символов как на скриншоте"""
     output = []
     
     # Заголовок (строка 1-3) - все центрировано
-    # output.append(" PERSONAL FINANCE ANALYZER ".center(80, "="))
-    # output.append(f"Enter the month (e.g. 'March, April, May'): {month.lower()}")
-    # output.append(f"Loading file: hsbc_{month.lower()}.csv")
-    # output.append("")  # Пустая строка
+    output.append(' ')
     
-    # Финансовый обзор (строка 5-9)
+    # Финансовый обзор (строка 5-9) с подчеркнутыми заголовками
     expense_rate = (data['expenses'] / data['income'] * 100) if data['income'] > 0 else 0
     savings_rate = (data['savings'] / data['income'] * 100) if data['income'] > 0 else 0
     
-    centered_title = f"FINANCIAL OVERVIEW: {month.upper()}"
-    # Убираем пробелы в начале, если они есть
-    # if centered_title.startswith(''):
-    #     centered_title = centered_title.lstrip()
-    output.append(' ')
+    # Подчеркнутый заголовок
+    centered_title = f"<u>FINANCIAL OVERVIEW: {month.upper()}</u>"
     output.append(centered_title)
     output.append(f"Income: {data['income']:8.2f}€ [{'■' * 20}] 100.0%")
     output.append(f"Expenses: {data['expenses']:8.2f}€ [{'■' * int(expense_rate/5)}] {expense_rate:.1f}%")
     output.append(f"Savings: {data['savings']:8.2f}€ [{'■' * int(savings_rate/5)}] {savings_rate:.1f}%")
-    # output.append("")  # Пустая строка
     
-    # Категории расходов в 3 колонки с гистограммами (строка 10-15)
-    output.append("EXPENSE CATEGORIES: ")
+    # Категории расходов с подчеркнутым заголовком
+    output.append("<u>EXPENSE CATEGORIES:</u>")
     
-    # Топ 9 категорий в 3 колонки
-    # top_categories = sorted(data['categories'].items(), key=lambda x: x[1], reverse=True)[:9]
-    
-    # # Вычисляем проценты для гистограмм (минимум 1 блок для самой малой категории)
-    # categories_with_percent = []
-    # max_percent = max((amount / data['expenses'] * 100) for category, amount in top_categories) if data['expenses'] > 0 else 0
-    
-    # for category, amount in top_categories:
-    #     percent = (amount / data['expenses'] * 100) if data['expenses'] > 0 else 0
-    #     # Масштабируем так, чтобы самая малая категория имела минимум 1 блок
-    #     if max_percent > 0:
-    #         scaled_percent = max(1, int(percent / max_percent * 8))
-    #     else:
-    #         scaled_percent = 1
-    #     categories_with_percent.append((category, amount, scaled_percent))
-    
-    # # Разделяем на 3 колонки
-    # col1 = categories_with_percent[0:3]
-    # col2 = categories_with_percent[3:6]
-    # col3 = categories_with_percent[6:9]
-    
-    # for i in range(3):
-    #     line = ""
-        
-    #     # Колонка 1
-    #     if i < len(col1):
-    #         cat1, amt1, bar_len1 = col1[i]
-    #         line += f"{cat1[:10]:<10} {amt1:6.2f}€ {'■' * bar_len1}"
-    #     else:
-    #         line += " " * 25
-            
-    #     line += " " * 2  # Отступ между колонками
-        
-    #     # Колонка 2
-    #     if i < len(col2):
-    #         cat2, amt2, bar_len2 = col2[i]
-    #         line += f"{cat2[:10]:<10} {amt2:6.2f}€ {'■' * bar_len2}"
-    #     else:
-    #         line += " " * 25
-            
-    #     line += " " * 2  # Отступ между колонками
-        
-    #     # Колонка 3
-    #     if i < len(col3):
-    #         cat3, amt3, bar_len3 = col3[i]
-    #         line += f"{cat3[:10]:<10} {amt3:6.2f}€ {'■' * bar_len3}"
-    #     else:
-    #         line += " " * 17  # Заполняем оставшееся пространство
-        
-    #     output.append(line)
-    
-    # output.append("")  # Пустая строка
     top_categories = sorted(data['categories'].items(), key=lambda x: x[1], reverse=True)[:12]
     
     for category, amount in top_categories:
@@ -664,8 +733,8 @@ def format_terminal_output(data, month, transactions_count=0):
         else:
             output.append(f"{category[:15]:<15} {amount:8.2f}€")
     
-    # Ежедневные траты и нормы (строка 16-19)
-    output.append("DAILY SPENDING and NORMS: ")
+    # Ежедневные траты и нормы с подчеркнутым заголовком
+    output.append("<u>DAILY SPENDING and NORMS:</u>")
     
     sorted_categories = sorted(
         [(cat, avg) for cat, avg in data['daily_averages'].items() if cat in DAILY_NORMS],
@@ -679,10 +748,8 @@ def format_terminal_output(data, month, transactions_count=0):
         arrow = "▲" if diff > 0 else "▼"
         output.append(f"{category[:12]:<12} Avg: {avg:5.2f}€ Norm: {norm:5.2f}€ {arrow} {abs(diff):.2f}€")
     
-    # output.append("")  # Пустая строка
-    
-    # Рекомендации (строка 20-23)
-    output.append("DAILY SPENDING RECOMMENDATIONS: ")
+    # Рекомендации с подчеркнутым заголовком
+    output.append("<u>DAILY SPENDING RECOMMENDATIONS:</u>")
     
     recommendations = generate_daily_recommendations(data)[:3]
     for i, rec in enumerate(recommendations, 1):
@@ -690,19 +757,11 @@ def format_terminal_output(data, month, transactions_count=0):
             rec = rec[:67] + "..."
         output.append(f"{i}. {rec}")
     
-    # Информация о Google Sheets (строка 24)
-    # output.append("")  # Пустая строка перед updating
-    # if transactions_count > 0:
-    #     output.append(f"Updating {transactions_count} transactions in Google Sheets...")
-    
     # Проверяем, что вывод точно 24 строки
-    # while len(output) < 24:
-    #     output.append("")
     while len(output) > 24:
         output.pop()
     
     return "\n".join(output)
-
 # def terminal_visualization(data):
 #     """Visualize financial data in terminal."""
 #     # Header
@@ -2172,7 +2231,11 @@ HTML = '''
             
             {% if result %}
             <div class="terminal">
-                {{ result }}
+                {% if result %}
+                    {{ result|safe }}
+                {% else %}
+                    <span style="color: #888;">Analysis results will appear here...</span>
+                {% endif %}
             </div>
             
             <div class="status {% if status_message and 'success' in status_message %}status-success{% elif status_message and 'failed' in status_message %}status-error{% elif status_message and 'warning' in status_message %}status-warning{% else %}status-loading{% endif %}" id="statusMessage">
