@@ -227,56 +227,46 @@ def get_google_credentials():
         from google.oauth2 import service_account
         return service_account.Credentials.from_service_account_file('creds.json')
 def load_transactions(file_path_or_object):
-    """Load and categorize transactions with daily tracking"""
+    """Load transactions from uploaded file with error handling"""
     transactions = []
-    daily_categories = defaultdict(lambda: defaultdict(float))
-    
     try:
-        # Определяем, является ли вход файловым объектом или путем
-        if hasattr(file_path_or_object, 'read'):
-            # Это файловый объект - проверяем, является ли он строкой или байтами
-            if hasattr(file_path_or_object, 'getvalue'):
-                # Это StringIO объект - уже содержит строку
-                file_content = file_path_or_object.getvalue()
-                file_lines = file_content.splitlines()
-                reader = csv.reader(file_lines)
-            else:
-                # Это файловый объект из request.files - читаем как байты
-                file_content = file_path_or_object.read()
-                if isinstance(file_content, bytes):
-                    file_content = file_content.decode('utf-8')
-                file_lines = file_content.splitlines()
-                reader = csv.reader(file_lines)
-        else:
-            # Это путь к файлу
-            with open(file_path_or_object, 'r', encoding='utf-8') as f:
-                reader = csv.reader(f)
+        # Читаем файл полностью в память
+        with open(file_path_or_object, 'r', encoding='utf-8') as file:
+            content = file.read()
         
-        # Обрабатываем строки
-        for row in reader:
-            if len(row) < 5:
-                continue
-            try:
-                amount = float(row[2])
-                category = categorize(row[1])
-                date = row[0]
-                transactions.append({
-                    'date': date,
-                    'desc': row[1][:30],
-                    'amount': amount,
-                    'type': 'income' if row[4] == 'Credit' else 'expense',
-                    'category': category
-                })
-                if row[4] != 'Credit':
-                    daily_categories[date][category] += amount
-            except ValueError:
-                continue  # Skip rows with invalid data
-                
+        # Обрабатываем содержимое как строку
+        lines = content.split('\n')
+        
+        for line in lines:
+            line = line.strip()
+            if line and not line.startswith('#'):  # Пропускаем пустые строки и комментарии
+                try:
+                    # Парсим строку
+                    parts = line.split(',')
+                    if len(parts) >= 3:
+                        date_str = parts[0].strip()
+                        amount = float(parts[1].strip())
+                        description = parts[2].strip()
+                        category = parts[3].strip() if len(parts) > 3 else "Other"
+                        
+                        # Преобразуем дату
+                        date = datetime.strptime(date_str, "%Y-%m-%d").date()
+                        
+                        transactions.append({
+                            'date': date,
+                            'amount': amount,
+                            'description': description,
+                            'category': category
+                        })
+                except (ValueError, IndexError) as e:
+                    print(f"Error parsing line: {line} - {e}")
+                    continue
+                    
     except Exception as e:
         print(f"Error loading transactions: {e}")
-        return [], defaultdict(lambda: defaultdict(float))
-        
-    return transactions, daily_categories
+        return []
+    
+    return transactions
 # def load_transactions(file_path_or_object):
 #     """Load and categorize transactions with daily tracking"""
 #     transactions = []
