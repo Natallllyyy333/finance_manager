@@ -3490,7 +3490,10 @@ def write_to_month_sheet(month_name, transactions, data):
 })
 
 # Значения summary секции - обычный шрифт
-        worksheet.format('B2:C4', {
+        worksheet.format('B2:B4', {
+            "textFormat": {"bold": False}
+        })
+        worksheet.format('C2:C4', {
             "textFormat": {"bold": False}
         })
 
