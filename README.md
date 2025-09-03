@@ -139,20 +139,24 @@ VSCode was used to write the project code using Code Institute template
 ### Libraries
 
 #### Python Libraries
-- os - used to clear terminal
-- gspread - Google Sheets API wrapper
-- csv - CSV file processing
-- collections - Specialized container datatypes
-- tertools - Functions creating iterators for efficient looping
-- gspread_formatting - Google Sheets formatting
-- time - used to displayed delayed messages in the terminal
-- [unittest](https://docs.python.org/3/library/unittest.html) - used to carry out testing on single units in validation.py file
+- [os](https://docs.python.org/3/library/os.html) - JUSTIFICATION: I used this library for working with file system operations and accessing environment variables, particularly for handling file paths and checking Heroku deployment environment
+- [csv](https://docs.python.org/3/library/csv.html) - JUSTIFICATION: I used this library in the load_transactions() function for parsing CSV files containing financial transaction data from bank statements
+- [time](https://docs.python.org/3/library/time.html) - JUSTIFICATION: I used this library for adding delays with time.sleep() in several places to manage API rate limits and provide better user feedback timing
+- [warnings](https://docs.python.org/3/library/warnings.html) - JUSTIFICATION: I used this library for filtering and suppressing deprecation warnings to keep the console output clean and focused on relevant information
+- [sys](https://docs.python.org/3/library/sys.html) - JUSTIFICATION: I used this library for program exit handling and stdout redirection, particularly in the main function and background processing operations
+- [json](https://docs.python.org/3/library/json.html) - JUSTIFICATION: I used this library for parsing Google service account credentials stored as JSON in environment variables for secure authentication
+- [threading](https://docs.python.org/3/library/threading.html) - JUSTIFICATION: I used this library for asynchronous Google Sheets operations to prevent blocking the main application thread during API calls
+- [tempfile](https://docs.python.org/3/library/tempfile.html) - JUSTIFICATION: I used this library for creating temporary files during file upload processing to securely handle user-uploaded CSV files
+- [shutil](https://docs.python.org/3/library/shutil.html) - JUSTIFICATION: I used this library for cleaning up temporary files and directories to maintain system cleanliness and prevent storage leaks
+- [collections.defaultdict](https://docs.python.org/3/library/collections.html#collections.defaultdict) - JUSTIFICATION: I used this library in several functions for efficient transaction categorization and daily spending tracking with automatic default values
+- [datetime](https://docs.python.org/3/library/datetime.html) - JUSTIFICATION: I used this library for date parsing in the load_transactions() function to convert various date formats into standardized timestamps
 
 #### Third Party Libraries
-- [colorama](https://pypi.org/project/colorama/) - JUSTIFICATION: I used this library to add color to the terminal and enhance user experience. I marked warning/error information with color red and user feedback with blue and green
-- [email_validator](https://pypi.org/project/email-validator/) - JUSTIFICATION: I used this library to validate if user email input is of the form name@</span>example.com
-- [gspread](https://docs.gspread.org/en/latest/) - JUSTIFICATION: I used gspread to add and manipulate data in my Google spreadsheet and to interact with Google APIs
-- [google.oauth2.service_account](https://google-auth.readthedocs.io/en/master/) - JUSTIFICATION: module used to set up the authentification needed to access the Google API and connect my Service Account with the Credentials function. A creds.json file is created with all details the API needs to access the google account. In deployment to Render this information is stored in the config var section.
+- [gspread](https://docs.gspread.org/en/latest/) - JUSTIFICATION: I used this library as a Google Sheets API wrapper for reading and writing financial data to Google Spreadsheets in functions like sync_google_sheets_operation() and write_to_month_sheet()
+- [gspread_formatting](https://gspread-formatting.readthedocs.io/en/latest/) - JUSTIFICATION: I used this library for advanced Google Sheets formatting including cell styling, column width adjustment, and professional spreadsheet presentation in the write_to_month_sheet() function
+- [google.oauth2.service_account](https://google-auth.readthedocs.io/en/master/) - JUSTIFICATION: I used this module to set up secure authentication needed to access Google APIs and connect Service Account credentials in the get_google_credentials() function
+- [Flask](https://flask.palletsprojects.com/) - JUSTIFICATION: I used this web framework to create the interactive web application interface, handle file uploads, process form data, and serve dynamic HTML templates to users
+- [Werkzeug](https://werkzeug.palletsprojects.com/) - JUSTIFICATION: I used this library for secure filename handling through the secure_filename() function when processing user-uploaded files to prevent directory traversal attacks
 
 [Back to Table Of Contents](#table-of-contents)
 
@@ -231,16 +235,12 @@ VSCode was used to write the project code using Code Institute template
 </details>
 
 <details>
-    <summary>Rows Data Preparation and Formating</summary>
+    <summary>Google Sheet Update in Progress</summary>
 
-![Rows Data Preparation and Formating](docs/features/rows_data_preparation_formating.jpg)
+![Google Sheet Update in Progress](docs/features/google_sheet_update_in_progress.jpg)
 </details>
 
 <details>
-<summary>Data written to SUMMARY worksheet</summary>
-
-![Data written to SUMMARY worksheet](docs/features/data_written_to_summary_sheet.jpg)
-</details>
 
 ### Google Sheets Financial Transactions Table
 - A clean, sortable table component that displays a user's monthly income and expenses.
@@ -330,7 +330,7 @@ The code includes basic error handling for:
 <details>
     <summary>Validation & Error Handling</summary>
 
-![Validation & Error Handling](docs/features/file_not_found_error.jpg)
+![Validation & Error Handling](docs/features/no_valid_data_found_error.jpg)
 </details>
 
 
