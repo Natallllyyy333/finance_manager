@@ -850,16 +850,7 @@ HTML = '''
     </div>
 
     <script>
-        // Обновление статуса, если он еще не установлен
-        {% if not status_message %}
-        setTimeout(function() {
-            const statusElement = document.getElementById('statusMessage');
-            if (statusElement && statusElement.classList.contains('status-loading')) {
-                statusElement.textContent = '✅ Analysis completed successfully';
-                statusElement.className = 'status status-success';
-            }
-        }, 5000);
-        {% endif %}
+        
 
         // Показываем статус загрузки при отправке формы
         document.querySelector('form').addEventListener('submit', function() {
