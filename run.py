@@ -857,6 +857,8 @@ HTML = '''
             const statusElement = document.getElementById('statusMessage');
             statusElement.className = 'status status-loading';
             statusElement.textContent = 'Processing your financial data... Google Sheets update in progress';
+            this.querySelector('button').disabled = true;
+            this.querySelector('button').textContent = 'Processing...';
         });
     </script>
 </body>
