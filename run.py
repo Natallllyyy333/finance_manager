@@ -807,14 +807,14 @@ HTML = '''
         </div>
         <div class="content">
             <div class="form-container">
-                <form method="POST" enctype="multipart/form-data">
+                <form method="POST" enctype="multipart/form-data" id="uploadForm">
                     <div class="input-group">
                         <input type="text"
                         name="month"
                         placeholder="Enter month (e.g. March, April)"
                         required>
                         <input type="file" name="file" accept=".csv" required>
-                        <button type="submit">Analyze</button>
+                        <button type="submit" id="submitBtn">Analyze</button>
                     </div>
                 </form>
                 {% if filename %}
@@ -825,21 +825,9 @@ HTML = '''
             </div>
 
             <!-- Блок статуса ДО терминала -->
-             <div class="status
-                 {% if status_message and 'success' in status_message %}
-                 status-success
-                 {% elif status_message and 'failed' in status_message %}
-                 status-error
-                 {% elif status_message and 'warning' in status_message %}
-                 status-warning
-                 {% else %}hidden{% endif %}"
-                 id="statusMessage">
-                {% if status_message %}
-                    {{ status_message }}
-                {% else %}
-                    Processing your financial data...
-                    Google Sheets update in progress
-                {% endif %}
+            <div class="status hidden" id="statusMessage">
+    Processing your financial data...
+    Google Sheets update in progress
             </div>
 
             {% if result %}
