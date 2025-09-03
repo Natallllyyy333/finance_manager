@@ -825,18 +825,20 @@ HTML = '''
                 {% endif %}
             </div>
 
-            <!-- Блок статуса -->
-            <div class="status hidden"
-                 id="statusMessage">
-                Processing your financial data...
-                Google Sheets update in progress
-            </div>
+            
 
             {% if result %}
             <div class="terminal">
                 {{ result|safe }}
             </div>
             {% endif %}
+            
+            <!-- Блок статуса -->
+            <div class="status hidden"
+                 id="statusMessage">
+                Processing your financial data...
+                Google Sheets update in progress
+            </div>
         </div>
     </div>
 
@@ -1355,7 +1357,7 @@ def write_to_month_sheet(month_name, transactions, data):
 
 
 def run_full_analysis(month):
-    """Полная обработка в фоновом режиме"""
+    """FULL background analysis"""
     try:
         import sys
         sys.stdout = sys.__stdout__
