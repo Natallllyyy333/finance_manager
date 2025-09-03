@@ -825,7 +825,7 @@ HTML = '''
             </div>
 
             <!-- Блок статуса ДО терминала -->
-             <div class="status
+             <div class="status hidden
                  {% if status_message and 'success' in status_message %}
                  status-success
                  {% elif status_message and 'failed' in status_message %}
@@ -852,9 +852,7 @@ HTML = '''
 
     <script>
         // Добавляем скрытый класс в CSS
-       const style = document.createElement('style');
-        style.textContent = '.hidden ';
-        document.head.appendChild(style);
+      
 
         // Показываем статус загрузки только при нажатии кнопки
         document.getElementById('uploadForm').addEventListener('submit', function(e) {
