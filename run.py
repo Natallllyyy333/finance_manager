@@ -662,7 +662,7 @@ HTML = '''
 <head>
     <title>Finance Analyzer</title>
     <style>
-    body {
+        body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 20px;
@@ -822,16 +822,8 @@ HTML = '''
                 </div>
                 {% endif %}
             </div>
-            {% if result %}
-            <div class="terminal">
-                {% if result %}
-                    {{ result|safe }}
-                {% else %}
-                    <span style="color: #888;">
-    Analysis results will appear here...
-</span>
-                {% endif %}
-            </div>
+
+            <!-- Блок статуса ДО терминала -->
             <div class="status
                  {% if status_message and 'success' in status_message %}
                  status-success
@@ -840,35 +832,41 @@ HTML = '''
                  {% elif status_message and 'warning' in status_message %}
                  status-warning
                  {% else %}status-loading{% endif %}"
-     id="statusMessage">
+                 id="statusMessage">
                 {% if status_message %}
                     {{ status_message }}
                 {% else %}
                     Processing your financial data...
                     Google Sheets update in progress
-                 {% endif %}
-        </div>
+                {% endif %}
+            </div>
 
-        {% if result %}
-        <div class="terminal">
-            {{ result|safe }}
+            {% if result %}
+            <div class="terminal">
+                {{ result|safe }}
+            </div>
+            {% endif %}
         </div>
-        {% endif %}
     </div>
-</div>
+
     <script>
         // Обновление статуса, если он еще не установлен
         {% if not status_message %}
         setTimeout(function() {
             const statusElement = document.getElementById('statusMessage');
-            if (statusElement &&
-                !statusElement.textContent.includes('failed')) {
-                statusElement.textContent = '✅ Analysis completed ' +
-                                            'successfully';
+            if (statusElement && statusElement.classList.contains('status-loading')) {
+                statusElement.textContent = '✅ Analysis completed successfully';
                 statusElement.className = 'status status-success';
             }
         }, 5000);
         {% endif %}
+
+        // Показываем статус загрузки при отправке формы
+        document.querySelector('form').addEventListener('submit', function() {
+            const statusElement = document.getElementById('statusMessage');
+            statusElement.className = 'status status-loading';
+            statusElement.textContent = 'Processing your financial data... Google Sheets update in progress';
+        });
     </script>
 </body>
 </html>
