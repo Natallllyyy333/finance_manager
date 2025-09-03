@@ -824,14 +824,14 @@ HTML = '''
             </div>
 
             <!-- Блок статуса ДО терминала -->
-            <div class="status
+             <div class="status
                  {% if status_message and 'success' in status_message %}
                  status-success
                  {% elif status_message and 'failed' in status_message %}
                  status-error
                  {% elif status_message and 'warning' in status_message %}
                  status-warning
-                 {% else %}status-loading{% endif %}"
+                 {% else %}hidden{% endif %}"
                  id="statusMessage">
                 {% if status_message %}
                     {{ status_message }}
@@ -850,16 +850,35 @@ HTML = '''
     </div>
 
     <script>
-        
+        // Добавляем скрытый класс в CSS
+        const style = document.createElement('style');
+        style.textContent = '.hidden { display: none !important; }';
+        document.head.appendChild(style);
 
-        // Показываем статус загрузки при отправке формы
-        document.querySelector('form').addEventListener('submit', function() {
+        // Показываем статус загрузки только при нажатии кнопки
+        document.getElementById('uploadForm').addEventListener('submit', function(e) {
             const statusElement = document.getElementById('statusMessage');
-            statusElement.className = 'status status-loading';
+            const submitBtn = document.getElementById('submitBtn');
+            
+            // Показываем статус загрузки
+            statusElement.classList.remove('hidden');
+            statusElement.classList.remove('status-success', 'status-error', 'status-warning');
+            statusElement.classList.add('status-loading');
             statusElement.textContent = 'Processing your financial data... Google Sheets update in progress';
-            this.querySelector('button').disabled = true;
-            this.querySelector('button').textContent = 'Processing...';
+            
+            // Отключаем кнопку и меняем текст
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Processing...';
+            submitBtn.style.opacity = '0.7';
         });
+
+        // Если есть статус сообщение с сервера - показываем его
+        {% if status_message %}
+        document.addEventListener('DOMContentLoaded', function() {
+            const statusElement = document.getElementById('statusMessage');
+            statusElement.classList.remove('hidden');
+        });
+        {% endif %}
     </script>
 </body>
 </html>
