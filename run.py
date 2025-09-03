@@ -769,7 +769,7 @@ HTML = '''
             font-weight: 500;
             margin: 10px 0;
         }
-        .hidden { display: none }
+        .hidden { display: none !important; }
         .status-loading {
             background: #fff3cd;
             color: #856404;
@@ -807,6 +807,7 @@ HTML = '''
         </div>
         <div class="content">
             <div class="form-container">
+                <!-- Добавлены ID для формы и кнопки -->
                 <form method="POST" enctype="multipart/form-data" id="uploadForm">
                     <div class="input-group">
                         <input type="text"
@@ -824,10 +825,11 @@ HTML = '''
                 {% endif %}
             </div>
 
-            <!-- Блок статуса ДО терминала -->
-            <div class="status hidden" id="statusMessage">
-    Processing your financial data...
-    Google Sheets update in progress
+            <!-- Блок статуса -->
+            <div class="status hidden"
+                 id="statusMessage">
+                Processing your financial data...
+                Google Sheets update in progress
             </div>
 
             {% if result %}
@@ -839,20 +841,15 @@ HTML = '''
     </div>
 
     <script>
-        // Добавляем скрытый класс в CSS
-      
-
-        // Показываем статус загрузки только при нажатии кнопки
+        // Показываем статус загрузки при нажатии кнопки
         document.getElementById('uploadForm').addEventListener('submit', function(e) {
             const statusElement = document.getElementById('statusMessage');
             const submitBtn = document.getElementById('submitBtn');
             
             // Показываем статус загрузки
             statusElement.classList.remove('hidden');
-            
             statusElement.classList.remove('status-success', 'status-error', 'status-warning');
             statusElement.classList.add('status-loading');
-            statusElement.textContent = 'Processing your financial data... Google Sheets update in progress';
             
             // Отключаем кнопку и меняем текст
             submitBtn.disabled = true;
@@ -865,6 +862,16 @@ HTML = '''
         document.addEventListener('DOMContentLoaded', function() {
             const statusElement = document.getElementById('statusMessage');
             statusElement.classList.remove('hidden');
+            statusElement.textContent = '{{ status_message }}';
+            
+            // Устанавливаем соответствующий класс в зависимости от типа сообщения
+            {% if 'success' in status_message %}
+            statusElement.classList.add('status-success');
+            {% elif 'failed' in status_message %}
+            statusElement.classList.add('status-error');
+            {% elif 'warning' in status_message %}
+            statusElement.classList.add('status-warning');
+            {% endif %}
         });
         {% endif %}
     </script>
