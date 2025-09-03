@@ -851,7 +851,9 @@ HTML = '''
 
     <script>
         // Добавляем скрытый класс в CSS
-       
+       const style = document.createElement('style');
+        style.textContent = '.hidden;
+        document.head.appendChild(style);
 
         // Показываем статус загрузки только при нажатии кнопки
         document.getElementById('uploadForm').addEventListener('submit', function(e) {
