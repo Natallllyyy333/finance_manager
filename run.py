@@ -846,11 +846,16 @@ HTML = '''
                 {% else %}
                     Processing your financial data...
                     Google Sheets update in progress
-                {% endif %}
-            
-            {% endif %}
+                 {% endif %}
         </div>
+
+        {% if result %}
+        <div class="terminal">
+            {{ result|safe }}
+        </div>
+        {% endif %}
     </div>
+</div>
     <script>
         // Обновление статуса, если он еще не установлен
         {% if not status_message %}
