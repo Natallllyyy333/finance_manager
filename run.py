@@ -28,15 +28,15 @@ warnings.filterwarnings('ignore', category=DeprecationWarning)
 app = Flask(__name__)
 
 DAILY_NORMS = {
-    'Rent': 50.0,
-    'Gym': 3.0,
-    'Groceries': 3,
-    'Transport': 0.27,
-    'Entertainment': 0.17,
-    'Utilities': 2.0,
-    'Shopping': 3.33,
-    'Dining': 10.00
-}
+        'Rent': 50.0,
+        'Gym': 3.0,
+        'Groceries': 3,
+        'Transport': 0.27,
+        'Entertainment': 0.17,
+        'Utilities': 2.0,
+        'Shopping': 3.33,
+        'Dining': 10.00
+    }
 
 ALLOWED_EXTENSIONS = {'csv'}
 
@@ -106,7 +106,7 @@ def sync_google_sheets_operation(month_name, table_data):
                         3,
                         month_col + 1,
                         f"{normalized_month} %"
-                    )
+                        )
                     print(f"✅ Created new column for {normalized_month}"
                           f" at position: {month_col}")
                     break
@@ -124,7 +124,7 @@ def sync_google_sheets_operation(month_name, table_data):
                 3,
                 month_col + 1,
                 f"{normalized_month} %"
-            )
+                )
             print(f"✅ Added new column for {normalized_month}"
                   f"at position: {month_col}")
         print("📝 Preparing data for writing...")
@@ -149,9 +149,9 @@ def sync_google_sheets_operation(month_name, table_data):
             print("⏳ Writing data to Google Sheets...")
             batch_size = 5
             for i in range(0, len(update_data), batch_size):
-                batch = update_data[i:i + batch_size]
+                batch = update_data[i:i+batch_size]
                 summary_sheet.batch_update(batch)
-                print(f"✅ Batch {i // batch_size + 1} written")
+                print(f"✅ Batch {i//batch_size + 1} written")
                 if i + batch_size < len(update_data):
                     time.sleep(10)
 
@@ -169,7 +169,7 @@ def sync_google_sheets_operation(month_name, table_data):
                         "numberFormat": {
                             "type": "PERCENT",
                             "pattern": "0.00%"
-                        },
+                            },
                         "horizontalAlignment": "CENTER"
                     })
                 print("✅ Percentage column formatted")
@@ -213,7 +213,7 @@ def get_google_credentials():
             print("🔑 Using environment credentials from Heroku")
             service_account_json = os.environ.get(
                 'GOOGLE_SERVICE_ACCOUNT_JSON'
-            )
+                )
             if service_account_json:
                 try:
                     creds_dict = json.loads(service_account_json)
@@ -234,7 +234,7 @@ def get_google_credentials():
             if os.path.exists('creds.json'):
                 Credentials = service_account.Credentials
                 credentials = Credentials.from_service_account_file(
-                    'creds.json'
+                 'creds.json'
                 )
                 return credentials
             else:
@@ -322,9 +322,9 @@ def format_terminal_output(data, month, transactions_count=0):
     output = []
     output.append(' ')
     expense_rate = (
-        (data['expenses'] / data['income'] * 100)
-        if data['income'] > 0
-        else 0
+            (data['expenses'] / data['income'] * 100)
+            if data['income'] > 0
+            else 0
     )
 
     savings_rate = (
@@ -337,17 +337,17 @@ def format_terminal_output(data, month, transactions_count=0):
     output.append(centered_title)
     output.append(f"Income: {data['income']:8.2f}€ [{'■' * 20}] 100.0%")
     output.append(f"Expenses: {data['expenses']:8.2f}€ "
-                  f"[{'■' * int(expense_rate / 5)}] "
+                  f"[{'■' * int(expense_rate/5)}] "
                   f"{expense_rate:.1f}%")
     output.append(f"Savings: {data['savings']:8.2f}€ "
-                  f"[{'■' * int(savings_rate / 5)}] "
+                  f"[{'■' * int(savings_rate/5)}] "
                   f"{savings_rate:.1f}%")
     output.append("<u>EXPENSE CATEGORIES:</u>")
     top_categories = sorted(
-        data['categories'].items(),
-        key=lambda x: x[1],
-        reverse=True
-    )[:12]
+     data['categories'].items(),
+     key=lambda x: x[1],
+     reverse=True
+     )[:12]
 
     for category, amount in top_categories:
         if data['expenses'] > 0:
@@ -359,14 +359,14 @@ def format_terminal_output(data, month, transactions_count=0):
             output.append(f"{category[:15]:<15} {amount:8.2f}€")
     output.append("<u>DAILY SPENDING and NORMS:</u>")
     sorted_categories = sorted(
-        [
-            (cat, avg)
-            for cat, avg in data['daily_averages'].items()
-            if cat in DAILY_NORMS
-        ],
-        key=lambda x: abs(x[1] - DAILY_NORMS.get(x[0], 0)),
-        reverse=True
-    )[:3]
+    [
+        (cat, avg)
+        for cat, avg in data['daily_averages'].items()
+        if cat in DAILY_NORMS
+    ],
+    key=lambda x: abs(x[1] - DAILY_NORMS.get(x[0], 0)),  # Добавить abs()
+    reverse=True
+)[:3]
     for category, avg in sorted_categories:
         norm = DAILY_NORMS.get(category, 0)
         diff = avg - norm
@@ -396,15 +396,15 @@ def terminal_visualization(data):
         (data['expenses'] / data['income'] * 100)
         if data['income'] > 0
         else 0
-    )
+        )
     savings_rate = ((data['savings'] / data['income'] * 100)
                     if data['income'] > 0
                     else 0)
     print(f"Expenses: {data['expenses']:8.2f}€ "
-          f"[{'■' * int(expense_rate / 5)}] "
+          f"[{'■' * int(expense_rate/5)}] "
           f"{expense_rate:.1f}%")
     print(f"Savings:  {data['savings']:8.2f}€"
-          f"[{'■' * int(savings_rate / 5)}] "
+          f"[{'■' * int(savings_rate/5)}] "
           f"{savings_rate:.1f}%")
     # Categories breakdown в 3 колонки с гистограммами
     print("EXPENSE CATEGORIES: ")
@@ -416,7 +416,7 @@ def terminal_visualization(data):
             for category, amount in top_categories)
         if data['expenses'] > 0
         else 0
-    )
+            )
     for category, amount in top_categories:
         percent = ((amount / data['expenses'] * 100)
                    if data['expenses'] > 0 else 0)
@@ -456,7 +456,7 @@ def terminal_visualization(data):
         ],
         key=lambda x: x[1] - DAILY_NORMS.get(x[0], 0),
         reverse=True
-    )[:3]
+        )[:3]
     for category, avg in sorted_categories:
         norm = DAILY_NORMS.get(category, 0)
         diff = avg - norm
@@ -636,10 +636,10 @@ def main():
         # Local mode
         print(f" PERSONAL FINANCE ANALYZER ")
         MONTH = (
-            input("Enter the month (e.g. 'March, April, May'): ")
-            .strip()
-            .lower()
-        )
+                input("Enter the month (e.g. 'March, April, May'): ")
+                .strip()
+                .lower()
+                )
         FILE = f"hsbc_{MONTH}.csv"
         print(f"Loading file: {FILE}")
 
@@ -774,11 +774,6 @@ HTML = '''
             color: #856404;
             border: 1px solid #ffeaa7;
         }
-        .status-info {
-            background: #d1ecf1;
-            color: #0c5460;
-            border: 1px solid #bee5eb;
-        }
         .status-success {
             background: #d4edda;
             color: #155724;
@@ -836,19 +831,24 @@ HTML = '''
     Analysis results will appear here...
 </span>
                 {% endif %}
-                </div>
             </div>
-             <div class="status {% if status_message and 'success' in status_message %}status-success
-                 {% elif status_message and 'failed' in status_message %}status-error
-                 {% elif status_message and 'progress' in status_message %}status-loading
-                 {% else %}status-info{% endif %}"
-                 id="statusMessage">
+            <div class="status
+                 {% if status_message and 'success' in status_message %}
+                 status-success
+                 {% elif status_message and 'failed' in status_message %}
+                 status-error
+                 {% elif status_message and 'warning' in status_message %}
+                 status-warning
+                 {% else %}status-loading{% endif %}"
+     id="statusMessage">
                 {% if status_message %}
                     {{ status_message }}
                 {% else %}
-                    Ready for analysis
+                    Processing your financial data...
+                    Google Sheets update in progress
                 {% endif %}
             </div>
+            {% endif %}
         </div>
     </div>
     <script>
@@ -928,7 +928,7 @@ def load_transactions(file_path_or_object):
 
 
 def get_operation_status(analysis_success, sheets_success):
-    """Getting operation status"""
+    """Возвращает сообщение о статусе операций"""
     if analysis_success and sheets_success:
         return (f"✅ Analysis completed successfully "
                 f"and data written to Google Sheets")
@@ -1017,37 +1017,38 @@ def index():
         if file and allowed_file(file.filename):
             try:
                 filename = secure_filename(file.filename)
-                # Создаем временный файл
+                # Create temporary file for processing
                 temp_dir = tempfile.mkdtemp()
                 temp_file_path = os.path.join(temp_dir, f"hsbc_{month}.csv")
+                # Save uploaded file
                 file.save(temp_file_path)
-
-                # 🔥 МИНИМАЛЬНОЕ ИЗМЕНЕНИЕ: Сначала быстрый анализ для immediate display
-                transactions, daily_categories = load_transactions(
-                    temp_file_path)
+                # Load transactions for immediate display
+                transactions, daily_categories = (
+                    load_transactions(temp_file_path)
+                    )
                 if transactions:
                     data = analyze(transactions, daily_categories, month)
-                    result = format_terminal_output(
-                        data, month, len(transactions))
-
-                    # 🔥 Устанавливаем статус "в процессе"
-                    status_message = "⏳ Analysis completed! Google Sheets update in progress..."
-
-                    # 🔥 Запускаем фоновую обработку
-                    thread = threading.Thread(
-                        target=run_full_analysis_with_file, args=(
-                            month, temp_file_path, temp_dir))
-                    thread.daemon = True
-                    thread.start()
-
+                    result = format_terminal_output(data,
+                                                    month,
+                                                    len(transactions))
+                    # Start background processing and get status
+                    analysis_success, sheets_success = (
+                        run_full_analysis_with_file(
+                                                        month,
+                                                        temp_file_path,
+                                                        temp_dir))
+                    status_message = get_operation_status(analysis_success,
+                                                          sheets_success)
                 else:
                     result = f"No valid transactions found in {filename}"
-                    status_message = "❌ Analysis failed - no transactions found"
-
+                    status_message = (f"❌ Analysis failed "
+                                      f"no transactions found")
             except Exception as e:
                 result = f"Error processing file: {str(e)}"
                 status_message = "❌ Analysis failed due to error"
-
+        else:
+            result = "Invalid file type. Please upload a CSV file."
+            status_message = "❌ Invalid file type"
     return render_template_string(HTML,
                                   result=result,
                                   month=month,
