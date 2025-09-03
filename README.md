@@ -76,7 +76,6 @@ This application is designed for individuals who want to:
 - Meaningful comparison against spending norms
 - Practical financial recommendations
 - Reliable Google Sheets integration
-- Data privacy (local processing of sensitive financial information)
 
 
 ## User Stories
@@ -93,11 +92,10 @@ This application is designed for individuals who want to:
 
 ### Site Owner
 
-8. As the owner, I want the application to process data locally for security
-9. As the owner, I want to provide clear visual feedback through terminal graphics
-10. As the owner, I want to help users develop better financial habits
-11. As the owner, I want the Google Sheets integration to be reliable and consistent
-12. As the owner, I want the categorization system to be comprehensive and accurate
+8. As the owner, I want to provide clear visual feedback through terminal graphics
+9. As the owner, I want to help users develop better financial habits
+10. As the owner, I want the Google Sheets integration to be reliable and consistent
+10. As the owner, I want the categorization system to be comprehensive and accurate
 
 [Back to Table Of Contents](#table-of-contents)
 
@@ -107,10 +105,13 @@ This application is designed for individuals who want to:
 
 The application follows this general workflow:
 1. User inputs month name
-2. Application loads corresponding HSBC CSV file
+1. User uploads corresponding HSBC CSV file
+2. Application loads the HSBC CSV file and
+starts the analysis of the data from it for
+the month name from the input
 3. Transactions are categorized and analyzed
 4. Terminal visualization is displayed
-5. Data is exported to Google Sheets (optional)
+5. Data is exported to Google Sheets
 6. Recommendations are generated based on spending patterns
 
 <details><summary>Flowchart</summary>
@@ -131,7 +132,7 @@ The application follows this general workflow:
 - [Google Cloud Platform](https://cloud.google.com/cloud-console/) was used to manage access and permissions to the Google Services such as Google auth, sheets etc.
 - [Google Sheets](https://www.google.co.uk/sheets/about/) were used to store user's financial data
 - [PEP8](http://pep8online.com/) was used to check my code against Python conventions
-- [Render Platform](https://https://render.com/) was used to deploy the project into live environment
+- [Heroku Platform](https://dashboard.heroku.com/) was used to deploy the project into live environment
 - [Visual Studio Code (VSCode)](https://code.visualstudio.com/)
 VSCode was used to write the project code using Code Institute template
 

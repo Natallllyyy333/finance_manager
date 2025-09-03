@@ -10,7 +10,6 @@ import tempfile
 import shutil
 from collections import defaultdict
 from datetime import datetime
-from itertools import zip_longest
 from gspread_formatting import *
 from gspread_formatting import (
     cellFormat,
@@ -19,7 +18,6 @@ from gspread_formatting import (
     set_column_width
 )
 from gspread.utils import rowcol_to_a1
-from io import StringIO
 from google.oauth2 import service_account
 from flask import Flask, request, render_template_string
 from werkzeug.utils import secure_filename
