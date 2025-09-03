@@ -825,7 +825,7 @@ HTML = '''
             </div>
 
             <!-- Блок статуса ДО терминала -->
-             <div class="status hidden
+             <div class="status
                  {% if status_message and 'success' in status_message %}
                  status-success
                  {% elif status_message and 'failed' in status_message %}
@@ -861,6 +861,7 @@ HTML = '''
             
             // Показываем статус загрузки
             statusElement.classList.remove('hidden');
+            
             statusElement.classList.remove('status-success', 'status-error', 'status-warning');
             statusElement.classList.add('status-loading');
             statusElement.textContent = 'Processing your financial data... Google Sheets update in progress';
