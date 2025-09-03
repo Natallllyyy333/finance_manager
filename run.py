@@ -836,6 +836,7 @@ HTML = '''
     Analysis results will appear here...
 </span>
                 {% endif %}
+                </div>
             </div>
              <div class="status {% if status_message and 'success' in status_message %}status-success
                  {% elif status_message and 'failed' in status_message %}status-error
