@@ -852,7 +852,7 @@ HTML = '''
     <script>
         // Добавляем скрытый класс в CSS
        const style = document.createElement('style');
-        style.textContent = '.hidden;
+        style.textContent = '.hidden { display: none }';
         document.head.appendChild(style);
 
         // Показываем статус загрузки только при нажатии кнопки
