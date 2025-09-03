@@ -847,7 +847,7 @@ HTML = '''
                     Processing your financial data...
                     Google Sheets update in progress
                 {% endif %}
-            </div>
+            
             {% endif %}
         </div>
     </div>
