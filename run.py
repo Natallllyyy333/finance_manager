@@ -769,6 +769,7 @@ HTML = '''
             font-weight: 500;
             margin: 10px 0;
         }
+        .hidden { display: none }
         .status-loading {
             background: #fff3cd;
             color: #856404;
@@ -852,7 +853,7 @@ HTML = '''
     <script>
         // Добавляем скрытый класс в CSS
        const style = document.createElement('style');
-        style.textContent = '.hidden { display: none }';
+        style.textContent = '.hidden ';
         document.head.appendChild(style);
 
         // Показываем статус загрузки только при нажатии кнопки
