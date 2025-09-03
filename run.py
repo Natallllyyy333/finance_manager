@@ -359,14 +359,14 @@ def format_terminal_output(data, month, transactions_count=0):
             output.append(f"{category[:15]:<15} {amount:8.2f}€")
     output.append("<u>DAILY SPENDING and NORMS:</u>")
     sorted_categories = sorted(
-    [
-        (cat, avg)
-        for cat, avg in data['daily_averages'].items()
-        if cat in DAILY_NORMS
-    ],
-    key=lambda x: abs(x[1] - DAILY_NORMS.get(x[0], 0)),  # Добавить abs()
-    reverse=True
-)[:3]
+        [
+            (cat, avg)
+            for cat, avg in data['daily_averages'].items()
+            if cat in DAILY_NORMS
+        ],
+        key=lambda x: abs(x[1] - DAILY_NORMS.get(x[0], 0)),
+        reverse=True
+        )[:3]
     for category, avg in sorted_categories:
         norm = DAILY_NORMS.get(category, 0)
         diff = avg - norm
