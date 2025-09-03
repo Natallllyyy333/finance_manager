@@ -837,17 +837,19 @@ HTML = '''
 </span>
                 {% endif %}
             </div>
-            <div class="status {% if status_message and 'success' in status_message %}status-success
+             <div class="status {% if status_message and 'success' in status_message %}status-success
                  {% elif status_message and 'failed' in status_message %}status-error
                  {% elif status_message and 'progress' in status_message %}status-loading
                  {% else %}status-info{% endif %}"
-     id="statusMessage">
-    {% if status_message %}
-        {{ status_message }}
-    {% else %}
-        Ready for analysis
-    {% endif %}
-</div>
+                 id="statusMessage">
+                {% if status_message %}
+                    {{ status_message }}
+                {% else %}
+                    Ready for analysis
+                {% endif %}
+            </div>
+        </div>
+    </div>
     <script>
         // Обновление статуса, если он еще не установлен
         {% if not status_message %}
