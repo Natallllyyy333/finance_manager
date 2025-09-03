@@ -359,14 +359,14 @@ def format_terminal_output(data, month, transactions_count=0):
             output.append(f"{category[:15]:<15} {amount:8.2f}€")
     output.append("<u>DAILY SPENDING and NORMS:</u>")
     sorted_categories = sorted(
-    [
-        (cat, avg)
-        for cat, avg in data['daily_averages'].items()
-        if cat in DAILY_NORMS
-    ],
-    key=lambda x: abs(x[1] - DAILY_NORMS.get(x[0], 0)),  # Добавить abs()
-    reverse=True
-)[:3]
+        [
+            (cat, avg)
+            for cat, avg in data['daily_averages'].items()
+            if cat in DAILY_NORMS
+        ],
+        key=lambda x: abs(x[1] - DAILY_NORMS.get(x[0], 0)),  # Добавить abs()
+        reverse=True
+    )[:3]
     for category, avg in sorted_categories:
         norm = DAILY_NORMS.get(category, 0)
         diff = avg - norm
@@ -808,7 +808,9 @@ HTML = '''
         <div class="content">
             <div class="form-container">
                 <!-- Добавлены ID для формы и кнопки -->
-                <form method="POST" enctype="multipart/form-data" id="uploadForm">
+                <form method="POST"
+                      enctype="multipart/form-data"
+                      id="uploadForm">
                     <div class="input-group">
                         <input type="text"
                         name="month"
@@ -842,15 +844,17 @@ HTML = '''
 
     <script>
         // Показываем статус загрузки при нажатии кнопки
-        document.getElementById('uploadForm').addEventListener('submit', function(e) {
+        document.getElementById('uploadForm').addEventListener(
+                                                                'submit',
+                                                                function(e) {
             const statusElement = document.getElementById('statusMessage');
             const submitBtn = document.getElementById('submitBtn');
-            
             // Показываем статус загрузки
             statusElement.classList.remove('hidden');
-            statusElement.classList.remove('status-success', 'status-error', 'status-warning');
+            statusElement.classList.remove('status-success',
+                                            'status-error',
+                                            'status-warning');
             statusElement.classList.add('status-loading');
-            
             // Отключаем кнопку и меняем текст
             submitBtn.disabled = true;
             submitBtn.textContent = 'Processing...';
@@ -863,8 +867,6 @@ HTML = '''
             const statusElement = document.getElementById('statusMessage');
             statusElement.classList.remove('hidden');
             statusElement.textContent = '{{ status_message }}';
-            
-            // Устанавливаем соответствующий класс в зависимости от типа сообщения
             {% if 'success' in status_message %}
             statusElement.classList.add('status-success');
             {% elif 'failed' in status_message %}
