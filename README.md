@@ -82,20 +82,22 @@ This application is designed for individuals who want to:
 
 ### Users
 
-1. As a user, I want to automatically categorize my bank transactions
-2. As a user, I want to see my income vs expenses visualized clearly
-3. As a user, I want to compare my spending against reasonable daily norms
-4. As a user, I want to receive personalized recommendations to improve my finances
-5. As a user, I want my financial data to be saved to Google Sheets for future reference
-6. As a user, I want to analyze spending by category with visual indicators
-7. As a user, I want to easily identify areas where I'm overspending
+1. As a user, I want to upload a csv file for financial analisys
+2. As a user, I want to automatically categorize my bank transactions
+3. As a user, I want to see my income vs expenses visualized clearly
+4. As a user, I want to compare my spending against reasonable daily norms
+5. As a user, I want to receive personalized recommendations to improve my finances
+6. As a user, I want my financial data to be saved to Google Sheets for future reference
+7. As a user, I want to analyze spending by category with visual indicators
+8. As a user, I want to easily identify areas where I'm overspending
 
 ### Site Owner
 
-8. As the owner, I want to provide clear visual feedback through terminal graphics
-9. As the owner, I want to help users develop better financial habits
-10. As the owner, I want the Google Sheets integration to be reliable and consistent
-10. As the owner, I want the categorization system to be comprehensive and accurate
+9. As the owner, I want to provide an easy and user-friendly way of personal finances analysis through uploading a CSV bank statement file and visual feedback through terminal graphics.
+10. As the owner, I want to provide clear visual feedback through terminal graphics
+11. As the owner, I want to help users develop better financial habits
+12. As the owner, I want the Google Sheets integration to be reliable and consistent
+13. As the owner, I want the categorization system to be comprehensive and accurate
 
 [Back to Table Of Contents](#table-of-contents)
 
@@ -165,6 +167,7 @@ VSCode was used to write the project code using Code Institute template
 - Loads and parses HSBC bank statement CSV files
 - Handles various transaction types (debits/credits)
 - Robust error handling for malformed data
+- User stories covered: 1, 9
 
 <details>
     <summary>CSV Transaction Loading Screenshot</summary>
@@ -177,7 +180,7 @@ VSCode was used to write the project code using Code Institute template
 ### Terminal Visualization - Financial Overview
 - ASCII-based bar charts for income/expense comparison
 - Visual savings rate analysis
-- User stories covered: 4
+- User stories covered: 3, 9, 10, 11
 
 <details>
     <summary>Financial Overview Screenshot</summary>
@@ -202,7 +205,7 @@ VSCode was used to write the project code using Code Institute template
 - Savings rate analysis
 - Daily average spending per category
 - Norm violation detection (10% over daily limits)
-- User stories covered: 4, 5, 12, 13, 14
+- User stories covered: 4, 10, 11
 
 <details>
     <summary>Daily Spending Analysis</summary>
@@ -213,7 +216,7 @@ VSCode was used to write the project code using Code Institute template
 ### Terminal Personalized Recommendations
 - Actionable financial advice
 - Specific spending recommendations
-- User stories covered: 4, 5, 12, 13, 14
+- User stories covered: 5, 8, 10, 11, 13
 
 <details>
     <summary>Personalized Recommendations</summary>
@@ -226,7 +229,7 @@ VSCode was used to write the project code using Code Institute template
 - Monthly tracking in organized format
 - Professional formatting with borders and colors
 - Category percentage calculations
-- User stories covered: 5, 12, 13, 14
+- User stories covered: 6, 7, 8, 11, 12, 13
 
 <details>
     <summary>Financial Data Analisys and Google Sheet Update in Progress</summary>
@@ -241,7 +244,7 @@ VSCode was used to write the project code using Code Institute template
 - Styling: Uses color-coding (e.g., red for expenses, green for income) to enhance readability.
 - Data Structure: Accepts an array of transaction objects with id, date, description, amount, type, and category properties.
 - Currency: Formats amounts in Euros (€) with proper thousand separators and decimals.
-- User stories covered: 5, 12, 13, 14
+- User stories covered: 6, 7, 8, 11, 12, 13
 
 <details>
     <summary>Google Sheets Financial Transactions Table</summary>
@@ -257,7 +260,7 @@ VSCode was used to write the project code using Code Institute template
 - Visual Data: Shows the amount spent/earned in each category and its percentage contribution to the total income or total expenses.
 - Empty States: Handles categories with no transactions (e.g., Dining, Transport) by showing €0.00 and 0.00%.
 - Purpose: To give users a quick, clear overview of their financial health and spending patterns at a glance.
-- User stories covered: 5, 12, 13, 14
+- User stories covered: 6, 7, 8, 11, 12, 13
 
 <details>
     <summary>Google Sheets Financial Summary & Categorization</summary>
@@ -272,7 +275,7 @@ VSCode was used to write the project code using Code Institute template
 - Compact Design: Presents all critical financial health information in a single, easy-to-read bar format, ideal for dashboards and summaries.
 - Automatic Calculation: The "Savings" value and all percentages are automatically calculated from the provided income and expense data.
 - Purpose: To give users an instant snapshot of their financial outcome (deficit, surplus, or break-even) for the selected period.
-- User stories covered: 5, 12, 13, 14
+- User stories covered: 6, 7, 8, 11, 12, 13
 
 <details>
     <summary>Google Sheets Financial Health Summary Bar</summary>
@@ -287,7 +290,7 @@ VSCode was used to write the project code using Code Institute template
 - Clear Metrics: Provides specific, quantifiable data to show the user where they stand versus their target (e.g., "current: 5.1%", "overspent: 6.22€ vs norm: 3.00€").
 - Goal-Oriented: Focuses on key financial objectives like achieving a target savings rate (e.g., 20%) and controlling daily spending in specific categories.
 - Purpose: To act as a personalized financial coach, helping users understand their spending patterns and offering clear steps to optimize their budget.
-- User stories covered: 5, 12, 13, 14
+- User stories covered: 5, 6, 7, 8, 11, 12, 13
 
 <details>
     <summary>Google Sheets Personalized Financial Recommendations</summary>
@@ -303,7 +306,7 @@ VSCode was used to write the project code using Code Institute template
 - Detailed Categorization: A full list of income sources and expense categories with their respective amounts and percentages of the total.
 - Percentage Context: Every sum is accompanied by its percentage relative to the total income (for income and savings) or total expenses (for expense categories), providing immediate insight into spending distribution.
 - Purpose: To allow users to track their financial progress and spending trends over time, identifying patterns and changes in their financial behavior.
-- User stories covered: 5, 12, 13, 14
+- User stories covered: 6, 7, 8, 11, 12, 13
 
 <details>
     <summary>Google Sheets Multi-Month Financial Summary</summary>
@@ -317,8 +320,13 @@ The code includes basic error handling for:
 - Invalid data formats in CSV rows (`ValueError`)
 - General exceptions during Google Sheets operations (`Exception`)
 
-- User stories covered: 3, 5, 6, 13, 14
+- User stories covered: 1, 9, 12
 
+<details>
+    <summary>Successful Validation & Updating</summary>
+
+![Validation & Error Handling](docs/features/valid_data_found_updating.jpg)
+</details>
 <details>
     <summary>Validation & Error Handling</summary>
 
@@ -345,10 +353,13 @@ File Loading and Transaction Processing
 | Invalid data rows	 | Process CSV with malformed rows | Invalid rows skipped, valid rows processed | Works as expected |
 
 <details><summary>Screenshot</summary>
-<img src="docs/testing/csv_transaction_loading.jpg">
+<img src="docs/testing/terminal_expense_categorized.jpg">
 </details>
 <details><summary>Screenshot</summary>
-<img src="docs/testing/file_not_found_error.jpg">
+<img src="docs/testing/google_sheet_update_in_progress.jpg">
+</details>
+<details><summary>Screenshot</summary>
+<img src="docs/testing/no_valid_data_found_error.jpg">
 </details>
 <details><summary>Screenshot</summary>
 <img src="docs/testing/invalid_data_rows.jpg">
@@ -379,7 +390,7 @@ File Loading and Transaction Processing
 | Daily averages | Calculate daily avirage expenses | Correct daily average calculation | Works as expected |
 
 <details><summary>Screenshot</summary>
-<img src="docs/testing/month_financial_overview_.jpg">
+<img src="docs/testing/month_financial_overview.jpg">
 </details>
 <details><summary>Screenshot</summary>
 <img src="docs/testing/daily_spending_analysis.jpg">
