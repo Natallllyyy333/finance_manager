@@ -229,18 +229,10 @@ VSCode was used to write the project code using Code Institute template
 - User stories covered: 5, 12, 13, 14
 
 <details>
-    <summary>Worksheet Found, Updating</summary>
-
-![Worksheet Found, Updating](docs/features/worksheet_found_updating.jpg)
-</details>
-
-<details>
-    <summary>Google Sheet Update in Progress</summary>
+    <summary>Financial Data Analisys and Google Sheet Update in Progress</summary>
 
 ![Google Sheet Update in Progress](docs/features/google_sheet_update_in_progress.jpg)
 </details>
-
-<details>
 
 ### Google Sheets Financial Transactions Table
 - A clean, sortable table component that displays a user's monthly income and expenses.
