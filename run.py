@@ -870,6 +870,26 @@ HTML = '''
         });
         {% endif %}
     </script>
+    <script>
+    // Smooth scroll to the terminal function
+    function scrollToTerminal() {
+        const terminal = document.querySelector('.terminal');
+        if (terminal) {
+            terminal.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+    }
+
+    {% if result %}
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(function() {
+            scrollToTerminal();
+        }, 100);
+    });
+    {% endif %}
+</script>
 </body>
 </html>
 '''
