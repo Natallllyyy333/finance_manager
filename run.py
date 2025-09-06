@@ -1069,6 +1069,31 @@ def index():
                                   filename=filename,
                                   status_message=status_message)
 
+def set_column_width(worksheet, column_letter, width):
+    """Set column width for worksheet"""
+    try:
+        # Convert column letter to index (A=1, B=2, etc.)
+        col_index = gspread.utils.a1_to_rowcol(column_letter + '1')[1]
+        
+        body = {
+            "requests": [{
+                "updateDimensionProperties": {
+                    "range": {
+                        "sheetId": worksheet.id,
+                        "dimension": "COLUMNS",
+                        "startIndex": col_index - 1,
+                        "endIndex": col_index
+                    },
+                    "properties": {"pixelSize": width},
+                    "fields": "pixelSize"
+                }
+            }]
+        }
+        worksheet.spreadsheet.batch_update(body)
+        print(f"✅ Column {column_letter} width set to {width}px")
+    except Exception as e:
+        print(f"⚠️ Error setting column width for {column_letter}: {e}")
+
 
 def write_to_month_sheet(month_name, transactions, data):
     """Запись данных в лист месяца в формате как на скриншоте"""
