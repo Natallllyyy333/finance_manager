@@ -11,17 +11,10 @@ import shutil
 from collections import defaultdict
 from datetime import datetime
 from gspread_formatting import *
-from gspread_formatting import (
-    cellFormat,
-    format_cell_range,
-    Padding,
-    set_column_width
-)
 from gspread.utils import rowcol_to_a1
 from google.oauth2 import service_account
 from flask import Flask, request, render_template_string
 from werkzeug.utils import secure_filename
-from flask import flash
 warnings.filterwarnings('ignore', category=DeprecationWarning)
 app = Flask(__name__)
 
@@ -145,13 +138,13 @@ def sync_google_sheets_operation(month_name, table_data):
         # 7. batch-query
         if update_data:
             print("⏳ Writing data to Google Sheets...")
-            batch_size = 5
+            batch_size = 10
             for i in range(0, len(update_data), batch_size):
                 batch = update_data[i:i+batch_size]
                 summary_sheet.batch_update(batch)
                 print(f"✅ Batch {i//batch_size + 1} written")
                 if i + batch_size < len(update_data):
-                    time.sleep(10)
+                    time.sleep(5)
 
             print("✅ All data written successfully!")
 
@@ -188,7 +181,7 @@ def async_google_sheets_operation(month_name, table_data):
     """Asynchronous Google Sheets processing"""
     try:
         print(f"🚀 Starting async Google Sheets operation for {month_name}")
-        time.sleep(10)
+        time.sleep(5)
 
         success = sync_google_sheets_operation(month_name, table_data)
 
@@ -912,7 +905,16 @@ def load_transactions(file_path_or_object):
                         currency = parts[3].strip()
                         transaction_type = parts[4].strip().lower()
                         # Convert date to standard format
-                        date_obj = datetime.strptime(date_str, "%d %b %Y")
+                        try:
+                            date_obj = datetime.strptime(date_str, "%d %b %Y")
+                            # Check if the date exists
+                            if date_obj.day != int(date_str.split()[0]):
+                                print(f"Warning: Invalid date '{date_str}' - skipping")
+                                continue
+                        except ValueError:
+                            print(f"Warning: Error parsing date '{date_str}' - skipping")
+                            continue
+
                         date_formatted = date_obj.strftime("%Y-%m-%d")
                         # Categorize
                         category = categorize(description)
@@ -978,7 +980,7 @@ def run_full_analysis_with_file(month, file_path, temp_dir):
             print(f"✅ Successfully updated {month} worksheet")
         else:
             print(f"❌ Failed to update {month} worksheet")
-        time.sleep(2)
+        time.sleep(5)
         # 2. Writing into Summary sheet
         print("⏳ Starting Google Sheets SUMMARY update...")
         table_data = prepare_summary_data(data, transactions)
@@ -1090,7 +1092,7 @@ def write_to_month_sheet(month_name, transactions, data):
             print(f"✅ Worksheet '{month_name}' created")
         # 3. Clear existing data
         worksheet.clear()
-        time.sleep(2)
+        time.sleep(5)
         # 4. Create the layout as shown in the screenshot
         # Financial Overview header
         worksheet.update('A6', [['FINANCIAL OVERVIEW']])
@@ -1382,7 +1384,7 @@ def run_full_analysis(month):
         # 1. Writing into month sheet (new format)
         print(f"📝 Writing to {month} worksheet in screenshot format...")
         write_to_month_sheet(month, transactions, data)
-        time.sleep(10)
+        time.sleep(5)
         print("⏳ Starting Google Sheets update...")
         # starting Google Sheets
         table_data = prepare_summary_data(data, transactions)
@@ -1401,7 +1403,4 @@ def run_full_analysis(month):
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
-# else:
-#     if __name__ == "__main__":
-#         main()
-        
+
