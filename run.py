@@ -1446,9 +1446,10 @@ def run_full_analysis(month):
 
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port)
-else:
-        # Local mode - запускаем main() для консольного режима
+    if "DYNO" in os.environ:
+        # Heroku mode
+        port = int(os.environ.get('PORT', 5000))
+        app.run(host='0.0.0.0', port=port)
+    else:
+        # Local mode
         main()
-
