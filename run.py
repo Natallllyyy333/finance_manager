@@ -832,7 +832,7 @@ HTML = '''
                 {{ result|safe }}
             </div>
             {% endif %}
-            
+
             <!-- Блок статуса -->
             <div class="status hidden"
                  id="statusMessage">
@@ -1401,6 +1401,7 @@ def run_full_analysis(month):
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
-else:
-    if __name__ == "__main__":
-        main()
+# else:
+#     if __name__ == "__main__":
+#         main()
+        
