@@ -341,7 +341,7 @@ The testing approach is as follows:
 2. Data validation and error handling testing
 3. Google Sheets integration testing
 
-<details><summary>See functionality testing</summary>
+See functionality testing
 File Loading and Transaction Processing
 
 1. I want to analyze my monthly spending from HSBC bank exports
@@ -384,19 +384,19 @@ File Loading and Transaction Processing
 
 | **Feature**   | **Action**                    | **Expected Result**          | **Actual Result** |
 | ------------- | ----------------------------- | ---------------------------- | ----------------- |
-| Income calculation | Process multiple income transactions | Total income correctly summed | Works as expected |
+| Income calculation | Process income transactions | Total income correctly summed | Works as expected |
 | Expense calculation | Process multiple expense transactions | Total expenses correctly summed | Works as expected |
 | Savings calculation | Calculate savings from income and expenses | Savings = Income - Expenses | Works as expected |
-| Daily averages | Calculate daily avirage expenses | Correct daily average calculation | Works as expected |
+| Daily averages | Calculate daily average expenses | Correct daily average calculation | Works as expected |
 
-<details><summary>Screenshot</summary>
+<details><summary>Month Financial Overview</summary>
 <img src="docs/testing/month_financial_overview.jpg">
 </details>
 <details><summary>Screenshot</summary>
 <img src="docs/testing/daily_spending_analysis.jpg">
 </details>
 <details><summary>Screenshot</summary>
-<img src="docs/testing/terminal_expenses_categorised.jpg">
+<img src="docs/testing/terminal_expense_categories.jpg">
 </details>
 
 4. I want to visualize my finances with clear charts and graphs
@@ -408,10 +408,10 @@ File Loading and Transaction Processing
 | Daily norms comparison | Compare spending vs daily norms | Visual comparison with arrows and differences | Works as expected |
 
 <details><summary>Screenshot</summary>
-<img src="docs/testing/month_financial_overview__.jpg">
+<img src="docs/testing/month_financial_overview.jpg">
 </details>
 <details><summary>Screenshot</summary>
-<img src="docs/testing/terminal_expenses_categorised.jpg">
+<img src="docs/testing/terminal_expense_categories.jpg">
 </details>
 <details><summary>Screenshot</summary>
 <img src="docs/testing/daily_spending_analysis.jpg">
@@ -426,44 +426,41 @@ File Loading and Transaction Processing
 | Fallback recommendations | Handle cases with no specific issues | General money-saving tips	 | Works as expected |
 
 <details><summary>Screenshots</summary>
-<img src="docs//testing/daily_spending_recommendations.jpg">
+<img src="docs/testing/daily_spending_recommendations.jpg">
 </details>
 <details><summary>Screenshots</summary>
-<img src="docs//testing/daily_fallback_recommendations.jpg">
+<img src="docs/testing/daily_fallback_recommendations.jpg">
 </details>
 
 6. I want to export my data to Google Sheets automatically
 
 | **Feature**   | **Action**                    | **Expected Result**          | **Actual Result** |
 | ------------- | ----------------------------- | ---------------------------- | ----------------- |
-| Worksheet creation | Process data for new month	 | New worksheet created automatically | Works as expected |
+| Month Worksheet update | Process data for new month	 | New worksheet created automatically | Works as expected |
 | Data formatting | Export transactions to Google Sheets	 | Proper currency and percentage formatting | Works as expected |
 | Summary update | Update monthly data in SUMMARY sheet	 | Data written to SUMMARY sheet with proper columns | Works as expected |
 | Error handling | Simulate API connectivity issues	 | Graceful error messages, continued local operation | Works as expected |
 
-<details><summary>Screenshots</summary>
-<img src="docs/testing/new_month_sheet_created_notification.jpg">
-</details>
-<details><summary>Screenshots</summary>
+<details><summary>Month sheet created/updated and formated</summary>
 <img src="docs/testing/new_month_sheet_created.jpg">
 </details>
-<details><summary>Screenshots</summary>
+<details><summary>Summary worksheet updated and formated</summary>
 <img src="docs/testing/summary_worksheet_update.jpg">
 </details>
-<details><summary>Screenshots</summary>
-<img src="docs/testing/file_not_found_error.jpg">
+<details><summary>/No valid data found error</summary>
+<img src="docs/testing/no_valid_data_found_error.jpg">
 </details>
 
 7. I want the program to handle errors gracefully
 
 | **Feature**   | **Action**                    | **Expected Result**          | **Actual Result** |
 | ------------- | ----------------------------- | ---------------------------- | ----------------- |
-| Invalid user input | Enter non-existent month  | File not found error handled gracefully | Works as expected |
+| Invalid user input | Enter non-existent month  | No valid data found error handled gracefully | Works as expected |
 | Division by zero | Process data with no income  | Handled with default values (0) | Works as expected |
 | API rate limiting | Make multiple rapid API requests  | Sleep intervals prevent rate limiting | Works as expected |
 
-<details><summary>Screenshot</summary>
-<img src="docs/testing/file_not_found_error.jpg">
+<details><summary>No valid data found error handled</summary>
+<img src="docs/testing/no_valid_data_found_error.jpg">
 </details>
 
 8. I want my exported data to be professionally formatted
@@ -475,10 +472,10 @@ File Loading and Transaction Processing
 | Financial summary | Update SUMMARY sheet with totals  | Totals and percentages calculated correctly | Works as expected |
 | Format preservation | Apply cell formatting in Google Sheets  | Currency, percentages, colors maintained | Works as expected |
 
-<details><summary>Screenshots</summary>
+<details><summary>Income Detection Expense Categories</summary>
 <img src="docs/testing/income_detection-expense_categories.JPG">
 </details>
-<details><summary>Screenshots</summary>
+<details><summary>Summary Worksheet Update</summary>
 <img src="docs/testing/summary_worksheet_update.JPG">
 </details>
 
@@ -487,14 +484,14 @@ File Loading and Transaction Processing
 | **Feature**   | **Action**                    | **Expected Result**          | **Actual Result** |
 | ------------- | ----------------------------- | ---------------------------- | ----------------- |
 | Progress feedback | Monitor long operations  | Status messages during processing | Works as expected |
-| Visual appeal | View terminal output  | Clean formatting with centered headers | Works as expected |
-| Recommendation clarity | Generate financial advice	  | Specific, measurable suggestions | Works as expected |
+| Visual appeal | View terminal output  | Clean formatting with left-justified headers | Works as expected |
+| Recommendation clarity | Generate financial advice  | Specific, measurable suggestions | Works as expected |
 
-<details><summary>Screenshots</summary>
-<img src="docs/testing/loading_file_message.jpg">
+<details><summary>/Processing Financial Data, Google Sheet Update in Progress</summary>
+<img src="docs/testing/google_sheet_update_in_progress.jpg">
 </details>
 <details><summary>Screenshots</summary>
-<img src="docs/testing/worksheet_found_updating_message.jpg">
+<img src="docs/testing/using_file_name_message.jpg">
 </details>
 <details><summary>Screenshots</summary>
 <img src="docs/testing/summary_worksheet_update.jpg">
@@ -503,10 +500,13 @@ File Loading and Transaction Processing
 <img src="docs/testing/new_month_sheet_created.jpg">
 </details>
 <details><summary>Screenshots</summary>
-<img src="docs/testing/terminal_recommendations.jpg">
+<img src="docs/testing/daily_spending_recommendations.jpg">
 </details>
 <details><summary>Screenshots</summary>
 <img src="docs/testing/worksheet_daily_spending_recommendations.jpg">
+</details>
+<details><summary>Screenshots</summary>
+<img src="docs/testing/analylis_completed_worksheets_updated_successfully.jpg">
 </details>
 
 10. I want to track my finances across multiple months
@@ -517,15 +517,13 @@ File Loading and Transaction Processing
 | Column management | Organize SUMMARY sheet data  | New columns created for new months | Works as expected |
 | Data separation | Handle monthly data  | Isolation between different months' data | Works as expected |
 
-<details><summary>Screenshots</summary>
+<details><summary>Summary Worksheet Update</summary>
 <img src="docs/testing/summary_worksheet_update.jpg">
 </details>
-<details><summary>Screenshots</summary>
-<img src="docs/testing/loading_file_message.jpg">
+<details><summary>Using File Name Message</summary>
+<img src="docs/testing/using_file_name_message.jpg">
 </details>
-<details><summary>Screenshots</summary>
-<img src="docs/testing/normalization_file_name.jpg">
-</details>
+
 
 Test Data Used:
 - Sample HSBC CSV files for multiple months
@@ -572,11 +570,6 @@ The application meets all functional requirements and provides valuable financia
 - Share the sheet with the service account email from your credentials `creds.json` file, giving it editor permissions.
 - User stories covered: 9
 
-#### Credits
-- HSBC for CSV export format
-- Google for Sheets API documentation
-- Python community for extensive library support
-
 
 ## Validation
 
@@ -598,34 +591,74 @@ The application meets all functional requirements and provides valuable financia
 
 | **Bug** | **Fix** |
 | ------- | ------- |
-| When selecting 'go back to main menu' option after the game has finished, the game title was not displayed | Correct the function's indentation |
-| When selecting a correct menu option after a few wrong numeric inputs the relevant game option was not called | Move the while loop at the top within the function |
-| Underscores within the game title were not displayed after deployment to Render portal | Changed color settings for yellow & red |
-| Gradient background color does not take up the full screen size | Add background-attachment property |
-| Players names input values are not displayed in the game – instead of name a “‘Player1’’s / ‘Player2’’s move.” is shown | Reassign a value of player1name & player2name to the indexed-0 value (name) input by the user in ‘create_new_players’ function |
-| Users input data was recorded in the same row in four columns instead of 2 separate rows | Created a list of players and while loop inside the 'register_new_players' function for Google Spreadsheet update separately for two players |
-| There were quite a few errors and warnings related to exceeded number of characters in line, whitespace within a blank line, trailing white spaces or missing white spaces around operators | Split the comments or print functions into two separate rows maintaining correct indentation. Followed a guidance within pep8 online tool and corrected all warnings and errors |
+|   Google Sheets timeout errors during large data uploads   | Implemented batch processing with 5-second delays between API calls and reduced batch size to 5 rows |
+| Status message not displaying during file processing | Added JavaScript event listeners to show/hide status elements and fixed CSS display properties |
+| CSV parsing errors with special characters and encoding | Added proper UTF-8 encoding handling and error-resistant line parsing with try-catch blocks |
+| Heroku deployment issues with temporary file storage | Implemented proper tempfile cleanup using shutil and automatic directory removal after processing |
+| Google API authentication failures in production | Created dual credential handling system for local development vs Heroku environment variables |
+| Month column detection failures in SUMMARY sheet | Enhanced header parsing logic with normalization and fallback empty column detection |
+| Percentage formatting errors in Google Sheets | Added explicit number formatting with PERCENT pattern and center alignment for percentage columns |
+| File upload validation issues | Implemented secure filename handling and proper file extension validation using Werkzeug |
+| Concurrent access issues with Google Sheets | Added threading for asynchronous operations to prevent blocking the main application thread |
+| Memory leaks with large CSV files | Optimized data processing with simplified datasets for large files and proper resource cleanup |
 
 ## Deployment
 
-### Render
-This application has been deployed from GitHub to Render by following the steps:
+### Heroku
+This application has been deployed from GitHub to Heroku by following the steps:
 
-1. Create or log in to your account at render.com
-2. Make sure you have connected your GitHub account to Render.com - follow the steps to Get Started and Sign up for Render. Click “New +” and select “Web Service”, on the right of the page, select “+ Connect account” for GitHub, ensure All repositories is selected and click “Install”
-4. Web service creation: Click “New +” and then “Web Service”. Search for relevant repo and click “Connect”.
-5. Settings: the web service's configuration settings are required to ensure the application is configured correctly. Add a Setting Name, leave Root Directory blank, add Environment 'Python3', Region (The physical location of the server hosting the web service), Branch - main
-6. Set the Build Command:
-    ```
-    pip install -r requirements.txt && npm install
-    ```
-7. Set the Start Command
-    ```
-    node index.js
-    ```
-8. Set up Environment Variables: Scroll down and click “Advanced” and “Add Environment Variable”. Add a key 'PORT' and value of '8000' and 'PYTHON_VERSION' with value of 3.10.7.
-9. Click “Add Secret File” and add a Filename 'creds.json' and file content.
-10. Click “Create Web Service” and wait for the project to build. First, the build is initiated. Then the build and deployment processes are carried out. Finally, the application is deployed and ready for public viewing.
+1. Heroku App Creation
+- Created a new Heroku application using the Heroku CLI or web dashboard
+- Set the application name to match the project requirements
+
+2. Environment Configuration
+Configured the following environment variables in Heroku:
+- GOOGLE_SERVICE_ACCOUNT_JSON: Added the complete Google Service Account JSON credentials for Google Sheets API access
+- PORT: Set to allow Heroku to assign the appropriate port dynamically
+
+3. Buildpack Setup
+- Added the Python buildpack to handle Python application deployment
+- Verified buildpack compatibility with the application requirements
+
+4. Procfile Configuration
+Created a Procfile with the following content:
+
+text
+web: python run.py
+This specifies the command to start the web application process
+
+5. Requirements File
+Maintained an updated requirements.txt file with all necessary dependencies:
+- Flask
+- gspread
+- google-auth
+- gspread-formatting
+- Werkzeug
+
+6. GitHub Integration
+- Connected the GitHub repository to Heroku for automatic deployments
+- Enabled automatic deploys from the main branch
+- Set up deployment hooks for continuous integration
+
+7. Deployment Process
+- Pushed code to the main GitHub branch triggered automatic deployment to Heroku
+- Monitored build logs through Heroku's dashboard for any deployment issues
+- Verified successful deployment by checking application status
+
+8. Post-Deployment Verification
+8.1 Tested the live application functionality:
+- File upload capability
+- Google Sheets integration
+- Financial analysis processing
+- Response time and performance
+
+8.2 Verified that environment variables were properly loaded
+8.3 Confirmed that all third-party API connections were functioning correctly
+
+9. Monitoring and Maintenance
+- Set up Heroku logs for ongoing monitoring
+- Configured error tracking and performance monitoring
+- Established a process for regular updates and maintenance
 
 
 ### Forking the GitHub Repository
@@ -646,24 +679,26 @@ This application has been deployed from GitHub to Render by following the steps:
 
 ## Credits
 
-### Images
-- [Flaticon](https://www.flaticon.com/free-icon/connect_1707222) was used for the website favicon
+- Code Institute - for git template IDE and "Love Sandwiches - Essentials Project" which helped me with connecting the Google Spreadsheet to my project
 
-### Code
-- [ASCII Art Generator](http://patorjk.com/software/taag/) was used to create game title
-- Code Institute - for git template IDE and "Love Sandwiches - Essentials Project" which helped me with connecting the Google Spreadsheet to my project.
-- [ColorSpace](https://mycolor.space/gradient) was used to create a gradient button and background effect
-- How to install a Python module, eg. [email validation](https://pypi.org/project/email-validator/Installing)
-- [gspread documentation](https://docs.gspread.org/en/latest/user-guide.html) explained how to obtain a specific value from the google spreadsheet
-- Instructions how to print colored text from [this](https://ozzmaker.com/add-colour-to-text-in-python/) and [this](https://stackabuse.com/how-to-print-colored-text-in-python/) sources
-- [Stack overflow](https://stackoverflow.com/questions/20302331/typing-effect-in-python) helped me create typing effect in games rules
-- [Stack overflow](https://stackoverflow.com/questions/517970/how-to-clear-the-interpreter-console) code used to clear the terminal console
-- Youtube video on [Unit Test in Python](https://www.youtube.com/watch?v=1Lfv5tUGsn8) made by Socratica was very helpful to understand the concept of unit tesing
-- Youtube tutorial [“Python Connect 4 Tutorial”](https://www.youtube.com/watch?v=gvP0gNSO17k&t=429s) made by [Spencer Lepine](https://www.youtube.com/channel/UCBL6vAHJZqUlyJp-rcFU55Q) - I used a part of Spencer's code for display of the game board, moves of alternative players and saving last move's coordinates on the board
-- Youtube tutorial [“Creating a Connect 4 Game in Python”](https://www.youtube.com/watch?v=Bk2ny_aeG-Y) made by [“Painless Programming”](https://www.youtube.com/channel/UC8ck1Yks7yP33XInXw5GZIw) -  inspired me to create a schemat for winning move logic
-<details><summary>See winning move schemat</summary>
-<img src="docs/winning-move- logic-schemat.jpg">
-</details>
+- [gspread documentation](https://docs.gspread.org/en/latest/user-guide.html) - explained how to work with the Google Spreadsheet API for reading and writing data
+
+- [Flask documentation](https://flask.palletsprojects.com/) - helped me understand how to create web applications, handle file uploads, and serve dynamic templates
+
+- [Google Auth documentation](https://google-auth.readthedocs.io/) - provided guidance on setting up service account authentication for Google APIs
+
+- [Stack Overflow](https://stackoverflow.com/) - various threads helped me solve specific implementation challenges throughout the development process
+
+- [Python CSV documentation](https://docs.python.org/3/library/csv.html) - guided me on proper CSV file parsing techniques for financial transaction data
+
+- [Werkzeug documentation](https://werkzeug.palletsprojects.com/) - helped me implement secure filename handling for uploaded files
+
+- [gspread-formatting documentation](https://gspread-formatting.readthedocs.io/) - provided examples for advanced spreadsheet formatting and styling
+
+- [Python datetime documentation](https://docs.python.org/3/library/datetime.html) - assisted with date parsing and formatting for transaction processing
+
+- [Heroku documentation](https://devcenter.heroku.com/) - guided me through the deployment process and environment configuration
+
 
 ## Acknowledgements
 I would like to thank everyone who supported me in the development of this project:
