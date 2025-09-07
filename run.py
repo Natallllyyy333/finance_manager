@@ -181,13 +181,34 @@ def sync_google_sheets_operation(month_name, table_data):
         # 7. batch-query
         if update_data:
             print("⏳ Writing data to Google Sheets...")
-            batch_size = 10
+            batch_size = 5
+            max_retries = 3
             for i in range(0, len(update_data), batch_size):
                 batch = update_data[i:i+batch_size]
-                summary_sheet.batch_update(batch)
-                print(f"✅ Batch {i//batch_size + 1} written")
+                retry_count = 0
+                success = False
+            
+                while not success and retry_count < max_retries:
+                    try:
+                        summary_sheet.batch_update(batch)
+                        print(f"✅ Batch {i//batch_size + 1} written")
+                        success = True
+                        
+                    except Exception as e:
+                        if "429" in str(e) or "Quota exceeded" in str(e):
+                            retry_count += 1
+                            wait_time = 60 * retry_count  # Увеличиваем время ожидания
+                            print(f"⚠️ Rate limit exceeded. Retry {retry_count}/{max_retries} in {wait_time} seconds...")
+                            time.sleep(wait_time)
+                        else:
+                            raise e  # Другие ошибки прокидываем дальше
+                
+                if not success:
+                    print(f"❌ Failed to write batch {i//batch_size + 1} after {max_retries} retries")
+                    return False
+                    
                 if i + batch_size < len(update_data):
-                    time.sleep(5)
+                    time.sleep(10)  # Увеличиваем паузу между батчами
 
             print("✅ All data written successfully!")
 
@@ -197,6 +218,7 @@ def sync_google_sheets_operation(month_name, table_data):
                 percent_col = month_col + 1
                 start_row = 4
                 end_row = start_row + len(table_data) - 1
+               
                 for row in range(start_row, end_row + 1):
                     cell_address = f"{rowcol_to_a1(row, percent_col)}"
                     summary_sheet.format(cell_address, {
