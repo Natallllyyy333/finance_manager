@@ -1839,6 +1839,7 @@ def write_to_month_sheet(month_name, transactions, data):
     if not get_lock(lock_name):
         print(f"❌ Month sheet is currently locked for {month_name}. Please try again later.")
         return False
+    
     try:
         print(f"📊 Writing to {month_name} worksheet...")
         # 1. Authentification
@@ -1846,61 +1847,180 @@ def write_to_month_sheet(month_name, transactions, data):
         if not creds:
             print("❌ No credentials for month sheet")
             return False
+        
         gc = gspread.authorize(creds)
         sh = gc.open("Personal Finances")
+        
         # 2. Get or create worksheet
         try:
             worksheet = sh.worksheet(month_name)
             print(f"✅ Worksheet '{month_name}' found")
         except gspread.WorksheetNotFound:
             print(f"📝 Creating new worksheet '{month_name}'...")
-            worksheet = sh.add_worksheet(title=month_name,
-                                         rows="100", cols="20")
+            worksheet = sh.add_worksheet(title=month_name, rows="100", cols="20")
             print(f"✅ Worksheet '{month_name}' created")
+            time.sleep(3)
         
-        # 3. Clear existing data
+        # 3. Clear existing data с обработкой ошибок
         try:
             worksheet.clear()
             time.sleep(3)
         except Exception as e:
             print(f"⚠️ Warning: Could not clear worksheet: {e}")
         
-        # 4. Write basic data без сложного форматирования
-        try:
-            # Financial Overview header
-            worksheet.update('A6', [['FINANCIAL OVERVIEW']])
-            
-            # Table headers
-            headers = ["Date", "Description", "Amount", "Type", "Category"]
-            worksheet.update('A7', [headers])
-            
-            # Write transactions
-            all_data = []
-            for t in transactions:
-                all_data.append([t['date'],
-                                 t['desc'][:30],
-                                 t['amount'],
-                                 t['type'],
-                                 t['category']])
-            if all_data:
-                worksheet.update('A8', all_data)
-            
-            print(f"✅ Basic data written to {month_name} worksheet")
-            return True
-            
-        except Exception as e:
-            print(f"❌ Error writing basic data: {e}")
+        # 4. Основные данные с повторными попытками
+        max_retries = 3
+        retry_count = 0
+        
+        while retry_count < max_retries:
+            try:
+                # Financial Overview header
+                worksheet.update('A6', [['FINANCIAL OVERVIEW']])
+                worksheet.merge_cells('A6:E6')
+                
+                # Table headers
+                headers = ["Date", "Description", "Amount", "Type", "Category"]
+                worksheet.update('A7', [headers])
+                
+                # Write transactions
+                all_data = []
+                for t in transactions:
+                    all_data.append([
+                        t['date'],
+                        t['desc'][:30],
+                        t['amount'],
+                        t['type'],
+                        t['category']
+                    ])
+                
+                if all_data:
+                    worksheet.update('A8', all_data)
+                
+                # Transaction Categories header
+                worksheet.update('G6', [['TRANSACTION CATEGORIES']])
+                worksheet.merge_cells('G6:I6')
+                
+                # Categories table headers
+                category_headers = ["Category", "Amount", "Percentage"]
+                worksheet.update('G7', [category_headers])
+                
+                # Prepare and write category data
+                table_data = prepare_summary_data(data, transactions)
+                category_data = []
+                for row in table_data:
+                    if row[0] and row[0] not in ['', 'INCOME CATEGORIES:', 'EXPENSE CATEGORIES:']:
+                        category_data.append([row[0], row[1], row[2]])
+                
+                if category_data:
+                    worksheet.update('G8', category_data)
+                
+                # Daily Recommendations header
+                worksheet.update('K6', [['DAILY RECOMMENDATIONS']])
+                worksheet.merge_cells('K6:L6')
+                
+                # Recommendations headers
+                rec_headers = ["Priority", "Recommendation"]
+                worksheet.update('K7', [rec_headers])
+                
+                # Write recommendations
+                recommendations = generate_daily_recommendations(data)
+                rec_data = []
+                for i, rec in enumerate(recommendations, 1):
+                    rec_data.append([f"{i}", rec[:100]])  # Ограничиваем длину рекомендации
+                
+                if rec_data:
+                    worksheet.update('K8', rec_data)
+                
+                # Summary section at the top
+                expense_percentage = (data['expenses'] / data['income']) if data['income'] > 0 else 0
+                savings_percentage = (data['savings'] / data['income']) if data['income'] > 0 else 0
+                
+                summary_data = [
+                    ["Total Income:", data['income'], 1.0],
+                    ["Total Expenses:", data['expenses'], expense_percentage],
+                    ["Savings:", data['savings'], savings_percentage]
+                ]
+                worksheet.update('A2', summary_data)
+                
+                print(f"✅ Basic data written to {month_name} worksheet")
+                break  # Успешно завершили
+                
+            except Exception as e:
+                retry_count += 1
+                if "429" in str(e) or "Quota exceeded" in str(e):
+                    wait_time = 60 * retry_count
+                    print(f"⚠️ Rate limit exceeded. Retry {retry_count}/{max_retries} in {wait_time} seconds...")
+                    time.sleep(wait_time)
+                else:
+                    print(f"❌ Error writing data: {e}")
+                    raise e
+        
+        if retry_count >= max_retries:
+            print(f"❌ Failed to write data after {max_retries} retries")
             return False
-
+        
+        # 5. Форматирование (пробуем, но не критично если не получится)
+        try:
+            # Basic formatting без сложных batch-запросов
+            worksheet.format('A6', {
+                "textFormat": {"bold": True, "fontSize": 14},
+                "horizontalAlignment": "CENTER"
+            })
+            
+            worksheet.format('A7:E7', {
+                "textFormat": {"bold": True, "fontSize": 12},
+                "backgroundColor": {"red": 0.9, "green": 0.9, "blue": 0.9}
+            })
+            
+            # Format amounts as currency
+            last_row = 7 + len(transactions)
+            if last_row > 7:
+                worksheet.format(f'C8:C{last_row}', {
+                    "numberFormat": {"type": "CURRENCY", "pattern": "€#,##0.00"}
+                })
+            
+            # Format percentages
+            if category_data:
+                last_cat_row = 7 + len(category_data)
+                worksheet.format(f'I8:I{last_cat_row}', {
+                    "numberFormat": {"type": "PERCENT", "pattern": "0.00%"}
+                })
+            
+            print("✅ Basic formatting applied")
+            
+        except Exception as format_error:
+            print(f"⚠️ Formatting error (non-critical): {format_error}")
+        
+        # 6. Установка ширины колонок
+        try:
+            set_column_width(worksheet, 'A', 100)   # Date
+            set_column_width(worksheet, 'B', 200)   # Description
+            set_column_width(worksheet, 'C', 80)    # Amount
+            set_column_width(worksheet, 'D', 80)    # Type
+            set_column_width(worksheet, 'E', 100)   # Category
+            set_column_width(worksheet, 'G', 150)   # Category name
+            set_column_width(worksheet, 'H', 80)    # Amount
+            set_column_width(worksheet, 'I', 100)   # Percentage
+            set_column_width(worksheet, 'K', 90)    # Priority
+            set_column_width(worksheet, 'L', 300)   # Recommendation
+            
+            print("✅ Column widths set")
+            
+        except Exception as width_error:
+            print(f"⚠️ Column width error (non-critical): {width_error}")
+        
+        print(f"✅ Successfully updated {month_name} worksheet")
+        return True
+        
     except Exception as e:
         print(f"❌ Error writing to {month_name} worksheet: {e}")
         import traceback
         print(f"🔍 Traceback: {traceback.format_exc()}")
         return False
+        
     finally:
         release_lock(lock_name)
         print(f"🔓 Month sheet lock released for {month_name}")
-
 def run_full_analysis(month):
     """FULL background analysis"""
     try:
