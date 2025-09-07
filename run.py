@@ -919,11 +919,18 @@ HTML = '''
     {% endif %}
 </script>
 <script>
-        // Показываем статус загрузки при нажатии кнопки и обновляем информацию о файле
+        // Показываем статус загрузки при нажатии кнопки и очищаем предыдущие результаты
         document.getElementById('uploadForm').addEventListener('submit', function(e) {
             const statusElement = document.getElementById('statusMessage');
             const submitBtn = document.getElementById('submitBtn');
+            const terminalElement = document.querySelector('.terminal');
             const fileInput = document.querySelector('input[type="file"]');
+            
+            // Очищаем предыдущий терминал
+            if (terminalElement) {
+                terminalElement.innerHTML = '';
+                terminalElement.style.display = 'none';
+            }
             
             // Обновляем информацию о файле сразу
             if (fileInput.files.length > 0) {
