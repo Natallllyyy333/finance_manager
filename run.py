@@ -915,7 +915,52 @@ HTML = '''
     });
     {% endif %}
 </script>
+
 </body>
+<script>
+        // Показываем статус загрузки при нажатии кнопки и очищаем предыдущие результаты
+        document.getElementById('uploadForm').addEventListener('submit', function(e) {
+            const statusElement = document.getElementById('statusMessage');
+            const terminalElement = document.querySelector('.terminal');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            // Очищаем предыдущие результаты
+            if (terminalElement) {
+                terminalElement.innerHTML = '';
+                terminalElement.style.display = 'none';
+            }
+            
+            // Сбрасываем статусное сообщение на начальное
+            statusElement.classList.remove('hidden');
+            statusElement.classList.remove('status-success', 'status-error', 'status-warning');
+            statusElement.classList.add('status-loading');
+            statusElement.textContent = 'Processing your financial data... Google Sheets update in progress';
+            
+            // Отключаем кнопку и меняем текст
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Processing...';
+            submitBtn.style.opacity = '0.7';
+            
+            // Показываем статус загрузки сразу
+            statusElement.style.display = 'block';
+        });
+
+        // Если есть статус сообщение с сервера - показываем его
+        {% if status_message %}
+        document.addEventListener('DOMContentLoaded', function() {
+            const statusElement = document.getElementById('statusMessage');
+            statusElement.classList.remove('hidden');
+            statusElement.textContent = '{{ status_message }}';
+            {% if 'success' in status_message %}
+            statusElement.classList.add('status-success');
+            {% elif 'failed' in status_message %}
+            statusElement.classList.add('status-error');
+            {% elif 'warning' in status_message %}
+            statusElement.classList.add('status-warning');
+            {% endif %}
+        });
+        {% endif %}
+    </script>
 </html>
 '''
 
