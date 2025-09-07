@@ -40,7 +40,7 @@ def allowed_file(filename):
 def sync_google_sheets_operation(month_name, table_data):
     """Synchronic version of Google Sheets operation"""
     try:
-        print(f"📨 Starting Google Sheets sync for {month_name}")
+        print(f"📨 🔵 LOCAL MODE: Starting sync Google Sheets operation for {month_name}")
         print(f"📊 Data to write: {len(table_data)} rows")
         time.sleep(2)
         # 1. Authentification
@@ -200,6 +200,8 @@ def async_google_sheets_operation(month_name, table_data):
 def get_google_credentials():
     """Get Google credentials with better error handling"""
     try:
+        SCOPES = ['https://www.googleapis.com/auth/spreadsheets',
+                              'https://www.googleapis.com/auth/drive']
         if "DYNO" in os.environ:
             print("🔑 Using environment credentials from Heroku")
             service_account_json = os.environ.get(
@@ -208,8 +210,7 @@ def get_google_credentials():
             if service_account_json:
                 try:
                     creds_dict = json.loads(service_account_json)
-                    SCOPES = ['https://www.googleapis.com/auth/spreadsheets',
-                              'https://www.googleapis.com/auth/drive']
+                    
                     Credentials = service_account.Credentials
                     creator = Credentials.from_service_account_info
                     return creator(creds_dict, scopes=SCOPES)
@@ -223,13 +224,16 @@ def get_google_credentials():
         else:
             # Local development
             if os.path.exists('creds.json'):
+                print("🔑 Using local creds.json file")
                 Credentials = service_account.Credentials
                 credentials = Credentials.from_service_account_file(
-                 'creds.json'
+                 'creds.json',
+                 scopes=SCOPES
                 )
                 return credentials
             else:
                 print("❌ Local creds.json file not found")
+                print("💡 Create creds.json with Google Service Account credentials")
                 return None
     except Exception as e:
         print(f"❌ Error getting credentials: {e}")
@@ -625,7 +629,7 @@ def main():
         app.run(host='0.0.0.0', port=port)
     else:
         # Local mode
-        print(f" PERSONAL FINANCE ANALYZER ")
+        print(f"PERSONAL FINANCE ANALYZER ")
         MONTH = (
                 input("Enter the month (e.g. 'March, April, May'): ")
                 .strip()
@@ -641,10 +645,31 @@ def main():
             sys.exit(1)
         data = analyze(transactions, daily_categories, MONTH)
         terminal_visualization(data)
+
+        print("\n" + "="*50)
+        print("📊 Preparing data for Google Sheets...")
+        monthly_success = write_to_month_sheet(MONTH, transactions, data)
+        if monthly_success:
+            print("✅ Month worksheet updated successfully!")
+        else:
+            print("❌ Failed to update Month worksheet")
+        
+        time.sleep(3) 
+        print("⏳ Writing to Month worksheet...")
+        table_data = prepare_summary_data(data, transactions)
+        MONTH_NORMALIZED = get_month_column_name(MONTH)
+        
+        print("⏳ Writing to Google Sheets SUMMARY...")
+        success = write_to_target_sheet(table_data, MONTH_NORMALIZED)
+        
+        if success:
+            print("✅ Google Sheets update completed successfully!")
+        else:
+            print("❌ Failed to update Google Sheets")
         # Recommendations
-        print(f"DAILY SPENDING RECOMMENDATIONS: ")
-        for i, rec in enumerate(generate_daily_recommendations(data), 1):
-            print(f"{i}. {rec}")
+        # print(f"DAILY SPENDING RECOMMENDATIONS: ")
+        # for i, rec in enumerate(generate_daily_recommendations(data), 1):
+        #     print(f"{i}. {rec}")
 
 
 HTML = '''
