@@ -38,7 +38,7 @@ def allowed_file(filename):
 
 
 def sync_google_sheets_operation(month_name, table_data):
-    """Синхронная версия Google Sheets операции"""
+    """Synchronic version of Google Sheets operation"""
     try:
         print(f"📨 Starting Google Sheets sync for {month_name}")
         print(f"📊 Data to write: {len(table_data)} rows")
@@ -614,7 +614,7 @@ def write_to_target_sheet(table_data, month_name):
         else:
             return sync_google_sheets_operation(month_name, table_data)
     except Exception as e:
-        print(f"✗ Ошибка записи в SUMMARY: {e}")
+        print(f"✗ Error in writing into SUMMARY: {e}")
         return False
 
 

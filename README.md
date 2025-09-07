@@ -2,7 +2,7 @@
 
 **Developer: Nataliia Illiashenko**
 
-💻 [Visit live website](https://ci-pp3-connect4.onrender.com/)
+💻 [Visit live website](https://finance--manager-243259ec6a64.herokuapp.com/)
 
 ![Mockup image](docs/screenshot-home.JPG)
 
