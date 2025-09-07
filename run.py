@@ -18,6 +18,7 @@ from werkzeug.utils import secure_filename
 warnings.filterwarnings('ignore', category=DeprecationWarning)
 app = Flask(__name__)
 
+LOCK_TIMEOUT = 300
 DAILY_NORMS = {
         'Rent': 50.0,
         'Gym': 3.0,
@@ -32,6 +33,29 @@ DAILY_NORMS = {
 ALLOWED_EXTENSIONS = {'csv'}
 
 
+def get_lock(lock_name):
+    """File blocking"""
+    lock_file = f"/tmp/{lock_name}.lock"
+    if os.path.exists(lock_file):
+        # Проверяем время создания (если старше 5 минут - считаем устаревшей)
+        if time.time() - os.path.getmtime(lock_file) < LOCK_TIMEOUT:
+            return False
+        else:
+            # Удаляем устаревшую блокировку
+            os.remove(lock_file)
+    # Создаем новую блокировку
+    with open(lock_file, 'w') as f:
+        f.write(str(time.time()))
+    return True
+
+
+def release_lock(lock_name):
+    """Освободить блокировку"""
+    lock_file = f"/tmp/{lock_name}.lock"
+    if os.path.exists(lock_file):
+        os.remove(lock_file)
+
+
 def allowed_file(filename):
     return ('.' in filename
             and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS)
@@ -39,6 +63,13 @@ def allowed_file(filename):
 
 def sync_google_sheets_operation(month_name, table_data):
     """Synchronic version of Google Sheets operation"""
+    lock_name = f"gsheets_lock_{month_name.lower()}"
+    
+    # Пытаемся получить блокировку
+    if not get_lock(lock_name):
+        print(f"❌ Google Sheets is currently locked for {month_name}. Please try again later.")
+        return False
+    
     try:
         print(f"📨 🔵 LOCAL MODE: Starting sync Google Sheets operation for {month_name}")
         print(f"📊 Data to write: {len(table_data)} rows")
@@ -60,6 +91,10 @@ def sync_google_sheets_operation(month_name, table_data):
         except Exception as e:
             print(f"❌ Error opening spreadsheet: {e}")
             return False
+        finally:
+            # Всегда освобождаем блокировку
+            release_lock(lock_name)
+            print(f"🔓 Lock released for {month_name}")
         try:
             summary_sheet = target_spreadsheet.worksheet('SUMMARY')
             print("✅ SUMMARY worksheet accessed")
@@ -1203,7 +1238,13 @@ def set_column_width(worksheet, column_letter, width):
 
 def write_to_month_sheet(month_name, transactions, data):
     """Запись данных в лист месяца в формате как на скриншоте"""
+    lock_name = f"month_sheet_lock_{month_name.lower()}"
+    # Пытаемся получить блокировку
+    if not get_lock(lock_name):
+        print(f"❌ Month sheet is currently locked for {month_name}. Please try again later.")
+        return False
     try:
+        print(f"📊 Writing to {month_name} worksheet with lock...")
         print(f"📊 Writing to {month_name} worksheet...")
         # 1. Authentification
         creds = get_google_credentials()
@@ -1477,7 +1518,7 @@ def write_to_month_sheet(month_name, transactions, data):
         set_column_width(worksheet, 'G', 150)  # Category name
         set_column_width(worksheet, 'H', 80)   # Amount
         set_column_width(worksheet, 'I', 100)  # Percentage
-        set_column_width(worksheet, 'K', 70)   # Priority
+        set_column_width(worksheet, 'K', 90)   # Priority
         set_column_width(worksheet, 'L', 300)  # Recommendation
         print(f"✅ Successfully formatted {month_name} "
               f"worksheet to match screenshot")
@@ -1487,6 +1528,9 @@ def write_to_month_sheet(month_name, transactions, data):
         import traceback
         print(f"🔍 Traceback: {traceback.format_exc()}")
         return False
+    finally:
+        release_lock(lock_name)
+        print(f"🔓 Month sheet lock released for {month_name}")
 
 
 def run_full_analysis(month):
