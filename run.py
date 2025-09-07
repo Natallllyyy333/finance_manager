@@ -778,6 +778,9 @@ HTML = '''
             max-height: 700px;
             margin-bottom: 20px;
         }
+        .terminal:empty {
+            display: none !important;
+        }
         .status {
             text-align: center;
             padding: 15px;
@@ -915,22 +918,29 @@ HTML = '''
     });
     {% endif %}
 </script>
-
-</body>
 <script>
-        // Показываем статус загрузки при нажатии кнопки и очищаем предыдущие результаты
+        // Показываем статус загрузки при нажатии кнопки и обновляем информацию о файле
         document.getElementById('uploadForm').addEventListener('submit', function(e) {
             const statusElement = document.getElementById('statusMessage');
-            const terminalElement = document.querySelector('.terminal');
             const submitBtn = document.getElementById('submitBtn');
+            const fileInput = document.querySelector('input[type="file"]');
             
-            // Очищаем предыдущие результаты
-            if (terminalElement) {
-                terminalElement.innerHTML = '';
-                terminalElement.style.display = 'none';
+            // Обновляем информацию о файле сразу
+            if (fileInput.files.length > 0) {
+                const fileName = fileInput.files[0].name;
+                let fileInfoElement = document.querySelector('.file-info');
+                
+                if (!fileInfoElement) {
+                    fileInfoElement = document.createElement('div');
+                    fileInfoElement.className = 'file-info';
+                    document.querySelector('.input-group').after(fileInfoElement);
+                }
+                
+                fileInfoElement.innerHTML = `📁 Using file: <strong>${fileName}</strong>`;
+                fileInfoElement.style.display = 'block';
             }
             
-            // Сбрасываем статусное сообщение на начальное
+            // Показываем статус загрузки
             statusElement.classList.remove('hidden');
             statusElement.classList.remove('status-success', 'status-error', 'status-warning');
             statusElement.classList.add('status-loading');
@@ -940,9 +950,6 @@ HTML = '''
             submitBtn.disabled = true;
             submitBtn.textContent = 'Processing...';
             submitBtn.style.opacity = '0.7';
-            
-            // Показываем статус загрузки сразу
-            statusElement.style.display = 'block';
         });
 
         // Если есть статус сообщение с сервера - показываем его
@@ -961,6 +968,8 @@ HTML = '''
         });
         {% endif %}
     </script>
+</body>
+
 </html>
 '''
 
