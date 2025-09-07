@@ -35,25 +35,36 @@ ALLOWED_EXTENSIONS = {'csv'}
 
 def get_lock(lock_name):
     """File blocking"""
-    lock_file = f"/tmp/{lock_name}.lock"
+    # Используем временную директорию системы
+    temp_dir = tempfile.gettempdir()
+    lock_file = os.path.join(temp_dir, f"{lock_name}.lock")
     if os.path.exists(lock_file):
         # Проверяем время создания (если старше 5 минут - считаем устаревшей)
         if time.time() - os.path.getmtime(lock_file) < LOCK_TIMEOUT:
             return False
         else:
-            # Удаляем устаревшую блокировку
-            os.remove(lock_file)
+            try:
+                os.remove(lock_file)
+            except:
+                pass  # Игнорируем ошибки удаления
     # Создаем новую блокировку
-    with open(lock_file, 'w') as f:
-        f.write(str(time.time()))
-    return True
+    try:
+        with open(lock_file, 'w') as f:
+            f.write(str(time.time()))
+        return True
+    except:
+        return False  # Не удалось создать файл
 
 
 def release_lock(lock_name):
     """Освободить блокировку"""
-    lock_file = f"/tmp/{lock_name}.lock"
+    temp_dir = tempfile.gettempdir()
+    lock_file = os.path.join(temp_dir, f"{lock_name}.lock")
     if os.path.exists(lock_file):
-        os.remove(lock_file)
+        try:
+            os.remove(lock_file)
+        except:
+            pass  # Игнорируем ошибки удаления
 
 
 def allowed_file(filename):
@@ -91,10 +102,7 @@ def sync_google_sheets_operation(month_name, table_data):
         except Exception as e:
             print(f"❌ Error opening spreadsheet: {e}")
             return False
-        finally:
-            # Всегда освобождаем блокировку
-            release_lock(lock_name)
-            print(f"🔓 Lock released for {month_name}")
+        
         try:
             summary_sheet = target_spreadsheet.worksheet('SUMMARY')
             print("✅ SUMMARY worksheet accessed")
@@ -210,6 +218,10 @@ def sync_google_sheets_operation(month_name, table_data):
         import traceback
         print(f"🔍 Traceback: {traceback.format_exc()}")
         return False
+    finally:
+            # Всегда освобождаем блокировку
+            release_lock(lock_name)
+            print(f"🔓 Lock released for {month_name}")
 
 
 def async_google_sheets_operation(month_name, table_data):
