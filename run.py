@@ -181,7 +181,7 @@ def sync_google_sheets_operation(month_name, table_data):
         # 7. batch-query
         if update_data:
             print("⏳ Writing data to Google Sheets...")
-            batch_size = 5
+            batch_size = 3
             max_retries = 3
             for i in range(0, len(update_data), batch_size):
                 batch = update_data[i:i+batch_size]
@@ -197,10 +197,11 @@ def sync_google_sheets_operation(month_name, table_data):
                     except Exception as e:
                         if "429" in str(e) or "Quota exceeded" in str(e):
                             retry_count += 1
-                            wait_time = 60 * retry_count  # Увеличиваем время ожидания
+                            wait_time = 90 * retry_count  # Увеличиваем время ожидания
                             print(f"⚠️ Rate limit exceeded. Retry {retry_count}/{max_retries} in {wait_time} seconds...")
                             time.sleep(wait_time)
                         else:
+                            print(f"❌ Error in batch update: {e}")
                             raise e  # Другие ошибки прокидываем дальше
                 
                 if not success:
@@ -208,7 +209,7 @@ def sync_google_sheets_operation(month_name, table_data):
                     return False
                     
                 if i + batch_size < len(update_data):
-                    time.sleep(10)  # Увеличиваем паузу между батчами
+                    time.sleep(15)  # Увеличиваем паузу между батчами
 
             print("✅ All data written successfully!")
 
@@ -691,50 +692,92 @@ def write_to_target_sheet(table_data, month_name):
         return False
 
 
+def check_system_lock():
+    """Проверяет, не запущен ли уже другой экземпляр"""
+    lock_file = os.path.join(tempfile.gettempdir(), "finance_system.lock")
+    
+    if os.path.exists(lock_file):
+        # Проверяем время последней модификации
+        if time.time() - os.path.getmtime(lock_file) < 600:  # 10 минут
+            return False
+        else:
+            # Устаревшая блокировка
+            try:
+                os.remove(lock_file)
+            except:
+                pass
+    
+    # Создаем новую блокировку
+    try:
+        with open(lock_file, 'w') as f:
+            f.write(str(time.time()))
+        return True
+    except:
+        return False
+
+def release_system_lock():
+    """Освобождает системную блокировку"""
+    lock_file = os.path.join(tempfile.gettempdir(), "finance_system.lock")
+    if os.path.exists(lock_file):
+        try:
+            os.remove(lock_file)
+        except:
+            pass
+
+
 def main():
+    
     if "DYNO" in os.environ:
         # Heroku mode
         port = int(os.environ.get('PORT', 5000))
         app.run(host='0.0.0.0', port=port)
     else:
-        # Local mode
-        print(f"PERSONAL FINANCE ANALYZER ")
-        MONTH = (
-                input("Enter the month (e.g. 'March, April, May'): ")
-                .strip()
-                .lower()
-                )
-        FILE = f"hsbc_{MONTH}.csv"
-        print(f"Loading file: {FILE}")
-
-        transactions, daily_categories = load_transactions(FILE)
-        if not transactions:
-            print(f"No transactions found")
-            import sys
+        if not check_system_lock():
+            print("❌ Another instance is already running. Please wait.")
             sys.exit(1)
-        data = analyze(transactions, daily_categories, MONTH)
-        terminal_visualization(data)
+            
+        try:
+            # Local mode
+            print(f"PERSONAL FINANCE ANALYZER ")
+            MONTH = (
+                    input("Enter the month (e.g. 'March, April, May'): ")
+                    .strip()
+                    .lower()
+                    )
+            FILE = f"hsbc_{MONTH}.csv"
+            print(f"Loading file: {FILE}")
 
-        print("\n" + "="*50)
-        print("📊 Preparing data for Google Sheets...")
-        monthly_success = write_to_month_sheet(MONTH, transactions, data)
-        if monthly_success:
-            print("✅ Month worksheet updated successfully!")
-        else:
-            print("❌ Failed to update Month worksheet")
-        
-        time.sleep(3) 
-        print("⏳ Writing to Month worksheet...")
-        table_data = prepare_summary_data(data, transactions)
-        MONTH_NORMALIZED = get_month_column_name(MONTH)
-        
-        print("⏳ Writing to Google Sheets SUMMARY...")
-        success = write_to_target_sheet(table_data, MONTH_NORMALIZED)
-        
-        if success:
-            print("✅ Google Sheets update completed successfully!")
-        else:
-            print("❌ Failed to update Google Sheets")
+            transactions, daily_categories = load_transactions(FILE)
+            if not transactions:
+                print(f"No transactions found")
+                import sys
+                sys.exit(1)
+            data = analyze(transactions, daily_categories, MONTH)
+            terminal_visualization(data)
+
+            print("\n" + "="*50)
+            print("📊 Preparing data for Google Sheets...")
+            monthly_success = write_to_month_sheet(MONTH, transactions, data)
+            if monthly_success:
+                print("✅ Month worksheet updated successfully!")
+            else:
+                print("❌ Failed to update Month worksheet")
+            
+            time.sleep(10) 
+            print("⏳ Writing to Month worksheet...")
+            table_data = prepare_summary_data(data, transactions)
+            MONTH_NORMALIZED = get_month_column_name(MONTH)
+            
+            print("⏳ Writing to Google Sheets SUMMARY...")
+            success = write_to_target_sheet(table_data, MONTH_NORMALIZED)
+            
+            if success:
+                print("✅ Google Sheets update completed successfully!")
+            else:
+                print("❌ Failed to update Google Sheets")
+        finally:
+            # Всегда освобождаем системную блокировку
+            release_system_lock()
         # Recommendations
         # print(f"DAILY SPENDING RECOMMENDATIONS: ")
         # for i, rec in enumerate(generate_daily_recommendations(data), 1):
@@ -1187,62 +1230,72 @@ def run_full_analysis_with_file(month, file_path, temp_dir):
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
+    if not check_system_lock():
+        return render_template_string(HTML,
+                                    result="⚠️ System is busy. Please try again in a few minutes.",
+                                    status_message="❌ System busy - please wait")
+
+
     result = None
     month = None
     filename = None
     status_message = None
 
-    if request.method == 'POST':
-        month = request.form['month'].strip().lower()
-        if 'file' not in request.files:
-            return render_template_string(HTML,
-                                          result="No file uploaded",
-                                          month=month)
-        file = request.files['file']
-        if file.filename == '':
-            return render_template_string(HTML,
-                                          result="No file selected",
-                                          month=month)
-        if file and allowed_file(file.filename):
-            try:
-                filename = secure_filename(file.filename)
-                # Create temporary file for processing
-                temp_dir = tempfile.mkdtemp()
-                temp_file_path = os.path.join(temp_dir, f"hsbc_{month}.csv")
-                # Save uploaded file
-                file.save(temp_file_path)
-                # Load transactions for immediate display
-                transactions, daily_categories = (
-                    load_transactions(temp_file_path)
-                    )
-                if transactions:
-                    data = analyze(transactions, daily_categories, month)
-                    result = format_terminal_output(data,
-                                                    month,
-                                                    len(transactions))
-                    # Start background processing and get status
-                    analysis_success, sheets_success = (
-                        run_full_analysis_with_file(
+    try:
+        if request.method == 'POST':
+            month = request.form['month'].strip().lower()
+            if 'file' not in request.files:
+                return render_template_string(HTML,
+                                            result="No file uploaded",
+                                            month=month)
+            file = request.files['file']
+            if file.filename == '':
+                return render_template_string(HTML,
+                                            result="No file selected",
+                                            month=month)
+            if file and allowed_file(file.filename):
+                try:
+                    filename = secure_filename(file.filename)
+                    # Create temporary file for processing
+                    temp_dir = tempfile.mkdtemp()
+                    temp_file_path = os.path.join(temp_dir, f"hsbc_{month}.csv")
+                    # Save uploaded file
+                    file.save(temp_file_path)
+                    # Load transactions for immediate display
+                    transactions, daily_categories = (
+                        load_transactions(temp_file_path)
+                        )
+                    if transactions:
+                        data = analyze(transactions, daily_categories, month)
+                        result = format_terminal_output(data,
                                                         month,
-                                                        temp_file_path,
-                                                        temp_dir))
-                    status_message = get_operation_status(analysis_success,
-                                                          sheets_success)
-                else:
-                    result = f"No valid transactions found in {filename}"
-                    status_message = (f"❌ Analysis failed "
-                                      f"no transactions found")
-            except Exception as e:
-                result = f"Error processing file: {str(e)}"
-                status_message = "❌ Analysis failed due to error"
-        else:
-            result = "Invalid file type. Please upload a CSV file."
-            status_message = "❌ Invalid file type"
-    return render_template_string(HTML,
-                                  result=result,
-                                  month=month,
-                                  filename=filename,
-                                  status_message=status_message)
+                                                        len(transactions))
+                        # Start background processing and get status
+                        analysis_success, sheets_success = (
+                            run_full_analysis_with_file(
+                                                            month,
+                                                            temp_file_path,
+                                                            temp_dir))
+                        status_message = get_operation_status(analysis_success,
+                                                            sheets_success)
+                    else:
+                        result = f"No valid transactions found in {filename}"
+                        status_message = (f"❌ Analysis failed "
+                                        f"no transactions found")
+                except Exception as e:
+                    result = f"Error processing file: {str(e)}"
+                    status_message = "❌ Analysis failed due to error"
+            else:
+                result = "Invalid file type. Please upload a CSV file."
+                status_message = "❌ Invalid file type"
+        return render_template_string(HTML,
+                                    result=result,
+                                    month=month,
+                                    filename=filename,
+                                    status_message=status_message)
+    finally:
+        # Освобождаем системную блокировку
+        release_system_lock()
 
 def set_column_width(worksheet, column_letter, width):
     """Set column width for worksheet"""
