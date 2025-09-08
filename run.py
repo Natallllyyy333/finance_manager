@@ -1094,21 +1094,30 @@ def load_transactions(file_path_or_object):
     
     return transactions, daily_categories
 
-def get_operation_status(analysis_success, sheets_success):
+def get_operation_status(analysis_success, month_sheet_success, summary_sheet_success):
     """Return operation status message"""
-    if analysis_success and sheets_success:
+    if analysis_success and month_sheet_success and summary_sheet_success:
         return f"✅ Analysis completed successfully and data written to Google Sheets"
-    elif analysis_success and not sheets_success:
+    elif analysis_success and month_sheet_success and not summary_sheet_success:
+        return f"⚠️ Analysis completed, Month sheet updated but failed to update Summary sheet"
+    elif analysis_success and not month_sheet_success and summary_sheet_success:
+        return f"⚠️ Analysis completed, Summary sheet updated but failed to update Month sheet"
+    elif analysis_success and not month_sheet_success and not summary_sheet_success:
         return f"⚠️ Analysis completed but failed to write data to Google Sheets"
-    elif not analysis_success and sheets_success:
-        return "⚠️ Analysis failed but Google Sheets operation completed"
+    elif not analysis_success and month_sheet_success and summary_sheet_success:
+        return "⚠️ Analysis failed but Google Sheets operations completed"
+    elif not analysis_success and month_sheet_success and not summary_sheet_success:
+        return "⚠️ Analysis failed, Month sheet updated but failed to update Summary sheet"
+    elif not analysis_success and not month_sheet_success and summary_sheet_success:
+        return "⚠️ Analysis failed, Summary sheet updated but failed to update Month sheet"
     else:
-        return "❌ Both analysis and Google Sheets operations failed"
+        return "❌ All operations failed"
 
 def run_full_analysis_with_file(month, file_path, temp_dir):
     """Full processing in background mode using uploaded file"""
     analysis_success = False
-    sheets_success = False
+    month_sheet_success = False
+    summary_sheet_success = False
     
     try:
         print(f"🚀 Starting FULL background analysis for {month} with uploaded file")
@@ -1116,7 +1125,7 @@ def run_full_analysis_with_file(month, file_path, temp_dir):
         
         if not transactions:
             print("No transactions found in uploaded file")
-            return analysis_success, sheets_success
+            return analysis_success, month_sheet_success, summary_sheet_success
         
         data = analyze(transactions, daily_categories, month)
         analysis_success = True
@@ -1128,8 +1137,8 @@ def run_full_analysis_with_file(month, file_path, temp_dir):
         
         # 1. Writing into month sheet
         print(f"📝 Writing to {month} worksheet...")
-        monthly_success = write_to_month_sheet(month, transactions, data)
-        if monthly_success:
+        month_sheet_success = write_to_month_sheet(month, transactions, data)
+        if month_sheet_success:
             print(f"✅ Successfully updated {month} worksheet")
         else:
             print(f"❌ Failed to update {month} worksheet")
@@ -1140,16 +1149,15 @@ def run_full_analysis_with_file(month, file_path, temp_dir):
         print("⏳ Starting Google Sheets SUMMARY update...")
         table_data = prepare_summary_data(data, transactions)
         MONTH_NORMALIZED = get_month_column_name(month)
-        summary_success = write_to_target_sheet(table_data, MONTH_NORMALIZED)
-        sheets_success = summary_success
+        summary_sheet_success = write_to_target_sheet(table_data, MONTH_NORMALIZED)
         
-        if summary_success:
+        if summary_sheet_success:
             print("✅ Successfully updated Google Sheets SUMMARY")
         else:
             print("❌ Failed to update Google Sheets SUMMARY")
         
         # Printing status message
-        status_message = get_operation_status(analysis_success, sheets_success)
+        status_message = get_operation_status(analysis_success, month_sheet_success, summary_sheet_success)
         print(f"🎉 {status_message}")
         
     except Exception as e:
@@ -1166,7 +1174,7 @@ def run_full_analysis_with_file(month, file_path, temp_dir):
         except Exception as cleanup_error:
             print(f"Error cleaning up temporary files: {cleanup_error}")
     
-    return analysis_success, sheets_success
+    return analysis_success, month_sheet_success, summary_sheet_success
 
 HTML = '''
 <!DOCTYPE html>
