@@ -1686,7 +1686,9 @@ def run_full_analysis_with_file(month, file_path, temp_dir):
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
+    print("🔍 Index function called")
     if not check_system_lock():
+        print("⚠️ System is locked")
         return render_template_string(HTML,
                                     result="⚠️ System is busy. Please try again in a few minutes.",
                                     status_message="❌ System busy - please wait")
@@ -1699,7 +1701,9 @@ def index():
 
     try:
         if request.method == 'POST':
+            print("📨 POST request received")
             month = request.form['month'].strip().lower()
+            print(f"📅 Month: {month}")
             if 'file' not in request.files:
                 return render_template_string(HTML,
                                             result="No file uploaded",
