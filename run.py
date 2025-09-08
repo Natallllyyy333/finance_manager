@@ -89,12 +89,16 @@ def check_global_lock(month_name):
             except Exception as e:
                 print(f"⚠️ Could not create lock sheet: {e}")
                 return False
+            
+        # Нормализуем название месяца для сравнения
+        normalized_month = month_name.capitalize()
+        print(f"🔍 Checking lock for: {normalized_month}")
         
         # Проверяем есть ли блокировка для этого месяца
         try:
             locks = lock_sheet.get_all_records()
             for lock in locks:
-                if lock['Month'] == month_name and lock['Locked'] == 'YES':
+                if lock['Month'] == normalized_month and lock['Locked'] == 'YES':
                     lock_time = datetime.fromisoformat(lock['Timestamp'])
                     if (datetime.now() - lock_time).total_seconds() < 600:  # 10 минут
                         print(f"🔒 Month {month_name} is locked by another process")
@@ -103,8 +107,9 @@ def check_global_lock(month_name):
                         # Устаревшая блокировка - удаляем её
                         all_data = lock_sheet.get_all_values()
                         for i, row in enumerate(all_data[1:], start=2):  # Пропускаем заголовок
-                            if row[0] == month_name:
+                            if row[0] == normalized_month:
                                 lock_sheet.update_cell(i, 2, 'NO')
+                                print(f"🔓 Removed stale lock for {normalized_month}")
                                 break
                         break
         
@@ -114,9 +119,9 @@ def check_global_lock(month_name):
         
         # Создаем новую блокировку
         try:
-            new_lock = [month_name, 'YES', datetime.now().isoformat()]
+            new_lock = [normalized_month, 'YES', datetime.now().isoformat()]
             lock_sheet.append_row(new_lock)
-            print(f"🔒 Global lock acquired for {month_name}")
+            print(f"🔒 Global lock acquired for {normalized_month}")
             return True
         except Exception as e:
             print(f"⚠️ Could not create lock: {e}")
@@ -140,12 +145,22 @@ def release_global_lock(month_name):
         try:
             lock_sheet = sh.worksheet("SYSTEM_LOCKS")
             all_data = lock_sheet.get_all_values()
-            
+
+            normalized_month = month_name.capitalize()
+            print(f"🔓 Releasing lock for: {normalized_month}")
+
+            #search all rows with the month and status Yes
+            rows_to_update = []
             for i, row in enumerate(all_data[1:], start=2):  # Пропускаем заголовок
-                if row[0] == month_name:
-                    lock_sheet.update_cell(i, 2, 'NO')  # Снимаем блокировку
-                    print(f"🔓 Global lock released for {month_name}")
-                    break
+                if row[0] == normalized_month and row[1] == 'YES':
+                    rows_to_update.append(i) 
+            
+            for row_num in rows_to_update:
+                lock_sheet.update_cell(row_num, 2, 'NO')  # Колонка B (Locked)
+                print(f"🔓 Lock released for {normalized_month} in row {row_num}")
+            
+            if not rows_to_update:
+                print(f"⚠️ No active lock found for {normalized_month} to release")
                     
         except gspread.WorksheetNotFound:
             print("⚠️ Lock sheet not found - nothing to release")
@@ -499,7 +514,8 @@ def allowed_file(filename):
 def sync_google_sheets_operation(month_name, table_data):
     """Synchronic version of Google Sheets operation"""
     # Проверяем глобальную блокировку
-    if not check_global_lock(month_name):
+    normalized_month = month_name.capitalize()
+    if not check_global_lock(normalized_month):
         print(f"❌ Google Sheets is currently locked for {month_name}. Please try again later.")
         return False
     
@@ -539,6 +555,8 @@ def sync_google_sheets_operation(month_name, table_data):
         # 4. Normalizing month name for comparison
         normalized_month = month_name.capitalize()
         print(f"🔍 Looking for column: {normalized_month}")
+        if not check_global_lock(normalized_month):
+            return False
 
         # 5. Find the month column
         month_col = None
@@ -647,7 +665,40 @@ def sync_google_sheets_operation(month_name, table_data):
         return False
     finally:
         # Всегда освобождаем глобальную блокировку
-        release_global_lock(month_name)
+        release_global_lock(normalized_month)
+
+
+def cleanup_stale_locks():
+    """Очищает все устаревшие блокировки"""
+    try:
+        creds = get_google_credentials()
+        if not creds:
+            return
+            
+        gc = gspread.authorize(creds)
+        sh = gc.open("Personal Finances")
+        
+        try:
+            lock_sheet = sh.worksheet("SYSTEM_LOCKS")
+            all_data = lock_sheet.get_all_values()
+            
+            for i, row in enumerate(all_data[1:], start=2):  # Пропускаем заголовок
+                if len(row) >= 3 and row[1] == 'YES':  # Locked = YES
+                    try:
+                        lock_time = datetime.fromisoformat(row[2])
+                        if (datetime.now() - lock_time).total_seconds() > 600:  # Старше 10 минут
+                            lock_sheet.update_cell(i, 2, 'NO')
+                            print(f"🔓 Cleaned up stale lock for {row[0]}")
+                    except:
+                        # Если timestamp некорректный, тоже снимаем блокировку
+                        lock_sheet.update_cell(i, 2, 'NO')
+                        print(f"🔓 Cleaned up invalid lock for {row[0]}")
+                        
+        except gspread.WorksheetNotFound:
+            pass  # Если листа нет, нечего очищать
+            
+    except Exception as e:
+        print(f"⚠️ Cleanup error: {e}")
 
 
 def async_google_sheets_operation(month_name, table_data):
@@ -2466,7 +2517,8 @@ def set_column_width(worksheet, column_letter, width):
 def write_to_month_sheet(month_name, transactions, data):
     """Запись данных в лист месяца в формате как на скриншоте"""
     # Проверяем глобальную блокировку
-    if not check_global_lock(month_name):
+    normalized_month = month_name.capitalize()
+    if not check_global_lock(normalized_month):
         print(f"❌ Month sheet is currently locked for {month_name}. Please try again later.")
         return False
     
@@ -2839,7 +2891,7 @@ def write_to_month_sheet(month_name, transactions, data):
         
     finally:
         # Всегда освобождаем глобальную блокировку
-        release_global_lock(month_name)
+        release_global_lock(normalized_month)
 
 
 def run_full_analysis(month):
@@ -2885,6 +2937,7 @@ def run_full_analysis(month):
 
 
 if __name__ == '__main__':
+    cleanup_stale_locks()
     if "DYNO" in os.environ:
         # Heroku mode
         port = int(os.environ.get('PORT', 5000))
