@@ -515,12 +515,13 @@ def sync_google_sheets_operation(month_name, table_data):
     """Synchronic version of Google Sheets operation"""
     # Проверяем глобальную блокировку
     normalized_month = month_name.capitalize()
-    if not check_global_lock(normalized_month):
-        print(f"❌ Google Sheets is currently locked for {month_name}. Please try again later.")
+    print(f"🔐 Attempting to acquire lock for: {normalized_month}")
+    if not check_global_lock(normalized_month):       
+        print(f"❌ Google Sheets is currently locked for {normalized_month}. Please try again later.")
         return False
     
     try:
-        print(f"📨 🔵 LOCAL MODE: Starting sync Google Sheets operation for {month_name}")
+        print(f"📨 🔵 LOCAL MODE: Starting sync Google Sheets operation for {normalized_month}")
         print(f"📊 Data to write: {len(table_data)} rows")
         time.sleep(2)
         # 1. Authentification
@@ -553,10 +554,9 @@ def sync_google_sheets_operation(month_name, table_data):
         print(f"📝 Current headers: {headers}")
 
         # 4. Normalizing month name for comparison
-        normalized_month = month_name.capitalize()
         print(f"🔍 Looking for column: {normalized_month}")
-        if not check_global_lock(normalized_month):
-            return False
+        # if not check_global_lock(normalized_month):
+        #     return False
 
         # 5. Find the month column
         month_col = None
@@ -622,8 +622,8 @@ def sync_google_sheets_operation(month_name, table_data):
         # 7. batch-query
         if update_data:
             print("⏳ Writing data to Google Sheets...")
-            batch_size = 3  # Еще уменьшаем размер батча
-            max_retries = 5  # Увеличиваем количество попыток
+            batch_size = 2  # Еще уменьшаем размер батча
+            max_retries = 3  # Увеличиваем количество попыток
             
             for i in range(0, len(update_data), batch_size):
                 batch = update_data[i:i+batch_size]
@@ -639,7 +639,7 @@ def sync_google_sheets_operation(month_name, table_data):
                     except Exception as e:
                         if "429" in str(e) or "Quota exceeded" in str(e):
                             retry_count += 1
-                            wait_time = 90 * retry_count  # Увеличиваем время ожидания
+                            wait_time = 60 * retry_count  # Decrease wait time
                             print(f"⚠️ Rate limit exceeded. Retry {retry_count}/{max_retries} in {wait_time} seconds...")
                             time.sleep(wait_time)
                         else:
