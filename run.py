@@ -149,9 +149,15 @@ def release_global_lock(month_name):
                     
         except gspread.WorksheetNotFound:
             print("⚠️ Lock sheet not found - nothing to release")
+        except Exception as e:
+            print(f"⚠️ Error accessing lock sheet: {e}")
             
     except Exception as e:
         print(f"⚠️ Global lock release error: {e}")
+    finally:
+        # Гарантируем, что функция всегда завершится
+        print(f"🔓 Lock release process completed for {month_name}")
+    
 
 
 def allowed_file(filename):
