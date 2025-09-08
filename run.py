@@ -706,8 +706,9 @@ def async_google_sheets_operation(month_name, table_data):
     try:
         print(f"🚀 Starting async Google Sheets operation for {month_name}")
         time.sleep(5)
-
-        success = sync_google_sheets_operation(month_name, table_data)
+        
+        normalized_month = month_name.capitalize()
+        success = sync_google_sheets_operation(normalized_month, table_data)
 
         if success:
             print(f"✓ Asynchronous writing to Google Sheets completed "
