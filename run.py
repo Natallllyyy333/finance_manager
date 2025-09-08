@@ -1791,13 +1791,21 @@ def index():
                                                         month,
                                                         len(transactions))
                         # Start background processing and get status
-                        analysis_success, sheets_success = (
-                            run_full_analysis_with_file(
-                                                            month,
-                                                            temp_file_path,
-                                                            temp_dir))
-                        status_message = get_operation_status(analysis_success,
-                                                            sheets_success)
+                        thread = threading.Thread(
+                            target=run_full_analysis_with_file,
+                            args=(month, temp_file_path, temp_dir)
+                        )
+                        thread.daemon = True
+                        thread.start()
+                        
+                        status_message = "⏳ Processing started... Google Sheets update in background"
+                        # analysis_success, sheets_success = (
+                        #     run_full_analysis_with_file(
+                        #                                     month,
+                        #                                     temp_file_path,
+                        #                                     temp_dir))
+                        # status_message = get_operation_status(analysis_success,
+                        #                                     sheets_success)
                     else:
                         result = f"No valid transactions found in {filename}"
                         status_message = (f"❌ Analysis failed "
