@@ -1132,16 +1132,18 @@ def write_to_target_sheet(table_data, month_name):
                       not any(x in row[0] for x in ['CATEGORIES', ''])):
                     simplified_data.append([row[0], row[1], 0])
             table_data = simplified_data
+        return sync_google_sheets_operation(month_name, table_data)
 
-        if "DYNO" in os.environ:
-            thread = (threading.Thread(target=async_google_sheets_operation,
-                      args=(month_name, table_data)))
-            thread.daemon = True
-            thread.start()
-            print("Google Sheets operation started in background")
-            return True
-        else:
-            return sync_google_sheets_operation(month_name, table_data)
+        # if "DYNO" in os.environ:
+        #     thread = (threading.Thread(target=async_google_sheets_operation,
+        #               args=(month_name, table_data)))
+        #     thread.daemon = True
+        #     thread.start()
+        #     print("Google Sheets operation started in background")
+        #     return True
+        # else:
+        #     return sync_google_sheets_operation(month_name, table_data)
+
     except Exception as e:
         print(f"✗ Error in writing into SUMMARY: {e}")
         return False
