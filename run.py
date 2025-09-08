@@ -466,6 +466,391 @@ def prepare_summary_data(data, transactions):
     
     return table_data
 
+def set_column_width(worksheet, column_letter, width):
+    """Set column width for worksheet"""
+    try:
+        # Convert column letter to index (A=1, B=2, etc.)
+        col_index = gspread.utils.a1_to_rowcol(column_letter + '1')[1]
+        
+        body = {
+            "requests": [{
+                "updateDimensionProperties": {
+                    "range": {
+                        "sheetId": worksheet.id,
+                        "dimension": "COLUMNS",
+                        "startIndex": col_index - 1,
+                        "endIndex": col_index
+                    },
+                    "properties": {"pixelSize": width},
+                    "fields": "pixelSize"
+                }
+            }]
+        }
+        worksheet.spreadsheet.batch_update(body)
+        print(f"✅ Column {column_letter} width set to {width}px")
+    except Exception as e:
+        print(f"⚠️ Error setting column width for {column_letter}: {e}")
+
+def write_to_month_sheet(month_name, transactions, data):
+    """Write data to month worksheet in Google Sheets"""
+    try:
+        print(f"📊 Writing to {month_name} worksheet...")
+        
+        # 1. Authentication
+        creds = get_google_credentials()
+        if not creds:
+            print("❌ No credentials for month sheet")
+            return False
+        
+        gc = gspread.authorize(creds)
+        sh = gc.open("Personal Finances")
+        
+        # 2. Get or create worksheet
+        try:
+            worksheet = sh.worksheet(month_name)
+            print(f"✅ Worksheet '{month_name}' found")
+        except gspread.WorksheetNotFound:
+            print(f"📝 Creating new worksheet '{month_name}'...")
+            worksheet = sh.add_worksheet(title=month_name, rows="100", cols="20")
+            print(f"✅ Worksheet '{month_name}' created")
+            time.sleep(3)
+        
+        # 3. Clear existing data
+        try:
+            worksheet.clear()
+            time.sleep(3)
+        except Exception as e:
+            print(f"⚠️ Warning: Could not clear worksheet: {e}")
+        
+        # 4. Main data with retries
+        max_retries = 3
+        retry_count = 0
+        
+        while retry_count < max_retries:
+            try:
+                # Financial Overview header
+                worksheet.update('A6', [['FINANCIAL OVERVIEW']])
+                worksheet.merge_cells('A6:E6')
+                
+                # Table headers
+                headers = ["Date", "Description", "Amount", "Type", "Category"]
+                worksheet.update('A7', [headers])
+                
+                # Write transactions
+                all_data = []
+                for t in transactions:
+                    all_data.append([
+                        t['date'],
+                        t['desc'][:30],
+                        t['amount'],
+                        t['type'],
+                        t['category']
+                    ])
+                
+                if all_data:
+                    worksheet.update('A8', all_data)
+                
+                # Transaction Categories header
+                worksheet.update('G6', [['TRANSACTION CATEGORIES']])
+                worksheet.merge_cells('G6:I6')
+                
+                # Categories table headers
+                category_headers = ["Category", "Amount", "Percentage"]
+                worksheet.update('G7', [category_headers])
+                
+                # Prepare and write category data
+                table_data = prepare_summary_data(data, transactions)
+                category_data = []
+                for row in table_data:
+                    if row[0] and row[0] not in ['', 'INCOME CATEGORIES:', 'EXPENSE CATEGORIES:']:
+                        category_data.append([row[0], row[1], row[2]])
+                
+                if category_data:
+                    worksheet.update('G8', category_data)
+                
+                # Daily Recommendations header
+                worksheet.update('K6', [['DAILY RECOMMENDATIONS']])
+                worksheet.merge_cells('K6:L6')
+                
+                # Recommendations headers
+                rec_headers = ["Priority", "Recommendation"]
+                worksheet.update('K7', [rec_headers])
+                
+                # Write recommendations
+                recommendations = generate_daily_recommendations(data)
+                rec_data = []
+                for i, rec in enumerate(recommendations, 1):
+                    rec_data.append([f"{i}", rec[:100]])
+                
+                if rec_data:
+                    worksheet.update('K8', rec_data)
+                
+                # Summary section at the top
+                expense_percentage = (data['expenses'] / data['income']) if data['income'] > 0 else 0
+                savings_percentage = (data['savings'] / data['income']) if data['income'] > 0 else 0
+                
+                summary_data = [
+                    ["Total Income:", data['income'], 1.0],
+                    ["Total Expenses:", data['expenses'], expense_percentage],
+                    ["Savings:", data['savings'], savings_percentage]
+                ]
+                worksheet.update('A2', summary_data)
+                
+                print(f"✅ Basic data written to {month_name} worksheet")
+                break
+                
+            except Exception as e:
+                retry_count += 1
+                if "429" in str(e) or "Quota exceeded" in str(e):
+                    wait_time = 60 * retry_count
+                    print(f"⚠️ Rate limit exceeded. Retry {retry_count}/{max_retries} in {wait_time} seconds...")
+                    time.sleep(wait_time)
+                else:
+                    print(f"❌ Error writing data: {e}")
+                    raise e
+        
+        if retry_count >= max_retries:
+            print(f"❌ Failed to write data after {max_retries} retries")
+            return False
+        
+        # 5. Formatting with colors
+        try:
+            last_transaction_row = 7 + len(transactions)
+            last_category_row = 7 + len(category_data) if category_data else 7
+            last_rec_row = 7 + len(rec_data) if rec_data else 7
+            
+            # Financial Overview header
+            worksheet.format('A6', {
+                "textFormat": {"bold": True, "fontSize": 14},
+                "horizontalAlignment": "CENTER"
+            })
+            
+            # Table headers
+            worksheet.format('A7:E7', {
+                "textFormat": {"bold": True, "fontSize": 12},
+                "backgroundColor": {"red": 0.9, "green": 0.9, "blue": 0.9},
+                "borders": {
+                    "top": {"style": "SOLID", "width": 1},
+                    "bottom": {"style": "SOLID", "width": 1},
+                    "left": {"style": "SOLID", "width": 1},
+                    "right": {"style": "SOLID", "width": 1}
+                }
+            })
+            
+            # Transaction table with alternating colors
+            if last_transaction_row > 7:
+                worksheet.format(f'A8:A{last_transaction_row}', {
+                    "backgroundColor": {"red": 0.95, "green": 0.95, "blue": 0.95},
+                    "borders": {
+                        "top": {"style": "SOLID", "width": 1},
+                        "bottom": {"style": "SOLID", "width": 1},
+                        "left": {"style": "SOLID", "width": 1},
+                        "right": {"style": "SOLID", "width": 1}
+                    }
+                })
+                
+                worksheet.format(f'B8:B{last_transaction_row}', {
+                    "backgroundColor": {"red": 1.0, "green": 1.0, "blue": 1.0},
+                    "borders": {
+                        "top": {"style": "SOLID", "width": 1},
+                        "bottom": {"style": "SOLID", "width": 1},
+                        "left": {"style": "SOLID", "width": 1},
+                        "right": {"style": "SOLID", "width": 1}
+                    }
+                })
+                
+                worksheet.format(f'C8:C{last_transaction_row}', {
+                    "backgroundColor": {"red": 0.95, "green": 0.95, "blue": 0.95},
+                    "borders": {
+                        "top": {"style": "SOLID", "width": 1},
+                        "bottom": {"style": "SOLID", "width": 1},
+                        "left": {"style": "SOLID", "width": 1},
+                        "right": {"style": "SOLID", "width": 1}
+                    },
+                    "numberFormat": {"type": "CURRENCY", "pattern": "€#,##0.00"}
+                })
+                
+                worksheet.format(f'D8:D{last_transaction_row}', {
+                    "backgroundColor": {"red": 1.0, "green": 1.0, "blue": 1.0},
+                    "borders": {
+                        "top": {"style": "SOLID", "width": 1},
+                        "bottom": {"style": "SOLID", "width": 1},
+                        "left": {"style": "SOLID", "width": 1},
+                        "right": {"style": "SOLID", "width": 1}
+                    }
+                })
+                
+                worksheet.format(f'E8:E{last_transaction_row}', {
+                    "backgroundColor": {"red": 0.95, "green": 0.95, "blue": 0.95},
+                    "borders": {
+                        "top": {"style": "SOLID", "width": 1},
+                        "bottom": {"style": "SOLID", "width": 1},
+                        "left": {"style": "SOLID", "width": 1},
+                        "right": {"style": "SOLID", "width": 1}
+                    }
+                })
+            
+            # Transaction Categories header
+            worksheet.format('G6', {
+                "textFormat": {"bold": True, "fontSize": 14},
+                "horizontalAlignment": "CENTER"
+            })
+            
+            # Categories table headers
+            worksheet.format('G7:I7', {
+                "textFormat": {"bold": True, "fontSize": 12},
+                "backgroundColor": {"red": 0.9, "green": 0.9, "blue": 0.9},
+                "borders": {
+                    "top": {"style": "SOLID", "width": 1},
+                    "bottom": {"style": "SOLID", "width": 1},
+                    "left": {"style": "SOLID", "width": 1},
+                    "right": {"style": "SOLID", "width": 1}
+                }
+            })
+            
+            # Category table with alternating colors
+            if last_category_row > 7:
+                worksheet.format(f'G8:G{last_category_row}', {
+                    "backgroundColor": {"red": 0.95, "green": 0.95, "blue": 0.95},
+                    "borders": {
+                        "top": {"style": "SOLID", "width": 1},
+                        "bottom": {"style": "SOLID", "width": 1},
+                        "left": {"style": "SOLID", "width": 1},
+                        "right": {"style": "SOLID", "width": 1}
+                    }
+                })
+                
+                worksheet.format(f'H8:H{last_category_row}', {
+                    "backgroundColor": {"red": 1.0, "green": 1.0, "blue": 1.0},
+                    "borders": {
+                        "top": {"style": "SOLID", "width": 1},
+                        "bottom": {"style": "SOLID", "width": 1},
+                        "left": {"style": "SOLID", "width": 1},
+                        "right": {"style": "SOLID", "width": 1}
+                    },
+                    "numberFormat": {"type": "CURRENCY", "pattern": "€#,##0.00"}
+                })
+                
+                worksheet.format(f'I8:I{last_category_row}', {
+                    "backgroundColor": {"red": 0.95, "green": 0.95, "blue": 0.95},
+                    "borders": {
+                        "top": {"style": "SOLID", "width": 1},
+                        "bottom": {"style": "SOLID", "width": 1},
+                        "left": {"style": "SOLID", "width": 1},
+                        "right": {"style": "SOLID", "width": 1}
+                    },
+                    "numberFormat": {"type": "PERCENT", "pattern": "0.00%"}
+                })
+            
+            # Daily Recommendations header
+            worksheet.format('K6', {
+                "textFormat": {"bold": True, "fontSize": 14},
+                "horizontalAlignment": "CENTER"
+            })
+            
+            # Recommendations headers
+            worksheet.format('K7:L7', {
+                "textFormat": {"bold": True, "fontSize": 12},
+                "backgroundColor": {"red": 0.9, "green": 0.9, "blue": 0.9},
+                "borders": {
+                    "top": {"style": "SOLID", "width": 1},
+                    "bottom": {"style": "SOLID", "width": 1},
+                    "left": {"style": "SOLID", "width": 1},
+                    "right": {"style": "SOLID", "width": 1}
+                }
+            })
+            
+            # Recommendations table with alternating colors
+            if last_rec_row > 7:
+                worksheet.format(f'K8:K{last_rec_row}', {
+                    "backgroundColor": {"red": 0.95, "green": 0.95, "blue": 0.95},
+                    "borders": {
+                        "top": {"style": "SOLID", "width": 1},
+                        "bottom": {"style": "SOLID", "width": 1},
+                        "left": {"style": "SOLID", "width": 1},
+                        "right": {"style": "SOLID", "width": 1}
+                    }
+                })
+                
+                worksheet.format(f'L8:L{last_rec_row}', {
+                    "backgroundColor": {"red": 1.0, "green": 1.0, "blue": 1.0},
+                    "borders": {
+                        "top": {"style": "SOLID", "width": 1},
+                        "bottom": {"style": "SOLID", "width": 1},
+                        "left": {"style": "SOLID", "width": 1},
+                        "right": {"style": "SOLID", "width": 1}
+                    },
+                    "wrapStrategy": "WRAP"
+                })
+            
+            # Summary section formatting
+            worksheet.format('A2:A4', {
+                "textFormat": {"bold": True},
+                "backgroundColor": {"red": 0.95, "green": 0.95, "blue": 0.95},
+                "borders": {
+                    "top": {"style": "SOLID", "width": 1},
+                    "bottom": {"style": "SOLID", "width": 1},
+                    "left": {"style": "SOLID", "width": 1},
+                    "right": {"style": "SOLID", "width": 1}
+                }
+            })
+            
+            worksheet.format('B2:B4', {
+                "textFormat": {"bold": False},
+                "backgroundColor": {"red": 1.0, "green": 1.0, "blue": 1.0},
+                "borders": {
+                    "top": {"style": "SOLID", "width": 1},
+                    "bottom": {"style": "SOLID", "width": 1},
+                    "left": {"style": "SOLID", "width": 1},
+                    "right": {"style": "SOLID", "width": 1}
+                },
+                "numberFormat": {"type": "CURRENCY", "pattern": "€#,##0.00"}
+            })
+            
+            worksheet.format('C2:C4', {
+                "textFormat": {"bold": False},
+                "backgroundColor": {"red": 0.95, "green": 0.95, "blue": 0.95},
+                "borders": {
+                    "top": {"style": "SOLID", "width": 1},
+                    "bottom": {"style": "SOLID", "width": 1},
+                    "left": {"style": "SOLID", "width": 1},
+                    "right": {"style": "SOLID", "width": 1}
+                },
+                "numberFormat": {"type": "PERCENT", "pattern": "0.00%"}
+            })
+            
+            print("✅ Full formatting with colors applied")
+            
+        except Exception as format_error:
+            print(f"⚠️ Formatting error: {format_error}")
+        
+        # 6. Set column widths
+        try:
+            set_column_width(worksheet, 'A', 100)
+            set_column_width(worksheet, 'B', 200)
+            set_column_width(worksheet, 'C', 80)
+            set_column_width(worksheet, 'D', 80)
+            set_column_width(worksheet, 'E', 100)
+            set_column_width(worksheet, 'G', 150)
+            set_column_width(worksheet, 'H', 80)
+            set_column_width(worksheet, 'I', 100)
+            set_column_width(worksheet, 'K', 90)
+            set_column_width(worksheet, 'L', 300)
+            
+            print("✅ Column widths set")
+            
+        except Exception as width_error:
+            print(f"⚠️ Column width error: {width_error}")
+        
+        print(f"✅ Successfully formatted {month_name} worksheet")
+        return True
+        
+    except Exception as e:
+        print(f"❌ Error writing to {month_name} worksheet: {e}")
+        import traceback
+        print(f"🔍 Traceback: {traceback.format_exc()}")
+        return False
+
 def sync_google_sheets_operation(month_name, table_data):
     """Synchronous Google Sheets operation"""
     try:
@@ -741,6 +1126,16 @@ def run_full_analysis_with_file(month, file_path, temp_dir):
         print(f"Expenses: {data['expenses']:.2f}€")
         print(f"Savings: {data['savings']:.2f}€")
         
+        # 1. Writing into month sheet
+        print(f"📝 Writing to {month} worksheet...")
+        monthly_success = write_to_month_sheet(month, transactions, data)
+        if monthly_success:
+            print(f"✅ Successfully updated {month} worksheet")
+        else:
+            print(f"❌ Failed to update {month} worksheet")
+        
+        time.sleep(10)
+        
         # 2. Writing into Summary sheet
         print("⏳ Starting Google Sheets SUMMARY update...")
         table_data = prepare_summary_data(data, transactions)
@@ -885,30 +1280,35 @@ HTML = '''
         .status {
             text-align: center;
             padding: 15px;
-            border-radius: 8px;
+            border-radius: 25px;
             font-weight: 500;
             margin: 10px 0;
+            font-size: 16px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
         }
         .hidden { display: none !important; }
         .status-loading {
             background: #fff3cd;
             color: #856404;
-            border: 1px solid #ffeaa7;
+            border: 2px solid #ffeaa7;
         }
         .status-success {
-            background: #d4edda;
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
             color: #155724;
-            border: 1px solid #c3e6cb;
+            border: 2px solid #b8d8be;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
         }
         .status-warning {
             background: #fff3cd;
             color: #856404;
-            border: 1px solid #ffeaa7;
+            border: 2px solid #ffeaa7;
         }
         .status-error {
-            background: #f8d7da;
+            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
             color: #721c24;
-            border: 1px solid #f5c6cb;
+            border: 2px solid #f1b0b7;
+            box-shadow: 0 4px 15px rgba(244, 67, 54, 0.3);
         }
         .file-info {
             margin-top: 10px;
@@ -916,6 +1316,12 @@ HTML = '''
             background: #e8f4f8;
             border-radius: 6px;
             border-left: 4px solid #2196F3;
+        }
+        .status-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 15px 0;
         }
     </style>
 </head>
@@ -947,9 +1353,11 @@ HTML = '''
             </div>
             {% endif %}
 
-            <div class="status hidden" id="statusMessage">
-                Processing your financial data...
-                Google Sheets update in progress
+            <div class="status-container">
+                <div class="status hidden" id="statusMessage">
+                    Processing your financial data...
+                    Google Sheets update in progress
+                </div>
             </div>
         </div>
     </div>
@@ -983,7 +1391,7 @@ HTML = '''
             statusElement.classList.remove('hidden');
             statusElement.classList.remove('status-success', 'status-error', 'status-warning');
             statusElement.classList.add('status-loading');
-            statusElement.textContent = 'Processing your financial data... Google Sheets update in progress';
+            statusElement.textContent = '⏳ Processing your financial data... Google Sheets update in progress';
             
             submitBtn.disabled = true;
             submitBtn.textContent = 'Processing...';
@@ -995,12 +1403,15 @@ HTML = '''
             const statusElement = document.getElementById('statusMessage');
             statusElement.classList.remove('hidden');
             statusElement.textContent = '{{ status_message }}';
+            
             {% if 'success' in status_message %}
             statusElement.classList.add('status-success');
             {% elif 'failed' in status_message %}
             statusElement.classList.add('status-error');
             {% elif 'warning' in status_message %}
             statusElement.classList.add('status-warning');
+            {% else %}
+            statusElement.classList.add('status-loading');
             {% endif %}
         });
         {% endif %}
@@ -1100,11 +1511,21 @@ def main():
         print("\n" + "="*50)
         print("📊 Preparing data for Google Sheets...")
         
+        # 1. Writing into month sheet
+        print(f"📝 Writing to {MONTH} worksheet...")
+        monthly_success = write_to_month_sheet(MONTH, transactions, data)
+        if monthly_success:
+            print(f"✅ Successfully updated {MONTH} worksheet")
+        else:
+            print(f"❌ Failed to update {MONTH} worksheet")
+        
+        time.sleep(10)
+        
+        # 2. Writing into Summary sheet
         print("⏳ Writing to Google Sheets SUMMARY...")
         table_data = prepare_summary_data(data, transactions)
         MONTH_NORMALIZED = get_month_column_name(MONTH)
         
-        print("⏳ Writing to Google Sheets SUMMARY...")
         success = write_to_target_sheet(table_data, MONTH_NORMALIZED)
         
         if success:
