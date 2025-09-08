@@ -1714,7 +1714,7 @@ def run_full_analysis_with_file(month, file_path, temp_dir):
             print(f"✅ Successfully updated {month} worksheet")
         else:
             print(f"❌ Failed to update {month} worksheet")
-        time.sleep(5)
+        time.sleep(10)
         # 2. Writing into Summary sheet
         print("⏳ Starting Google Sheets SUMMARY update...")
         table_data = prepare_summary_data(data, transactions)
