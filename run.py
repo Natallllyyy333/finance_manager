@@ -19,6 +19,15 @@ from werkzeug.utils import secure_filename
 warnings.filterwarnings('ignore', category=DeprecationWarning)
 app = Flask(__name__)
 
+# Глобальная переменная для отслеживания статуса операций
+operation_status = {
+    'in_progress': False,
+    'message': '',
+    'analysis_success': False,
+    'month_sheet_success': False,
+    'summary_sheet_success': False
+}
+
 DAILY_NORMS = {
     'Rent': 50.0,
     'Gym': 3.0,
@@ -753,10 +762,10 @@ def write_to_month_sheet(month_name, transactions, data):
                 "textFormat": {"bold": True, "fontSize": 12},
                 "backgroundColor": {"red": 0.9, "green": 0.9, "blue": 0.9},
                 "borders": {
-                    "top": {"style": "SOLID", "width": 1},
-                    "bottom": {"style": "SOLID", "width": 1},
-                    "left": {"style": "SOLID", "width": 1},
-                    "right": {"style": "SOLID", "width": 1}
+                    "top": {"style": 'SOLID', "width": 1},
+                    "bottom": {"style": 'SOLID', "width": 1},
+                    "left": {"style": 'SOLID', "width": 1},
+                    "right": {"style": 'SOLID', "width": 1}
                 }
             })
             
@@ -765,20 +774,20 @@ def write_to_month_sheet(month_name, transactions, data):
                 worksheet.format(f'K8:K{last_rec_row}', {
                     "backgroundColor": {"red": 0.95, "green": 0.95, "blue": 0.95},
                     "borders": {
-                        "top": {"style": "SOLID", "width": 1},
-                        "bottom": {"style": "SOLID", "width": 1},
-                        "left": {"style": "SOLID", "width": 1},
-                        "right": {"style": "SOLID", "width": 1}
+                        "top": {"style": 'SOLID', "width": 1},
+                        "bottom": {"style": 'SOLID', "width": 1},
+                        "left": {"style": 'SOLID', "width": 1},
+                        "right": {"style": 'SOLID', "width": 1}
                     }
                 })
                 
                 worksheet.format(f'L8:L{last_rec_row}', {
                     "backgroundColor": {"red": 1.0, "green": 1.0, "blue": 1.0},
                     "borders": {
-                        "top": {"style": "SOLID", "width": 1},
-                        "bottom": {"style": "SOLID", "width": 1},
-                        "left": {"style": "SOLID", "width": 1},
-                        "right": {"style": "SOLID", "width": 1}
+                        "top": {"style": 'SOLID', "width": 1},
+                        "bottom": {"style": 'SOLID', "width": 1},
+                        "left": {"style": 'SOLID', "width": 1},
+                        "right": {"style": 'SOLID', "width": 1}
                     },
                     "wrapStrategy": "WRAP"
                 })
@@ -788,10 +797,10 @@ def write_to_month_sheet(month_name, transactions, data):
                 "textFormat": {"bold": True},
                 "backgroundColor": {"red": 0.95, "green": 0.95, "blue": 0.95},
                 "borders": {
-                    "top": {"style": "SOLID", "width": 1},
-                    "bottom": {"style": "SOLID", "width": 1},
-                    "left": {"style": "SOLID", "width": 1},
-                    "right": {"style": "SOLID", "width": 1}
+                    "top": {"style": 'SOLID', "width": 1},
+                    "bottom": {"style": 'SOLID', "width": 1},
+                    "left": {"style": 'SOLID', "width": 1},
+                    "right": {"style": 'SOLID', "width": 1}
                 }
             })
             
@@ -799,10 +808,10 @@ def write_to_month_sheet(month_name, transactions, data):
                 "textFormat": {"bold": False},
                 "backgroundColor": {"red": 1.0, "green": 1.0, "blue": 1.0},
                 "borders": {
-                    "top": {"style": "SOLID", "width": 1},
-                    "bottom": {"style": "SOLID", "width": 1},
-                    "left": {"style": "SOLID", "width": 1},
-                    "right": {"style": "SOLID", "width": 1}
+                    "top": {"style": 'SOLID', "width": 1},
+                    "bottom": {"style": 'SOLID', "width": 1},
+                    "left": {"style": 'SOLID', "width": 1},
+                    "right": {"style": 'SOLID', "width": 1}
                 },
                 "numberFormat": {"type": "CURRENCY", "pattern": "€#,##0.00"}
             })
@@ -811,10 +820,10 @@ def write_to_month_sheet(month_name, transactions, data):
                 "textFormat": {"bold": False},
                 "backgroundColor": {"red": 0.95, "green": 0.95, "blue": 0.95},
                 "borders": {
-                    "top": {"style": "SOLID", "width": 1},
-                    "bottom": {"style": "SOLID", "width": 1},
-                    "left": {"style": "SOLID", "width": 1},
-                    "right": {"style": "SOLID", "width": 1}
+                    "top": {"style": 'SOLID', "width": 1},
+                    "bottom": {"style": 'SOLID', "width": 1},
+                    "left": {"style": 'SOLID', "width": 1},
+                    "right": {"style": 'SOLID', "width": 1}
                 },
                 "numberFormat": {"type": "PERCENT", "pattern": "0.00%"}
             })
@@ -1115,20 +1124,29 @@ def get_operation_status(analysis_success, month_sheet_success, summary_sheet_su
 
 def run_full_analysis_with_file(month, file_path, temp_dir):
     """Full processing in background mode using uploaded file"""
+    global operation_status
+    
     analysis_success = False
     month_sheet_success = False
     summary_sheet_success = False
     
     try:
+        operation_status['in_progress'] = True
+        operation_status['message'] = '⏳ Processing financial data...'
+        
         print(f"🚀 Starting FULL background analysis for {month} with uploaded file")
         transactions, daily_categories = load_transactions(file_path)
         
         if not transactions:
             print("No transactions found in uploaded file")
-            return analysis_success, month_sheet_success, summary_sheet_success
+            operation_status['message'] = '❌ No transactions found in uploaded file'
+            operation_status['in_progress'] = False
+            return False, False, False
         
         data = analyze(transactions, daily_categories, month)
         analysis_success = True
+        operation_status['analysis_success'] = True
+        operation_status['message'] = '✅ Analysis completed. Writing to Google Sheets...'
 
         print(f"{month.upper()} ANALYSIS COMPLETED")
         print(f"Income: {data['income']:.2f}€")
@@ -1138,10 +1156,14 @@ def run_full_analysis_with_file(month, file_path, temp_dir):
         # 1. Writing into month sheet
         print(f"📝 Writing to {month} worksheet...")
         month_sheet_success = write_to_month_sheet(month, transactions, data)
+        operation_status['month_sheet_success'] = month_sheet_success
+        
         if month_sheet_success:
             print(f"✅ Successfully updated {month} worksheet")
+            operation_status['message'] = '✅ Month sheet updated. Writing to Summary...'
         else:
             print(f"❌ Failed to update {month} worksheet")
+            operation_status['message'] = '⚠️ Failed to update Month sheet'
         
         time.sleep(10)
         
@@ -1150,20 +1172,25 @@ def run_full_analysis_with_file(month, file_path, temp_dir):
         table_data = prepare_summary_data(data, transactions)
         MONTH_NORMALIZED = get_month_column_name(month)
         summary_sheet_success = write_to_target_sheet(table_data, MONTH_NORMALIZED)
+        operation_status['summary_sheet_success'] = summary_sheet_success
         
         if summary_sheet_success:
             print("✅ Successfully updated Google Sheets SUMMARY")
+            operation_status['message'] = '✅ Google Sheets update completed successfully!'
         else:
             print("❌ Failed to update Google Sheets SUMMARY")
+            operation_status['message'] = '⚠️ Failed to update Summary sheet'
         
         # Printing status message
         status_message = get_operation_status(analysis_success, month_sheet_success, summary_sheet_success)
         print(f"🎉 {status_message}")
+        operation_status['message'] = status_message
         
     except Exception as e:
         print(f"Background analysis error: {e}")
         import traceback
         print(f"Traceback: {traceback.format_exc()}")
+        operation_status['message'] = f'❌ Error: {str(e)}'
     
     finally:
         # Clearing temporary data
@@ -1173,6 +1200,8 @@ def run_full_analysis_with_file(month, file_path, temp_dir):
                 print(f"Cleaned up temporary directory: {temp_dir}")
         except Exception as cleanup_error:
             print(f"Error cleaning up temporary files: {cleanup_error}")
+        
+        operation_status['in_progress'] = False
     
     return analysis_success, month_sheet_success, summary_sheet_success
 
@@ -1331,6 +1360,18 @@ HTML = '''
             align-items: center;
             margin: 15px 0;
         }
+        .refresh-btn {
+            margin-top: 10px;
+            padding: 8px 16px;
+            background: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .refresh-btn:hover {
+            background: #5a6268;
+        }
     </style>
 </head>
 <body>
@@ -1362,11 +1403,21 @@ HTML = '''
             {% endif %}
 
             <div class="status-container">
-                <div class="status hidden" id="statusMessage">
-                    Processing your financial data...
-                    Google Sheets update in progress
+                <div class="status {% if not status_message %}hidden{% endif %} 
+                    {% if status_message and 'success' in status_message.lower() %}status-success
+                    {% elif status_message and 'error' in status_message.lower() or 'failed' in status_message.lower() %}status-error
+                    {% elif status_message and 'warning' in status_message.lower() %}status-warning
+                    {% else %}status-loading{% endif %}" 
+                    id="statusMessage">
+                    {{ status_message if status_message else 'Processing your financial data...' }}
                 </div>
             </div>
+
+            {% if status_message and not operation_status.in_progress %}
+            <div style="text-align: center; margin-top: 10px;">
+                <button class="refresh-btn" onclick="location.reload()">🔄 Refresh Status</button>
+            </div>
+            {% endif %}
         </div>
     </div>
 
@@ -1406,22 +1457,21 @@ HTML = '''
             submitBtn.style.opacity = '0.7';
         });
 
-        {% if status_message %}
-        document.addEventListener('DOMContentLoaded', function() {
-            const statusElement = document.getElementById('statusMessage');
-            statusElement.classList.remove('hidden');
-            statusElement.textContent = '{{ status_message }}';
-            
-            {% if 'success' in status_message %}
-            statusElement.classList.add('status-success');
-            {% elif 'failed' in status_message %}
-            statusElement.classList.add('status-error');
-            {% elif 'warning' in status_message %}
-            statusElement.classList.add('status-warning');
-            {% else %}
-            statusElement.classList.add('status-loading');
-            {% endif %}
-        });
+        // Auto-refresh status every 5 seconds if operation is in progress
+        {% if operation_status.in_progress %}
+        setInterval(function() {
+            fetch(window.location.href)
+                .then(response => response.text())
+                .then(data => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(data, 'text/html');
+                    const statusElement = doc.getElementById('statusMessage');
+                    if (statusElement && !statusElement.textContent.includes('in progress')) {
+                        location.reload();
+                    }
+                })
+                .catch(error => console.log('Auto-refresh error:', error));
+        }, 5000);
         {% endif %}
     </script>
 </body>
@@ -1430,10 +1480,12 @@ HTML = '''
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
+    global operation_status
+    
     result = None
     month = None
     filename = None
-    status_message = None
+    status_message = operation_status['message'] if operation_status['message'] else None
 
     try:
         if request.method == 'POST':
@@ -1464,6 +1516,15 @@ def index():
                         data = analyze(transactions, daily_categories, month)
                         result = format_terminal_output(data, month, len(transactions))
                         
+                        # Reset operation status
+                        operation_status = {
+                            'in_progress': True,
+                            'message': '⏳ Processing started... Google Sheets update in background',
+                            'analysis_success': False,
+                            'month_sheet_success': False,
+                            'summary_sheet_success': False
+                        }
+                        
                         # Start background processing
                         thread = threading.Thread(
                             target=run_full_analysis_with_file,
@@ -1472,29 +1533,39 @@ def index():
                         thread.daemon = True
                         thread.start()
                         
-                        status_message = "⏳ Processing started... Google Sheets update in background"
+                        status_message = operation_status['message']
                     else:
                         result = f"No valid transactions found in {filename}"
                         status_message = "❌ Analysis failed - no transactions found"
+                        operation_status['message'] = status_message
+                        operation_status['in_progress'] = False
                         
                 except Exception as e:
                     result = f"Error processing file: {str(e)}"
                     status_message = "❌ Analysis failed due to error"
+                    operation_status['message'] = status_message
+                    operation_status['in_progress'] = False
             else:
                 result = "Invalid file type. Please upload a CSV file."
                 status_message = "❌ Invalid file type"
+                operation_status['message'] = status_message
+                operation_status['in_progress'] = False
                 
         return render_template_string(HTML,
                                     result=result,
                                     month=month,
                                     filename=filename,
-                                    status_message=status_message)
+                                    status_message=status_message,
+                                    operation_status=operation_status)
     
     except Exception as e:
         print(f"Error in index function: {e}")
+        operation_status['message'] = f"❌ System error occurred: {str(e)}"
+        operation_status['in_progress'] = False
         return render_template_string(HTML,
                                     result=f"Error: {str(e)}",
-                                    status_message="❌ System error occurred")
+                                    status_message=operation_status['message'],
+                                    operation_status=operation_status)
 
 def main():
     if "DYNO" in os.environ:
