@@ -833,7 +833,6 @@ def write_to_month_sheet(month_name, transactions, data):
             set_column_width(worksheet, 'K', 90)
             set_column_width(worksheet, 'L', 300)
             
-            print("✅ Column widths set")
             
         except Exception as width_error:
             print(f"⚠️ Column width error: {width_error}")
@@ -936,7 +935,6 @@ def sync_google_sheets_operation(month_name, table_data):
 
         # 7. Batch update
         if update_data:
-            print("⏳ Writing data to Google Sheets...")
             batch_size = 2
             max_retries = 3
             
@@ -967,7 +965,6 @@ def sync_google_sheets_operation(month_name, table_data):
                 if i + batch_size < len(update_data):
                     time.sleep(15)
 
-        print("✅ Google Sheets update completed successfully!")
         return True
 
     except Exception as e:
@@ -1122,7 +1119,6 @@ def run_full_analysis_with_file(month, file_path, temp_dir, operation_id):
         print(f"📝 Writing to {month} worksheet...")
         month_sheet_success = write_to_month_sheet(month, transactions, data)
         if month_sheet_success:
-            print(f"✅ Successfully updated {month} worksheet")
             OPERATION_STATUS[operation_id] = "⏳ Month sheet updated, updating Summary..."
         else:
             print(f"❌ Failed to update {month} worksheet")
@@ -1556,10 +1552,9 @@ def main():
         data = analyze(transactions, daily_categories, MONTH)
         terminal_visualization(data)
 
-        print("\n" + "="*50)
+        print("="*50)
         
         # 1. Writing into month sheet
-        print(f"📝 Writing to {MONTH} worksheet...")
         monthly_success = write_to_month_sheet(MONTH, transactions, data)
         if monthly_success:
             print(f"✅ Successfully updated {MONTH} worksheet")
