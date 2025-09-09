@@ -18,6 +18,7 @@ from werkzeug.utils import secure_filename
 
 warnings.filterwarnings('ignore', category=DeprecationWarning)
 app = Flask(__name__)
+OPERATION_STATUS = {} 
 
 DAILY_NORMS = {
     'Rent': 50.0,
@@ -1113,11 +1114,15 @@ def get_operation_status(analysis_success, month_sheet_success, summary_sheet_su
     else:
         return "❌ All operations failed"
 
-def run_full_analysis_with_file(month, file_path, temp_dir):
+def run_full_analysis_with_file(month, file_path, temp_dir, operation_id):
     """Full processing in background mode using uploaded file"""
+    global OPERATION_STATUS
+
     analysis_success = False
     month_sheet_success = False
     summary_sheet_success = False
+
+    OPERATION_STATUS[operation_id] = "⏳ Processing started... Google Sheets update in background"
     
     try:
         print(f"🚀 Starting FULL background analysis for {month} with uploaded file")
@@ -1140,8 +1145,10 @@ def run_full_analysis_with_file(month, file_path, temp_dir):
         month_sheet_success = write_to_month_sheet(month, transactions, data)
         if month_sheet_success:
             print(f"✅ Successfully updated {month} worksheet")
+            OPERATION_STATUS[operation_id] = "⏳ Month sheet updated, updating Summary..."
         else:
             print(f"❌ Failed to update {month} worksheet")
+            OPERATION_STATUS[operation_id] = "❌ Failed to update Month worksheet"
         
         time.sleep(10)
         
@@ -1153,8 +1160,10 @@ def run_full_analysis_with_file(month, file_path, temp_dir):
         
         if summary_sheet_success:
             print("✅ Successfully updated Google Sheets SUMMARY")
+            OPERATION_STATUS[operation_id] = "✅ Google Sheets update completed successfully!"
         else:
             print("❌ Failed to update Google Sheets SUMMARY")
+            OPERATION_STATUS[operation_id] = "❌ Failed to update Google Sheets"
         
         # Printing status message
         status_message = get_operation_status(analysis_success, month_sheet_success, summary_sheet_success)
@@ -1162,6 +1171,7 @@ def run_full_analysis_with_file(month, file_path, temp_dir):
         
     except Exception as e:
         print(f"Background analysis error: {e}")
+        OPERATION_STATUS[operation_id] = f"❌ Error during processing: {str(e)}"
         import traceback
         print(f"Traceback: {traceback.format_exc()}")
     
@@ -1423,10 +1433,49 @@ HTML = '''
             {% endif %}
         });
         {% endif %}
+
+        {% if operation_id %}
+// Функция для проверки статуса операции
+function checkOperationStatus(operationId) {
+    fetch('/status/' + operationId)
+        .then(response => response.json())
+        .then(data => {
+            const statusElement = document.getElementById('statusMessage');
+            if (statusElement) {
+                statusElement.textContent = data.status;
+                
+                // Обновляем классы в зависимости от статуса
+                if (data.status.includes('✅')) {
+                    statusElement.className = 'status status-success';
+                } else if (data.status.includes('❌')) {
+                    statusElement.className = 'status status-error';
+                } else if (data.status.includes('⏳')) {
+                    statusElement.className = 'status status-loading';
+                    // Продолжаем проверять статус каждые 5 секунд
+                    setTimeout(() => checkOperationStatus(operationId), 5000);
+                } else if (data.status.includes('⚠️')) {
+                    statusElement.className = 'status status-warning';
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error checking status:', error);
+        });
+}
+
+// Запускаем проверку статуса при загрузке страницы
+document.addEventListener('DOMContentLoaded', function() {
+    checkOperationStatus('{{ operation_id }}');
+});
+{% endif %}
     </script>
+
 </body>
 </html>
 '''
+
+
+
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -1434,6 +1483,7 @@ def index():
     month = None
     filename = None
     status_message = None
+    operation_id = None
 
     try:
         if request.method == 'POST':
@@ -1464,15 +1514,18 @@ def index():
                         data = analyze(transactions, daily_categories, month)
                         result = format_terminal_output(data, month, len(transactions))
                         
+                        # Generate unique operation ID
+                        operation_id = f"{month}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+                        
                         # Start background processing
                         thread = threading.Thread(
                             target=run_full_analysis_with_file,
-                            args=(month, temp_file_path, temp_dir)
+                            args=(month, temp_file_path, temp_dir, operation_id)
                         )
                         thread.daemon = True
                         thread.start()
                         
-                        status_message = "⏳ Processing started... Google Sheets update in background"
+                        status_message = f"⏳ Processing started... Operation ID: {operation_id}"
                     else:
                         result = f"No valid transactions found in {filename}"
                         status_message = "❌ Analysis failed - no transactions found"
@@ -1488,13 +1541,22 @@ def index():
                                     result=result,
                                     month=month,
                                     filename=filename,
-                                    status_message=status_message)
+                                    status_message=status_message,
+                                    operation_id=operation_id)
     
     except Exception as e:
         print(f"Error in index function: {e}")
         return render_template_string(HTML,
                                     result=f"Error: {str(e)}",
                                     status_message="❌ System error occurred")
+
+@app.route('/status/<operation_id>')
+def check_status(operation_id):
+    """Check the status of a background operation"""
+    global OPERATION_STATUS
+    status = OPERATION_STATUS.get(operation_id, "Operation not found")
+    return {"status": status}
+
 
 def main():
     if "DYNO" in os.environ:
