@@ -30,6 +30,7 @@ DAILY_NORMS = {
     'Dining': 10.00
 }
 
+
 ALLOWED_EXTENSIONS = {'csv'}
 
 def allowed_file(filename):
@@ -1118,6 +1119,7 @@ def run_full_analysis_with_file(month, file_path, temp_dir):
     analysis_success = False
     month_sheet_success = False
     summary_sheet_success = False
+    status_message = ""
     
     try:
         print(f"🚀 Starting FULL background analysis for {month} with uploaded file")
@@ -1125,7 +1127,8 @@ def run_full_analysis_with_file(month, file_path, temp_dir):
         
         if not transactions:
             print("No transactions found in uploaded file")
-            return analysis_success, month_sheet_success, summary_sheet_success
+            status_message = "❌ No transactions found in uploaded file"
+            return status_message
         
         data = analyze(transactions, daily_categories, month)
         analysis_success = True
@@ -1156,25 +1159,58 @@ def run_full_analysis_with_file(month, file_path, temp_dir):
         else:
             print("❌ Failed to update Google Sheets SUMMARY")
         
+         # Generate status message
+        if analysis_success and month_sheet_success and summary_sheet_success:
+            status_message = "✅ SUCCESS: Analysis completed and all data written to Google Sheets"
+        elif analysis_success and month_sheet_success:
+            status_message = "⚠️ PARTIAL: Analysis completed, Month sheet updated but Summary sheet failed"
+        elif analysis_success and summary_sheet_success:
+            status_message = "⚠️ PARTIAL: Analysis completed, Summary sheet updated but Month sheet failed"
+        elif analysis_success:
+            status_message = "⚠️ PARTIAL: Analysis completed but both sheets failed to update"
+        else:
+            status_message = "❌ FAILED: Analysis and Google Sheets operations failed"
+        print(f"🎉 {status_message}")    
         # Printing status message
-        status_message = get_operation_status(analysis_success, month_sheet_success, summary_sheet_success)
-        print(f"🎉 {status_message}")
+        # status_message = get_operation_status(analysis_success, month_sheet_success, summary_sheet_success)
+        # print(f"🎉 {status_message}")
         
     except Exception as e:
         print(f"Background analysis error: {e}")
         import traceback
         print(f"Traceback: {traceback.format_exc()}")
+        status_message = f"❌ ERROR: {str(e)}"
     
     finally:
         # Clearing temporary data
         try:
-            if os.path.exists(temp_dir):
-                shutil.rmtree(temp_dir)
-                print(f"Cleaned up temporary directory: {temp_dir}")
-        except Exception as cleanup_error:
-            print(f"Error cleaning up temporary files: {cleanup_error}")
-    
-    return analysis_success, month_sheet_success, summary_sheet_success
+            status_file = os.path.join(temp_dir, "status.txt")
+            with open(status_file, 'w') as f:
+                f.write(status_message)
+            # if os.path.exists(temp_dir):
+            #     shutil.rmtree(temp_dir)
+            #     print(f"Cleaned up temporary directory: {temp_dir}")
+        except Exception as e:
+            print(f"Error writing status file: {e}")
+        
+        print(f"Status saved: {status_message}")
+    return status_message
+    # return analysis_success, month_sheet_success, summary_sheet_success
+
+
+def get_analysis_status(temp_dir):
+    """Check if analysis is complete and get status message"""
+    try:
+        status_file = os.path.join(temp_dir, "status.txt")
+        if os.path.exists(status_file):
+            with open(status_file, 'r') as f:
+                status = f.read().strip()
+            # Clean up after reading status
+            shutil.rmtree(temp_dir)
+            return status
+    except Exception as e:
+        print(f"Error reading status: {e}")
+    return "⏳ Analysis in progress..."
 
 HTML = '''
 <!DOCTYPE html>
@@ -1423,6 +1459,34 @@ HTML = '''
             {% endif %}
         });
         {% endif %}
+        {% if status_message and '⏳' in status_message %}
+// Start polling for status updates
+setTimeout(function() {
+    checkAnalysisStatus();
+}, 3000);
+
+function checkAnalysisStatus() {
+    fetch(window.location.href + '?check_status=true')
+        .then(response => response.text())
+        .then(html => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const statusElement = doc.getElementById('statusMessage');
+            
+            if (statusElement && !statusElement.textContent.includes('⏳')) {
+                // Status has been updated, reload the page
+                window.location.reload();
+            } else {
+                // Continue polling
+                setTimeout(checkAnalysisStatus, 3000);
+            }
+        })
+        .catch(error => {
+            console.error('Error checking status:', error);
+            setTimeout(checkAnalysisStatus, 5000);
+        });
+}
+        {% endif %}
     </script>
 </body>
 </html>
@@ -1434,6 +1498,7 @@ def index():
     month = None
     filename = None
     status_message = None
+    temp_dir = None
 
     try:
         if request.method == 'POST':
@@ -1476,13 +1541,21 @@ def index():
                     else:
                         result = f"No valid transactions found in {filename}"
                         status_message = "❌ Analysis failed - no transactions found"
+                        if temp_dir and os.path.exists(temp_dir):
+                            shutil.rmtree(temp_dir)
                         
                 except Exception as e:
                     result = f"Error processing file: {str(e)}"
-                    status_message = "❌ Analysis failed due to error"
+                    status_message = "❌ Analysis failed due to error {str(e)}"
+                    if temp_dir and os.path.exists(temp_dir):
+                        shutil.rmtree(temp_dir)
             else:
                 result = "Invalid file type. Please upload a CSV file."
                 status_message = "❌ Invalid file type"
+
+        # Check if we should look for a completed analysis status
+        if request.args.get('check_status') and 'temp_dir' in locals():
+            status_message = get_analysis_status(temp_dir)
                 
         return render_template_string(HTML,
                                     result=result,
@@ -1492,6 +1565,8 @@ def index():
     
     except Exception as e:
         print(f"Error in index function: {e}")
+        if temp_dir and os.path.exists(temp_dir):
+            shutil.rmtree(temp_dir)
         return render_template_string(HTML,
                                     result=f"Error: {str(e)}",
                                     status_message="❌ System error occurred")
@@ -1536,10 +1611,15 @@ def main():
         
         success = write_to_target_sheet(table_data, MONTH_NORMALIZED)
         
-        if success:
-            print("✅ Google Sheets update completed successfully!")
+        # Print final status
+        if monthly_success and success:
+            print("✅ SUCCESS: All data written to Google Sheets successfully!")
+        elif monthly_success:
+            print("⚠️ PARTIAL: Month sheet updated but Summary sheet failed")
+        elif success:
+            print("⚠️ PARTIAL: Summary sheet updated but Month sheet failed")
         else:
-            print("❌ Failed to update Google Sheets")
+            print("❌ FAILED: Both sheets failed to update")
 
 if __name__ == '__main__':
     if "DYNO" in os.environ:
