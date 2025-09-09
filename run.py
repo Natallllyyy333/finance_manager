@@ -1285,23 +1285,23 @@ def get_analysis_status(analysis_id):
     return "⏳ Analysis in progress..."
 
 
-def get_analysis_status(temp_dir):
-    """Check if analysis is complete and get status message"""
-    try:
-        status_file = os.path.join(temp_dir, "status.txt")
-        if os.path.exists(status_file):
-            with open(status_file, 'r') as f:
-                status = f.read().strip()
-            # Clean up after reading status
-            try:
-                shutil.rmtree(temp_dir)
-                print(f"Cleaned up temporary directory: {temp_dir}")
-            except Exception as e:
-                print(f"Warning: Could not clean up temp directory: {e}")
-            return status
-    except Exception as e:
-        print(f"Error reading status: {e}")
-    return "⏳ Analysis in progress..."
+# def get_analysis_status(temp_dir):
+#     """Check if analysis is complete and get status message"""
+#     try:
+#         status_file = os.path.join(temp_dir, "status.txt")
+#         if os.path.exists(status_file):
+#             with open(status_file, 'r') as f:
+#                 status = f.read().strip()
+#             # Clean up after reading status
+#             try:
+#                 shutil.rmtree(temp_dir)
+#                 print(f"Cleaned up temporary directory: {temp_dir}")
+#             except Exception as e:
+#                 print(f"Warning: Could not clean up temp directory: {e}")
+#             return status
+#     except Exception as e:
+#         print(f"Error reading status: {e}")
+#     return "⏳ Analysis in progress..."
 
 HTML = '''
 <!DOCTYPE html>
@@ -1551,42 +1551,46 @@ HTML = '''
         });
         {% endif %}
         // Check if we have an analysis ID in the status message
-const statusElement = document.getElementById('statusMessage');
-if (statusElement && statusElement.textContent.includes('⏳') && statusElement.textContent.includes('|')) {
-    const parts = statusElement.textContent.split('|');
-    const analysisId = parts[1];
-    
-    // Start polling for status updates
-    setTimeout(function() {
-        checkAnalysisStatus(analysisId);
-    }, 3000);
+document.addEventListener('DOMContentLoaded', function() {
+    const statusElement = document.getElementById('statusMessage');
+    if (statusElement && statusElement.textContent.includes('⏳') && statusElement.textContent.includes('|')) {
+        const parts = statusElement.textContent.split('|');
+        if (parts.length >= 2) {
+            const analysisId = parts[1].trim();
+            
+            // Start polling for status updates
+            setTimeout(function() {
+                checkAnalysisStatus(analysisId);
+            }, 3000);
 
-    function checkAnalysisStatus(analysisId) {
-        fetch(window.location.href + '?check_status=true&analysis_id=' + analysisId)
-            .then(response => response.text())
-            .then(html => {
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                const newStatusElement = doc.getElementById('statusMessage');
-                
-                if (newStatusElement && !newStatusElement.textContent.includes('⏳')) {
-                    // Status has been updated, reload the page
-                    window.location.reload();
-                } else {
-                    // Continue polling
-                    setTimeout(function() {
-                        checkAnalysisStatus(analysisId);
-                    }, 3000);
-                }
-            })
-            .catch(error => {
-                console.error('Error checking status:', error);
-                setTimeout(function() {
-                    checkAnalysisStatus(analysisId);
-                }, 5000);
-            });
+            function checkAnalysisStatus(analysisId) {
+                fetch(window.location.href + '?check_status=true&analysis_id=' + encodeURIComponent(analysisId))
+                    .then(response => response.text())
+                    .then(html => {
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(html, 'text/html');
+                        const newStatusElement = doc.getElementById('statusMessage');
+                        
+                        if (newStatusElement && !newStatusElement.textContent.includes('⏳')) {
+                            // Status has been updated, reload the page
+                            window.location.reload();
+                        } else {
+                            // Continue polling
+                            setTimeout(function() {
+                                checkAnalysisStatus(analysisId);
+                            }, 3000);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error checking status:', error);
+                        setTimeout(function() {
+                            checkAnalysisStatus(analysisId);
+                        }, 5000);
+                    });
+            }
+        }
     }
-}
+});
     </script>
 </body>
 </html>
@@ -1660,7 +1664,7 @@ def index():
         # Check if we should look for a completed analysis status
         check_status = request.args.get('check_status')
         analysis_id = request.args.get('analysis_id')
-        
+
         if check_status and analysis_id:
             status_message = get_analysis_status(analysis_id)
                 
