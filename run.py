@@ -1004,177 +1004,141 @@ def sync_google_sheets_operation(month_name, table_data):
     """Synchronous Google Sheets operation WITHOUT recursion"""
     try:
         print(f"📨 Starting sync Google Sheets operation for {month_name}")
-        print(f"📊 Data to write: {len(table_data)} rows")
+        
+        if not table_data:
+            print("❌ No data to write")
+            return False
         
         # 1. Authentication
-        print("🔑 Getting credentials...")
         creds = get_google_credentials()
         if not creds:
             print("❌ No credentials available")
             return False
         
-        print("✅ Credentials obtained, authorizing...")
         gc = gspread.authorize(creds)
-        print("✅ Authorized, opening spreadsheet...")
         
         # 2. Open target spreadsheet by ID
         try:
             spreadsheet_key = '1US65_F99qrkqbl2oVkMa4DGUiLacEDRoNz_J9hr2bbQ'
             target_spreadsheet = gc.open_by_key(spreadsheet_key)
-            print("✅ Spreadsheet opened successfully")
         except Exception as e:
             print(f"❌ Error opening spreadsheet: {e}")
             return False
         
         try:
             summary_sheet = target_spreadsheet.worksheet('SUMMARY')
-            print("✅ SUMMARY worksheet accessed")
         except Exception as e:
             print(f"❌ Error accessing SUMMARY worksheet: {e}")
             return False
         
-        print("📋 Getting headers...")
         # 3. Get current headers
-        headers = summary_sheet.row_values(2)
-        print(f"📝 Current headers: {headers}")
+        try:
+            headers = summary_sheet.row_values(2)
+        except Exception as e:
+            print(f"❌ Error getting headers: {e}")
+            return False
 
-        # 4. Normalizing month name for comparison
+        # 4. Normalizing month name
         normalized_month = month_name.capitalize()
         print(f"🔍 Looking for column: {normalized_month}")
 
-        # 5. Find the month column
+        # 5. Find the month column or create new
         month_col = None
         for i, header in enumerate(headers, 1):
             if header == normalized_month:
                 month_col = i
-                print(f"✅ Found existing column for {normalized_month} at position: {month_col}")
+                print(f"✅ Found existing column at position: {month_col}")
                 break
 
         if month_col is None:
-            print("🔍 No existing column found, looking for empty column...")
             # Find first empty column
             for i, header in enumerate(headers, 1):
-                if not header.strip():  # Empty column
+                if not header.strip():
                     month_col = i
                     print(f"✅ Found empty column at position: {month_col}")
-                    print(f"📝 Creating new column for {normalized_month}...")
-                    
-                    # Update header cells
-                    summary_sheet.update_cell(2, month_col, normalized_month)
-                    summary_sheet.update_cell(3, month_col + 1, f"{normalized_month} %")
-                    
-                    print(f"✅ Created new column for {normalized_month} at position: {month_col}")
                     break
 
         if month_col is None:
-            print("🔍 No empty columns, adding at the end...")
-            # Add new columns at the end
+            # Add new column at the end
             month_col = len(headers) + 1
-            if month_col > 37:
-                print("❌ Column limit reached (37)")
+            if month_col > 20:  # Reasonable limit
+                print("❌ Too many columns")
                 return False
-            
-            print(f"📝 Adding new column at position: {month_col}")
+        
+        # 6. Update headers
+        try:
             summary_sheet.update_cell(2, month_col, normalized_month)
             summary_sheet.update_cell(3, month_col + 1, f"{normalized_month} %")
-            print(f"✅ Added new column for {normalized_month} at position: {month_col}")
+            print(f"✅ Updated headers for {normalized_month}")
+        except Exception as e:
+            print(f"❌ Error updating headers: {e}")
+            return False
         
-        print("📝 Preparing data for writing...")
-        # 6. Prepare data to be written
+        # 7. Prepare and write data
         update_data = []
         for i, row_data in enumerate(table_data, start=4):
-            if len(row_data) >= 3:
-                category, amount, percentage = row_data[0], row_data[1], row_data[2]
+            if len(row_data) >= 3 and row_data[0] not in ['', 'INCOME CATEGORIES:', 'EXPENSE CATEGORIES:']:
+                amount = row_data[1]
+                percentage = row_data[2]
+                
                 update_data.append({
-                    'range': f"{rowcol_to_a1(i, month_col)}",
+                    'range': f"{gspread.utils.rowcol_to_a1(i, month_col)}",
                     'values': [[amount]]
                 })
                 update_data.append({
-                    'range': f"{rowcol_to_a1(i, month_col + 1)}",
+                    'range': f"{gspread.utils.rowcol_to_a1(i, month_col + 1)}",
                     'values': [[percentage]]
                 })
 
-        print(f"📤 Ready to write {len(update_data)} cells")
-
-        # 7. Batch update with proper error handling
+        # 8. Batch update with error handling
         if update_data:
-            print("⏳ Writing data to Google Sheets...")
-            batch_size = 10  # Увеличим размер батча
-            max_retries = 3
-            
-            for i in range(0, len(update_data), batch_size):
-                batch = update_data[i:i+batch_size]
-                retry_count = 0
-                success = False
-            
-                while not success and retry_count < max_retries:
-                    try:
-                        summary_sheet.batch_update(batch)
-                        print(f"✅ Batch {i//batch_size + 1} written ({len(batch)} cells)")
-                        success = True
-                        
-                    except Exception as e:
-                        if "429" in str(e) or "Quota exceeded" in str(e):
-                            retry_count += 1
-                            wait_time = 60 * retry_count
-                            print(f"⚠️ Rate limit exceeded. Retry {retry_count}/{max_retries} in {wait_time} seconds...")
-                            time.sleep(wait_time)
-                        else:
-                            print(f"❌ Error in batch update: {e}")
-                            # Не вызываем рекурсивно, просто пропускаем этот батч
-                            print(f"⚠️ Skipping batch {i//batch_size + 1} due to error")
-                            success = True  # Пропускаем ошибку и продолжаем
+            print(f"📤 Writing {len(update_data)} cells...")
+            try:
+                # Split into smaller batches to avoid quota issues
+                batch_size = 10
+                for i in range(0, len(update_data), batch_size):
+                    batch = update_data[i:i+batch_size]
+                    summary_sheet.batch_update(batch)
+                    print(f"✅ Batch {i//batch_size + 1} written")
+                    if i + batch_size < len(update_data):
+                        time.sleep(1)  # Short pause between batches
                 
-                if not success:
-                    print(f"❌ Failed to write batch {i//batch_size + 1} after {max_retries} retries")
-                    # Продолжаем с следующим батчем вместо возврата False
-                    continue
-                    
-                # Небольшая пауза между батчами
-                if i + batch_size < len(update_data):
-                    time.sleep(5)
-
-            print("✅ All data written successfully!")
-
-        print("✅ Google Sheets update completed successfully!")
+                print("✅ All data written successfully!")
+                return True
+                
+            except Exception as e:
+                print(f"❌ Error in batch update: {e}")
+                return False
+        
         return True
 
     except Exception as e:
         print(f"❌ Error in sync_google_sheets_operation: {e}")
-        import traceback
-        print(f"🔍 Traceback: {traceback.format_exc()}")
         return False
-
 
 def write_to_target_sheet(table_data, month_name):
     """Write data to target SUMMARY sheet"""
-    if not table_data or len(table_data) == 0:
+    if not table_data:
         print("❌ No data to write to target sheet")
         return False
 
     try:
-        if not table_data:
-            print("✗ No data to write to target sheet")
-            return False
-        
-        if len(table_data) > 50:
-            print(f"⚠️ Large dataset ({len(table_data)} rows), simplifying update")
+        # Simplify large datasets
+        if len(table_data) > 30:
             simplified_data = []
             for row in table_data:
                 if row[0] in ['TOTAL INCOME', 'TOTAL EXPENSES', 'SAVINGS']:
                     simplified_data.append(row)
-                elif (row[0] and
-                      not any(x in row[0] for x in ['CATEGORIES', ''])):
-                    simplified_data.append([row[0], row[1], 0])
+                elif row[0] and not any(x in row[0] for x in ['CATEGORIES', '']):
+                    simplified_data.append([row[0], row[1], row[2] if len(row) > 2 else 0])
             table_data = simplified_data
 
         result = sync_google_sheets_operation(month_name, table_data)
         print(f"📊 Google Sheets operation result: {result}")
         return result
-        
 
     except Exception as e:
-        print(f"✗ Error in writing into SUMMARY: {e}")
+        print(f"❌ Error writing to target sheet: {e}")
         return False
 
 def load_transactions(file_path_or_object):
@@ -1250,24 +1214,24 @@ def load_transactions(file_path_or_object):
     
     return transactions, daily_categories
 
-# def get_operation_status(analysis_success, month_sheet_success, summary_sheet_success):
-#     """Return operation status message"""
-#     if analysis_success and month_sheet_success and summary_sheet_success:
-#         return f"✅ Analysis completed successfully and data written to Google Sheets"
-#     elif analysis_success and month_sheet_success and not summary_sheet_success:
-#         return f"⚠️ Analysis completed, Month sheet updated but failed to update Summary sheet"
-#     elif analysis_success and not month_sheet_success and summary_sheet_success:
-#         return f"⚠️ Analysis completed, Summary sheet updated but failed to update Month sheet"
-#     elif analysis_success and not month_sheet_success and not summary_sheet_success:
-#         return f"⚠️ Analysis completed but failed to write data to Google Sheets"
-#     elif not analysis_success and month_sheet_success and summary_sheet_success:
-#         return "⚠️ Analysis failed but Google Sheets operations completed"
-#     elif not analysis_success and month_sheet_success and not summary_sheet_success:
-#         return "⚠️ Analysis failed, Month sheet updated but failed to update Summary sheet"
-#     elif not analysis_success and not month_sheet_success and summary_sheet_success:
-#         return "⚠️ Analysis failed, Summary sheet updated but failed to update Month sheet"
-#     else:
-#         return "❌ All operations failed"
+def get_operation_status(analysis_success, month_sheet_success, summary_sheet_success):
+    """Return operation status message"""
+    if analysis_success and month_sheet_success and summary_sheet_success:
+        return f"✅ Analysis completed successfully and data written to Google Sheets"
+    elif analysis_success and month_sheet_success and not summary_sheet_success:
+        return f"⚠️ Analysis completed, Month sheet updated but failed to update Summary sheet"
+    elif analysis_success and not month_sheet_success and summary_sheet_success:
+        return f"⚠️ Analysis completed, Summary sheet updated but failed to update Month sheet"
+    elif analysis_success and not month_sheet_success and not summary_sheet_success:
+        return f"⚠️ Analysis completed but failed to write data to Google Sheets"
+    elif not analysis_success and month_sheet_success and summary_sheet_success:
+        return "⚠️ Analysis failed but Google Sheets operations completed"
+    elif not analysis_success and month_sheet_success and not summary_sheet_success:
+        return "⚠️ Analysis failed, Month sheet updated but failed to update Summary sheet"
+    elif not analysis_success and not month_sheet_success and summary_sheet_success:
+        return "⚠️ Analysis failed, Summary sheet updated but failed to update Month sheet"
+    else:
+        return "❌ All operations failed"
 
 # def run_full_analysis_with_file(month, file_path, temp_dir):
 #     """Full processing in background mode using uploaded file"""
@@ -1355,35 +1319,24 @@ def run_full_analysis_with_file(month, file_path, temp_dir, analysis_id):
     status_message = ""
     
     try:
-        print(f"🚀 Starting FULL background analysis for {month} with uploaded file")
+        print(f"🚀 Starting FULL background analysis for {month}")
         transactions, daily_categories = load_transactions(file_path)
         
         if not transactions:
-            print("No transactions found in uploaded file")
             status_message = "❌ No transactions found in uploaded file"
-            analysis_status_cache[analysis_id] = {
-                'status': status_message,
-                'completed': True
-            }
+            analysis_status_cache[analysis_id] = {'status': status_message, 'completed': True}
             return
         
         data = analyze(transactions, daily_categories, month)
         analysis_success = True
 
         print(f"{month.upper()} ANALYSIS COMPLETED")
-        print(f"Income: {data['income']:.2f}€")
-        print(f"Expenses: {data['expenses']:.2f}€")
-        print(f"Savings: {data['savings']:.2f}€")
         
         # 1. Writing into month sheet
         print(f"📝 Writing to {month} worksheet...")
         month_sheet_success = write_to_month_sheet(month, transactions, data)
-        if month_sheet_success:
-            print(f"✅ Successfully updated {month} worksheet")
-        else:
-            print(f"❌ Failed to update {month} worksheet")
         
-        time.sleep(10)
+        time.sleep(5)
         
         # 2. Writing into Summary sheet
         print("⏳ Starting Google Sheets SUMMARY update...")
@@ -1391,46 +1344,32 @@ def run_full_analysis_with_file(month, file_path, temp_dir, analysis_id):
         MONTH_NORMALIZED = get_month_column_name(month)
         summary_sheet_success = write_to_target_sheet(table_data, MONTH_NORMALIZED)
         
-        if summary_sheet_success:
-            print("✅ Successfully updated Google Sheets SUMMARY")
-        else:
-            print("❌ Failed to update Google Sheets SUMMARY")
-        
         # Generate status message
         if analysis_success and month_sheet_success and summary_sheet_success:
             status_message = "✅ SUCCESS: Analysis completed and all data written to Google Sheets"
         elif analysis_success and month_sheet_success:
-            status_message = "⚠️ PARTIAL: Analysis completed, Month sheet updated but Summary sheet failed"
+            status_message = "⚠️ PARTIAL: Month sheet updated but Summary sheet failed"
         elif analysis_success and summary_sheet_success:
-            status_message = "⚠️ PARTIAL: Analysis completed, Summary sheet updated but Month sheet failed"
+            status_message = "⚠️ PARTIAL: Summary sheet updated but Month sheet failed"
         elif analysis_success:
             status_message = "⚠️ PARTIAL: Analysis completed but both sheets failed to update"
         else:
             status_message = "❌ FAILED: Analysis and Google Sheets operations failed"
         
-        print(f"🎉 {status_message}")
-        
     except Exception as e:
         print(f"Background analysis error: {e}")
-        import traceback
-        print(f"Traceback: {traceback.format_exc()}")
         status_message = f"❌ ERROR: {str(e)}"
     
     finally:
         # Update status in cache
-        analysis_status_cache[analysis_id] = {
-            'status': status_message,
-            'completed': True
-        }
+        analysis_status_cache[analysis_id] = {'status': status_message, 'completed': True}
         
         # Clean up temporary directory
         try:
             if os.path.exists(temp_dir):
                 shutil.rmtree(temp_dir)
-                print(f"Cleaned up temporary directory: {temp_dir}")
         except Exception as e:
             print(f"Warning: Could not clean up temp directory: {e}")
-
 
 def get_analysis_status(analysis_id):
     """Check analysis status from cache"""
