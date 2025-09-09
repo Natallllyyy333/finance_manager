@@ -1498,26 +1498,62 @@ HTML = '''
     </div>
 
     <script>
+        document.getElementById('uploadForm').addEventListener('submit', function(e) {
+            const statusElement = document.getElementById('statusMessage');
+            const submitBtn = document.getElementById('submitBtn');
+            const terminalElement = document.querySelector('.terminal');
+            const fileInput = document.querySelector('input[type="file"]');
+            
+            if (terminalElement) {
+                terminalElement.innerHTML = '';
+                terminalElement.style.display = 'none';
+            }
+            
+            if (fileInput.files.length > 0) {
+                const fileName = fileInput.files[0].name;
+                let fileInfoElement = document.querySelector('.file-info');
+                
+                if (!fileInfoElement) {
+                    fileInfoElement = document.createElement('div');
+                    fileInfoElement.className = 'file-info';
+                    document.querySelector('.input-group').after(fileInfoElement);
+                }
+                
+                fileInfoElement.innerHTML = `📁 Using file: <strong>${fileName}</strong>`;
+                fileInfoElement.style.display = 'block';
+            }
+            
+            statusElement.classList.remove('hidden');
+            statusElement.classList.remove('status-success', 'status-error', 'status-warning');
+            statusElement.classList.add('status-loading');
+            statusElement.textContent = '⏳ Processing your financial data... Google Sheets update in progress';
+            
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Processing...';
+            submitBtn.style.opacity = '0.7';
+        });
+
+        {% if status_message %}
+        document.addEventListener('DOMContentLoaded', function() {
+            const statusElement = document.getElementById('statusMessage');
+            statusElement.classList.remove('hidden');
+            statusElement.textContent = '{{ status_message }}';
+            
+            {% if 'success' in status_message %}
+            statusElement.classList.add('status-success');
+            {% elif 'failed' in status_message %}
+            statusElement.classList.add('status-error');
+            {% elif 'warning' in status_message %}
+            statusElement.classList.add('status-warning');
+            {% else %}
+            statusElement.classList.add('status-loading');
+            {% endif %}
+        });
+        {% endif %}
+        // Check if we have an analysis ID in the status message
 document.addEventListener('DOMContentLoaded', function() {
     const statusElement = document.getElementById('statusMessage');
-    
-    // Initial status display
-    {% if status_message %}
-    statusElement.classList.remove('hidden');
-    statusElement.textContent = '{{ status_message }}';
-    
-    {% if 'success' in status_message %}
-    statusElement.classList.add('status-success');
-    {% elif 'failed' in status_message %}
-    statusElement.classList.add('status-error');
-    {% elif 'warning' in status_message %}
-    statusElement.classList.add('status-warning');
-    {% else %}
-    statusElement.classList.add('status-loading');
-    {% endif %}
-    
-    // Check if we have an analysis ID in the status message for polling
-    if (statusElement.textContent.includes('⏳') && statusElement.textContent.includes('|')) {
+    if (statusElement && statusElement.textContent.includes('⏳') && statusElement.textContent.includes('|')) {
         const parts = statusElement.textContent.split('|');
         if (parts.length >= 2) {
             const analysisId = parts[1].trim();
@@ -1554,45 +1590,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     }
-    {% endif %}
 });
-
-// Form submission handler
-document.getElementById('uploadForm').addEventListener('submit', function(e) {
-    const statusElement = document.getElementById('statusMessage');
-    const submitBtn = document.getElementById('submitBtn');
-    const terminalElement = document.querySelector('.terminal');
-    const fileInput = document.querySelector('input[type="file"]');
-    
-    if (terminalElement) {
-        terminalElement.innerHTML = '';
-        terminalElement.style.display = 'none';
-    }
-    
-    if (fileInput.files.length > 0) {
-        const fileName = fileInput.files[0].name;
-        let fileInfoElement = document.querySelector('.file-info');
-        
-        if (!fileInfoElement) {
-            fileInfoElement = document.createElement('div');
-            fileInfoElement.className = 'file-info';
-            document.querySelector('.input-group').after(fileInfoElement);
-        }
-        
-        fileInfoElement.innerHTML = `📁 Using file: <strong>${fileName}</strong>`;
-        fileInfoElement.style.display = 'block';
-    }
-    
-    statusElement.classList.remove('hidden');
-    statusElement.classList.remove('status-success', 'status-error', 'status-warning');
-    statusElement.classList.add('status-loading');
-    statusElement.textContent = '⏳ Processing your financial data... Google Sheets update in progress';
-    
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Processing...';
-    submitBtn.style.opacity = '0.7';
-});
-</script>
+    </script>
 </body>
 </html>
 '''
@@ -1603,18 +1602,6 @@ def index():
     month = None
     filename = None
     status_message = None
-
-    # Check if we should look for a completed analysis status FIRST
-    check_status = request.args.get('check_status')
-    analysis_id = request.args.get('analysis_id')
-
-    if check_status and analysis_id:
-        status_message = get_analysis_status(analysis_id)
-        return render_template_string(HTML,
-                                    result=result,
-                                    month=month,
-                                    filename=filename,
-                                    status_message=status_message)
 
     try:
         if request.method == 'POST':
