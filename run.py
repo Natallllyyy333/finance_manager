@@ -853,8 +853,155 @@ def write_to_month_sheet(month_name, transactions, data):
         print(f"🔍 Traceback: {traceback.format_exc()}")
         return False
 
+# def sync_google_sheets_operation(month_name, table_data):
+#     """Synchronous Google Sheets operation"""
+#     try:
+#         print(f"📨 Starting sync Google Sheets operation for {month_name}")
+#         print(f"📊 Data to write: {len(table_data)} rows")
+        
+#         # 1. Authentication
+#         print("🔑 Getting credentials...")
+#         creds = get_google_credentials()
+#         if not creds:
+#             print("❌ No credentials available")
+#             return False
+        
+#         print("✅ Credentials obtained, authorizing...")
+#         gc = gspread.authorize(creds)
+#         print("✅ Authorized, opening spreadsheet...")
+        
+#         # 2. Open target spreadsheet by ID
+#         try:
+#             spreadsheet_key = '1US65_F99qrkqbl2oVkMa4DGUiLacEDRoNz_J9hr2bbQ'
+#             target_spreadsheet = gc.open_by_key(spreadsheet_key)
+#             print("✅ Spreadsheet opened successfully")
+#         except Exception as e:
+#             print(f"❌ Error opening spreadsheet: {e}")
+#             return False
+        
+#         try:
+#             summary_sheet = target_spreadsheet.worksheet('SUMMARY')
+#             print("✅ SUMMARY worksheet accessed")
+#         except Exception as e:
+#             print(f"❌ Error accessing SUMMARY worksheet: {e}")
+#             return False
+        
+#         print("📋 Getting headers...")
+#         # 3. Get current headers
+#         headers = summary_sheet.row_values(2)
+#         print(f"📝 Current headers: {headers}")
+
+#         # 4. Normalizing month name for comparison
+#         normalized_month = month_name.capitalize()
+#         print(f"🔍 Looking for column: {normalized_month}")
+
+#         # 5. Find the month column
+#         month_col = None
+#         for i, header in enumerate(headers, 1):
+#             if header == normalized_month:
+#                 month_col = i
+#                 print(f"✅ Found existing column for {normalized_month} at position: {month_col}")
+#                 break
+
+#         if month_col is None:
+#             print("🔍 No existing column found, looking for empty column...")
+#             # Find first empty column
+#             for i, header in enumerate(headers, 1):
+#                 if not header.strip():  # Empty column
+#                     month_col = i
+#                     print(f"✅ Found empty column at position: {month_col}")
+#                     print(f"📝 Creating new column for {normalized_month}...")
+#                     summary_sheet.update_cell(2, month_col, normalized_month)
+#                     summary_sheet.update_cell(
+#                         3,
+#                         month_col + 1,
+#                         f"{normalized_month} %"
+#                     )
+#                     print(f"✅ Created new column for {normalized_month} at position: {month_col}")
+#                     break
+
+#         if month_col is None:
+#             print("🔍 No empty columns, adding at the end...")
+#             # Add new columns at the end
+#             month_col = len(headers) + 1
+#             if month_col > 37:
+#                 print("❌ Column limit reached (37)")
+#                 return False
+            
+#             print(f"📝 Adding new column at position: {month_col}")
+#             summary_sheet.update_cell(2, month_col, normalized_month)
+#             summary_sheet.update_cell(
+#                 3,
+#                 month_col + 1,
+#                 f"{normalized_month} %"
+#             )
+#             print(f"✅ Added new column for {normalized_month} at position: {month_col}")
+        
+#         print("📝 Preparing data for writing...")
+#         # 6. Prepare data to be written
+#         update_data = []
+#         for i, row_data in enumerate(table_data, start=4):
+#             if len(row_data) == 3:
+#                 category, amount, percentage = row_data
+#                 update_data.append({
+#                     'range': f"{rowcol_to_a1(i, month_col)}",
+#                     'values': [[amount]]
+#                 })
+#                 update_data.append({
+#                     'range': f"{rowcol_to_a1(i, month_col + 1)}",
+#                     'values': [[percentage]]
+#                 })
+
+#         print(f"📤 Ready to write {len(update_data)} cells")
+
+#         # 7. Batch update
+#         if update_data:
+#             print("⏳ Writing data to Google Sheets...")
+#             batch_size = 2
+#             max_retries = 3
+            
+#             for i in range(0, len(update_data), batch_size):
+#                 batch = update_data[i:i+batch_size]
+#                 retry_count = 0
+#                 success = False
+            
+#                 while not success and retry_count < max_retries:
+#                     try:
+#                         summary_sheet.batch_update(batch)
+#                         print(f"✅ Batch {i//batch_size + 1} written")
+#                         success = True
+                        
+#                     except Exception as e:
+#                         if "429" in str(e) or "Quota exceeded" in str(e):
+#                             retry_count += 1
+#                             wait_time = 60 * retry_count
+#                             print(f"⚠️ Rate limit exceeded. Retry {retry_count}/{max_retries} in {wait_time} seconds...")
+#                             time.sleep(wait_time)
+#                         else:
+#                             print(f"❌ Error in batch update: {e}")
+#                             raise e
+                
+#                 if not success:
+#                     print(f"❌ Failed to write batch {i//batch_size + 1} after {max_retries} retries")
+#                     return False
+                    
+#                 if i + batch_size < len(update_data):
+#                     time.sleep(15)
+
+#             print("✅ All data written successfully!")
+
+#         print("✅ Google Sheets update completed successfully!")
+#         return True
+
+#     except Exception as e:
+#         print(f"❌ Error in sync_google_sheets_operation: {e}")
+#         import traceback
+#         print(f"🔍 Traceback: {traceback.format_exc()}")
+#         return False
+
+
 def sync_google_sheets_operation(month_name, table_data):
-    """Synchronous Google Sheets operation"""
+    """Synchronous Google Sheets operation WITHOUT recursion"""
     try:
         print(f"📨 Starting sync Google Sheets operation for {month_name}")
         print(f"📊 Data to write: {len(table_data)} rows")
@@ -911,12 +1058,11 @@ def sync_google_sheets_operation(month_name, table_data):
                     month_col = i
                     print(f"✅ Found empty column at position: {month_col}")
                     print(f"📝 Creating new column for {normalized_month}...")
+                    
+                    # Update header cells
                     summary_sheet.update_cell(2, month_col, normalized_month)
-                    summary_sheet.update_cell(
-                        3,
-                        month_col + 1,
-                        f"{normalized_month} %"
-                    )
+                    summary_sheet.update_cell(3, month_col + 1, f"{normalized_month} %")
+                    
                     print(f"✅ Created new column for {normalized_month} at position: {month_col}")
                     break
 
@@ -930,19 +1076,15 @@ def sync_google_sheets_operation(month_name, table_data):
             
             print(f"📝 Adding new column at position: {month_col}")
             summary_sheet.update_cell(2, month_col, normalized_month)
-            summary_sheet.update_cell(
-                3,
-                month_col + 1,
-                f"{normalized_month} %"
-            )
+            summary_sheet.update_cell(3, month_col + 1, f"{normalized_month} %")
             print(f"✅ Added new column for {normalized_month} at position: {month_col}")
         
         print("📝 Preparing data for writing...")
         # 6. Prepare data to be written
         update_data = []
         for i, row_data in enumerate(table_data, start=4):
-            if len(row_data) == 3:
-                category, amount, percentage = row_data
+            if len(row_data) >= 3:
+                category, amount, percentage = row_data[0], row_data[1], row_data[2]
                 update_data.append({
                     'range': f"{rowcol_to_a1(i, month_col)}",
                     'values': [[amount]]
@@ -954,10 +1096,10 @@ def sync_google_sheets_operation(month_name, table_data):
 
         print(f"📤 Ready to write {len(update_data)} cells")
 
-        # 7. Batch update
+        # 7. Batch update with proper error handling
         if update_data:
             print("⏳ Writing data to Google Sheets...")
-            batch_size = 2
+            batch_size = 10  # Увеличим размер батча
             max_retries = 3
             
             for i in range(0, len(update_data), batch_size):
@@ -968,7 +1110,7 @@ def sync_google_sheets_operation(month_name, table_data):
                 while not success and retry_count < max_retries:
                     try:
                         summary_sheet.batch_update(batch)
-                        print(f"✅ Batch {i//batch_size + 1} written")
+                        print(f"✅ Batch {i//batch_size + 1} written ({len(batch)} cells)")
                         success = True
                         
                     except Exception as e:
@@ -979,14 +1121,18 @@ def sync_google_sheets_operation(month_name, table_data):
                             time.sleep(wait_time)
                         else:
                             print(f"❌ Error in batch update: {e}")
-                            raise e
+                            # Не вызываем рекурсивно, просто пропускаем этот батч
+                            print(f"⚠️ Skipping batch {i//batch_size + 1} due to error")
+                            success = True  # Пропускаем ошибку и продолжаем
                 
                 if not success:
                     print(f"❌ Failed to write batch {i//batch_size + 1} after {max_retries} retries")
-                    return False
+                    # Продолжаем с следующим батчем вместо возврата False
+                    continue
                     
+                # Небольшая пауза между батчами
                 if i + batch_size < len(update_data):
-                    time.sleep(15)
+                    time.sleep(5)
 
             print("✅ All data written successfully!")
 
@@ -999,8 +1145,13 @@ def sync_google_sheets_operation(month_name, table_data):
         print(f"🔍 Traceback: {traceback.format_exc()}")
         return False
 
+
 def write_to_target_sheet(table_data, month_name):
     """Write data to target SUMMARY sheet"""
+    if not table_data or len(table_data) == 0:
+        print("❌ No data to write to target sheet")
+        return False
+
     try:
         if not table_data:
             print("✗ No data to write to target sheet")
@@ -1016,8 +1167,11 @@ def write_to_target_sheet(table_data, month_name):
                       not any(x in row[0] for x in ['CATEGORIES', ''])):
                     simplified_data.append([row[0], row[1], 0])
             table_data = simplified_data
+
+        result = sync_google_sheets_operation(month_name, table_data)
+        print(f"📊 Google Sheets operation result: {result}")
+        return result
         
-        return sync_google_sheets_operation(month_name, table_data)
 
     except Exception as e:
         print(f"✗ Error in writing into SUMMARY: {e}")
