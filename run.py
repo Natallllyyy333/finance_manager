@@ -15,7 +15,11 @@ from gspread.utils import rowcol_to_a1
 from google.oauth2 import service_account
 from flask import Flask, request, render_template_string
 from werkzeug.utils import secure_filename
+from flask import session
+import secrets
 
+app = Flask(__name__)
+app.secret_key = secrets.token_hex(16)  # Add secret key for sessions
 warnings.filterwarnings('ignore', category=DeprecationWarning)
 app = Flask(__name__)
 
@@ -1128,7 +1132,11 @@ def run_full_analysis_with_file(month, file_path, temp_dir):
         if not transactions:
             print("No transactions found in uploaded file")
             status_message = "❌ No transactions found in uploaded file"
-            return status_message
+            # Write status and exit
+            status_file = os.path.join(temp_dir, "status.txt")
+            with open(status_file, 'w') as f:
+                f.write(status_message)
+            return
         
         data = analyze(transactions, daily_categories, month)
         analysis_success = True
@@ -1159,7 +1167,7 @@ def run_full_analysis_with_file(month, file_path, temp_dir):
         else:
             print("❌ Failed to update Google Sheets SUMMARY")
         
-         # Generate status message
+        # Generate status message
         if analysis_success and month_sheet_success and summary_sheet_success:
             status_message = "✅ SUCCESS: Analysis completed and all data written to Google Sheets"
         elif analysis_success and month_sheet_success:
@@ -1170,10 +1178,8 @@ def run_full_analysis_with_file(month, file_path, temp_dir):
             status_message = "⚠️ PARTIAL: Analysis completed but both sheets failed to update"
         else:
             status_message = "❌ FAILED: Analysis and Google Sheets operations failed"
-        print(f"🎉 {status_message}")    
-        # Printing status message
-        # status_message = get_operation_status(analysis_success, month_sheet_success, summary_sheet_success)
-        # print(f"🎉 {status_message}")
+        
+        print(f"🎉 {status_message}")
         
     except Exception as e:
         print(f"Background analysis error: {e}")
@@ -1182,21 +1188,14 @@ def run_full_analysis_with_file(month, file_path, temp_dir):
         status_message = f"❌ ERROR: {str(e)}"
     
     finally:
-        # Clearing temporary data
+        # Write final status to file
         try:
             status_file = os.path.join(temp_dir, "status.txt")
             with open(status_file, 'w') as f:
                 f.write(status_message)
-            # if os.path.exists(temp_dir):
-            #     shutil.rmtree(temp_dir)
-            #     print(f"Cleaned up temporary directory: {temp_dir}")
+            print(f"Status saved: {status_message}")
         except Exception as e:
             print(f"Error writing status file: {e}")
-        
-        print(f"Status saved: {status_message}")
-    return status_message
-    # return analysis_success, month_sheet_success, summary_sheet_success
-
 
 def get_analysis_status(temp_dir):
     """Check if analysis is complete and get status message"""
@@ -1206,7 +1205,11 @@ def get_analysis_status(temp_dir):
             with open(status_file, 'r') as f:
                 status = f.read().strip()
             # Clean up after reading status
-            shutil.rmtree(temp_dir)
+            try:
+                shutil.rmtree(temp_dir)
+                print(f"Cleaned up temporary directory: {temp_dir}")
+            except Exception as e:
+                print(f"Warning: Could not clean up temp directory: {e}")
             return status
     except Exception as e:
         print(f"Error reading status: {e}")
@@ -1459,7 +1462,7 @@ HTML = '''
             {% endif %}
         });
         {% endif %}
-        {% if status_message and '⏳' in status_message %}
+        {% if status_message and status_message.includes('⏳') %}
 // Start polling for status updates
 setTimeout(function() {
     checkAnalysisStatus();
@@ -1486,7 +1489,7 @@ function checkAnalysisStatus() {
             setTimeout(checkAnalysisStatus, 5000);
         });
 }
-        {% endif %}
+{% endif %}
     </script>
 </body>
 </html>
@@ -1498,7 +1501,6 @@ def index():
     month = None
     filename = None
     status_message = None
-    temp_dir = None
 
     try:
         if request.method == 'POST':
@@ -1529,6 +1531,10 @@ def index():
                         data = analyze(transactions, daily_categories, month)
                         result = format_terminal_output(data, month, len(transactions))
                         
+                        # Store temp_dir in session for status checking
+                        session['temp_dir'] = temp_dir
+                        session['analysis_started'] = True
+                        
                         # Start background processing
                         thread = threading.Thread(
                             target=run_full_analysis_with_file,
@@ -1541,21 +1547,27 @@ def index():
                     else:
                         result = f"No valid transactions found in {filename}"
                         status_message = "❌ Analysis failed - no transactions found"
-                        if temp_dir and os.path.exists(temp_dir):
+                        if os.path.exists(temp_dir):
                             shutil.rmtree(temp_dir)
                         
                 except Exception as e:
                     result = f"Error processing file: {str(e)}"
-                    status_message = "❌ Analysis failed due to error {str(e)}"
-                    if temp_dir and os.path.exists(temp_dir):
+                    status_message = f"❌ Analysis failed due to error: {str(e)}"
+                    if 'temp_dir' in locals() and os.path.exists(temp_dir):
                         shutil.rmtree(temp_dir)
             else:
                 result = "Invalid file type. Please upload a CSV file."
                 status_message = "❌ Invalid file type"
 
         # Check if we should look for a completed analysis status
-        if request.args.get('check_status') and 'temp_dir' in locals():
-            status_message = get_analysis_status(temp_dir)
+        if request.args.get('check_status') and session.get('analysis_started'):
+            temp_dir = session.get('temp_dir')
+            if temp_dir and os.path.exists(temp_dir):
+                status_message = get_analysis_status(temp_dir)
+                if not status_message.startswith("⏳"):
+                    # Analysis completed, clear session
+                    session.pop('temp_dir', None)
+                    session.pop('analysis_started', None)
                 
         return render_template_string(HTML,
                                     result=result,
@@ -1565,12 +1577,14 @@ def index():
     
     except Exception as e:
         print(f"Error in index function: {e}")
-        if temp_dir and os.path.exists(temp_dir):
+        if 'temp_dir' in locals() and os.path.exists(temp_dir):
             shutil.rmtree(temp_dir)
+        # Clear session on error
+        session.pop('temp_dir', None)
+        session.pop('analysis_started', None)
         return render_template_string(HTML,
                                     result=f"Error: {str(e)}",
                                     status_message="❌ System error occurred")
-
 def main():
     if "DYNO" in os.environ:
         # Heroku mode
