@@ -1498,43 +1498,7 @@ HTML = '''
     </div>
 
     <script>
-        document.getElementById('uploadForm').addEventListener('submit', function(e) {
-            const statusElement = document.getElementById('statusMessage');
-            const submitBtn = document.getElementById('submitBtn');
-            const terminalElement = document.querySelector('.terminal');
-            const fileInput = document.querySelector('input[type="file"]');
-            
-            if (terminalElement) {
-                terminalElement.innerHTML = '';
-                terminalElement.style.display = 'none';
-            }
-            
-            if (fileInput.files.length > 0) {
-                const fileName = fileInput.files[0].name;
-                let fileInfoElement = document.querySelector('.file-info');
-                
-                if (!fileInfoElement) {
-                    fileInfoElement = document.createElement('div');
-                    fileInfoElement.className = 'file-info';
-                    document.querySelector('.input-group').after(fileInfoElement);
-                }
-                
-                fileInfoElement.innerHTML = `📁 Using file: <strong>${fileName}</strong>`;
-                fileInfoElement.style.display = 'block';
-            }
-            
-            statusElement.classList.remove('hidden');
-            statusElement.classList.remove('status-success', 'status-error', 'status-warning');
-            statusElement.classList.add('status-loading');
-            statusElement.textContent = '⏳ Processing your financial data... Google Sheets update in progress';
-            
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Processing...';
-            submitBtn.style.opacity = '0.7';
-        });
-
-        {% if status_message %}
-        document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function() {
     const statusElement = document.getElementById('statusMessage');
     
     // Initial status display
@@ -1551,10 +1515,9 @@ HTML = '''
     {% else %}
     statusElement.classList.add('status-loading');
     {% endif %}
-    {% endif %}
-
+    
     // Check if we have an analysis ID in the status message for polling
-    if (statusElement && statusElement.textContent.includes('⏳') && statusElement.textContent.includes('|')) {
+    if (statusElement.textContent.includes('⏳') && statusElement.textContent.includes('|')) {
         const parts = statusElement.textContent.split('|');
         if (parts.length >= 2) {
             const analysisId = parts[1].trim();
@@ -1591,6 +1554,7 @@ HTML = '''
             }
         }
     }
+    {% endif %}
 });
 
 // Form submission handler
@@ -1628,7 +1592,7 @@ document.getElementById('uploadForm').addEventListener('submit', function(e) {
     submitBtn.textContent = 'Processing...';
     submitBtn.style.opacity = '0.7';
 });
-    </script>
+</script>
 </body>
 </html>
 '''
