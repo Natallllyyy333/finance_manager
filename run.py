@@ -61,7 +61,6 @@ def get_google_credentials():
         else:
             # Local development
             if os.path.exists('creds.json'):
-                print("🔑 Using local creds.json file")
                 Credentials = service_account.Credentials
                 credentials = Credentials.from_service_account_file(
                     'creds.json',
@@ -488,7 +487,6 @@ def set_column_width(worksheet, column_letter, width):
             }]
         }
         worksheet.spreadsheet.batch_update(body)
-        print(f"✅ Column {column_letter} width set to {width}px")
     except Exception as e:
         print(f"⚠️ Error setting column width for {column_letter}: {e}")
 
@@ -509,7 +507,6 @@ def write_to_month_sheet(month_name, transactions, data):
         # 2. Get or create worksheet
         try:
             worksheet = sh.worksheet(month_name)
-            print(f"✅ Worksheet '{month_name}' found")
         except gspread.WorksheetNotFound:
             print(f"📝 Creating new worksheet '{month_name}'...")
             worksheet = sh.add_worksheet(title=month_name, rows="100", cols="20")
@@ -597,7 +594,6 @@ def write_to_month_sheet(month_name, transactions, data):
                 ]
                 worksheet.update('A2', summary_data)
                 
-                print(f"✅ Basic data written to {month_name} worksheet")
                 break
                 
             except Exception as e:
@@ -820,7 +816,6 @@ def write_to_month_sheet(month_name, transactions, data):
                 "numberFormat": {"type": "PERCENT", "pattern": "0.00%"}
             })
             
-            print("✅ Full formatting with colors applied")
             
         except Exception as format_error:
             print(f"⚠️ Formatting error: {format_error}")
@@ -843,7 +838,6 @@ def write_to_month_sheet(month_name, transactions, data):
         except Exception as width_error:
             print(f"⚠️ Column width error: {width_error}")
         
-        print(f"✅ Successfully formatted {month_name} worksheet")
         return True
         
     except Exception as e:
@@ -855,51 +849,40 @@ def write_to_month_sheet(month_name, transactions, data):
 def sync_google_sheets_operation(month_name, table_data):
     """Synchronous Google Sheets operation"""
     try:
-        print(f"📨 Starting sync Google Sheets operation for {month_name}")
-        print(f"📊 Data to write: {len(table_data)} rows")
-        
+     
         # 1. Authentication
-        print("🔑 Getting credentials...")
         creds = get_google_credentials()
         if not creds:
             print("❌ No credentials available")
             return False
         
-        print("✅ Credentials obtained, authorizing...")
         gc = gspread.authorize(creds)
-        print("✅ Authorized, opening spreadsheet...")
         
         # 2. Open target spreadsheet by ID
         try:
             spreadsheet_key = '1US65_F99qrkqbl2oVkMa4DGUiLacEDRoNz_J9hr2bbQ'
             target_spreadsheet = gc.open_by_key(spreadsheet_key)
-            print("✅ Spreadsheet opened successfully")
         except Exception as e:
             print(f"❌ Error opening spreadsheet: {e}")
             return False
         
         try:
             summary_sheet = target_spreadsheet.worksheet('SUMMARY')
-            print("✅ SUMMARY worksheet accessed")
         except Exception as e:
             print(f"❌ Error accessing SUMMARY worksheet: {e}")
             return False
         
-        print("📋 Getting headers...")
         # 3. Get current headers
         headers = summary_sheet.row_values(2)
-        print(f"📝 Current headers: {headers}")
 
         # 4. Normalizing month name for comparison
         normalized_month = month_name.capitalize()
-        print(f"🔍 Looking for column: {normalized_month}")
 
         # 5. Find the month column
         month_col = None
         for i, header in enumerate(headers, 1):
             if header == normalized_month:
                 month_col = i
-                print(f"✅ Found existing column for {normalized_month} at position: {month_col}")
                 break
 
         if month_col is None:
@@ -936,7 +919,6 @@ def sync_google_sheets_operation(month_name, table_data):
             )
             print(f"✅ Added new column for {normalized_month} at position: {month_col}")
         
-        print("📝 Preparing data for writing...")
         # 6. Prepare data to be written
         update_data = []
         for i, row_data in enumerate(table_data, start=4):
@@ -951,7 +933,6 @@ def sync_google_sheets_operation(month_name, table_data):
                     'values': [[percentage]]
                 })
 
-        print(f"📤 Ready to write {len(update_data)} cells")
 
         # 7. Batch update
         if update_data:
@@ -967,7 +948,6 @@ def sync_google_sheets_operation(month_name, table_data):
                 while not success and retry_count < max_retries:
                     try:
                         summary_sheet.batch_update(batch)
-                        print(f"✅ Batch {i//batch_size + 1} written")
                         success = True
                         
                     except Exception as e:
@@ -986,8 +966,6 @@ def sync_google_sheets_operation(month_name, table_data):
                     
                 if i + batch_size < len(update_data):
                     time.sleep(15)
-
-            print("✅ All data written successfully!")
 
         print("✅ Google Sheets update completed successfully!")
         return True
@@ -1159,7 +1137,7 @@ def run_full_analysis_with_file(month, file_path, temp_dir, operation_id):
         summary_sheet_success = write_to_target_sheet(table_data, MONTH_NORMALIZED)
         
         if summary_sheet_success:
-            print("✅ Successfully updated Google Sheets SUMMARY")
+            
             OPERATION_STATUS[operation_id] = "✅ Google Sheets update completed successfully!"
         else:
             print("❌ Failed to update Google Sheets SUMMARY")
@@ -1579,7 +1557,6 @@ def main():
         terminal_visualization(data)
 
         print("\n" + "="*50)
-        print("📊 Preparing data for Google Sheets...")
         
         # 1. Writing into month sheet
         print(f"📝 Writing to {MONTH} worksheet...")
