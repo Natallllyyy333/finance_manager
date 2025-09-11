@@ -1281,39 +1281,39 @@ def get_operation_status(
         and month_sheet_success
         and not summary_sheet_success
     ):
-        return f"⚠️ Analysis completed, Month sheet updated "
-        f"but failed to update Summary sheet"
+        return ("⚠️ Analysis completed, Month sheet updated "
+                "but failed to update Summary sheet")
     elif (
         analysis_success and not month_sheet_success and summary_sheet_success
     ):
-        return f"⚠️ Analysis completed, Summary sheet updated "
-        f" but failed to update Month sheet"
+        return ("⚠️ Analysis completed, Summary sheet updated "
+                "but failed to update Month sheet")
     elif (
         analysis_success
         and not month_sheet_success
         and not summary_sheet_success
     ):
         return (
-            f"⚠️ Analysis completed but failed to write data to Google Sheets"
+            "⚠️ Analysis completed but failed to write data to Google Sheets"
         )
     elif (
         not analysis_success and month_sheet_success and summary_sheet_success
     ):
-        return "⚠️ Analysis failed but Google Sheets operations completed"
+        return ("⚠️ Analysis failed but Google Sheets operations completed")
     elif (
         not analysis_success
         and month_sheet_success
         and not summary_sheet_success
     ):
-        return "⚠️ Analysis failed, Month sheet updated "
-        "but failed to update Summary sheet"
+        return ("⚠️ Analysis failed, Month sheet updated "
+                "but failed to update Summary sheet")
     elif (
         not analysis_success
         and not month_sheet_success
         and summary_sheet_success
     ):
-        return "⚠️ Analysis failed, Summary sheet updated "
-        "but failed to update Month sheet"
+        return ("⚠️ Analysis failed, Summary sheet updated "
+                "but failed to update Month sheet")
 
 
 def get_operation_status(
@@ -1330,13 +1330,13 @@ def get_operation_status(
         and month_sheet_success
         and not summary_sheet_success
     ):
-        return "⚠️ Analysis completed, Month sheet updated "
-        "but failed to update Summary sheet"
+        return ("⚠️ Analysis completed, Month sheet updated "
+                "but failed to update Summary sheet")
     elif (
         analysis_success and not month_sheet_success and summary_sheet_success
     ):
-        return "⚠️ Analysis completed, Summary sheet updated "
-        " but failed to update Month sheet"
+        return ("⚠️ Analysis completed, Summary sheet updated "
+                "but failed to update Month sheet")
     elif (
         analysis_success
         and not month_sheet_success
@@ -1348,21 +1348,21 @@ def get_operation_status(
     elif (
         not analysis_success and month_sheet_success and summary_sheet_success
     ):
-        return "⚠️ Analysis failed but Google Sheets operations completed"
+        return ("⚠️ Analysis failed but Google Sheets operations completed")
     elif (
         not analysis_success
         and month_sheet_success
         and not summary_sheet_success
     ):
-        return "⚠️ Analysis failed, Month sheet updated "
-        "but failed to update Summary sheet"
+        return ("⚠️ Analysis failed, Month sheet updated "
+                "but failed to update Summary sheet")
     elif (
         not analysis_success
         and not month_sheet_success
         and summary_sheet_success
     ):
-        return "⚠️ Analysis failed, Summary sheet updated "
-        "but failed to update Month sheet"
+        return ("⚠️ Analysis failed, Summary sheet updated "
+                "but failed to update Month sheet")
     else:
         return "❌ All operations failed"
 
