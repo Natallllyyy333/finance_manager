@@ -1678,9 +1678,8 @@ HTML = """
                     fileInfoElement.className = 'file-info';
                     document.querySelector('.input-group').after(fileInfoElement);
                 }
-
-                fileInfoElement.innerHTML =
-                    `📁 Using file: <strong>${fileName}</strong>`;
+                const fileMessage = `📁 Using : <strong>${fileName}</strong>`;
+                fileInfoElement.innerHTML = fileMessage;
                 fileInfoElement.style.display = 'block';
             }
 
@@ -1690,10 +1689,9 @@ HTML = """
     'status-error',
     'status-warning'
 ];
-statusElement.classList.remove(...statusClasses);
+statusElement.classList.remove(statusClasses);
             statusElement.classList.add('status-loading');
-            statusElement.textContent =
-    '⏳ Processing your financial data... Google Sheets update in progress';
+            statusElement.textContent ='⏳ Google Sheets update in progress';
 
             submitBtn.disabled = true;
             submitBtn.textContent = 'Processing...';
