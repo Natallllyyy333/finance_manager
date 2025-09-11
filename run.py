@@ -1465,6 +1465,9 @@ HTML = """
 <head>
     <title>Finance Analyzer</title>
     <style>
+        html {
+                scroll-behavior: smooth;
+            }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
@@ -1564,6 +1567,8 @@ HTML = """
             white-space: pre-wrap;
             max-height: 700px;
             margin-bottom: 20px;
+            scroll-margin-top: 20px;
+            transition: all 0.3s ease;
         }
         .terminal:empty {
             display: none !important;
@@ -1613,6 +1618,9 @@ HTML = """
             justify-content: center;
             align-items: center;
             margin: 15px 0;
+        }        
+        .anchor {
+            scroll-margin-top: 20px;
         }
     </style>
 </head>
@@ -1642,7 +1650,7 @@ HTML = """
             </div>
 
             {% if result %}
-            <div class="terminal">
+            <div class="terminal anchor" id="resultsSection">
                 {{ result|safe }}
             </div>
             {% endif %}
@@ -1711,6 +1719,25 @@ document.addEventListener('DOMContentLoaded', function() {
 {% endif %}
 
 {% if operation_id %}
+
+function scrollToResults() {
+    const resultsSection = document.getElementById('resultsSection');
+    if (resultsSection) {
+        setTimeout(() => {
+            resultsSection.scrollIntoView({ 
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }, 300);
+    }
+}
+document.addEventListener('DOMContentLoaded', function() {
+    {% if result %}
+    scrollToResults();
+    {% endif %}
+    
+    
+});
 // Функция для проверки статуса операции
 function checkOperationStatus(operationId) {
     fetch('/status/' + operationId)
