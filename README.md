@@ -105,19 +105,47 @@ This application is designed for individuals who want to:
 
 ### Flowchart
 
-The application follows this general workflow:
-1. User inputs month name
-1. User uploads corresponding HSBC CSV file
-2. Application loads the HSBC CSV file and
-starts the analysis of the data from it for
-the month name from the input
-3. Transactions are categorized and analyzed
-4. Terminal visualization is displayed
-5. Data is exported to Google Sheets
-6. Recommendations are generated based on spending patterns
+#### Key Components:
+
+1. Environment Detection: Checks if running on Heroku or locally
+
+2. Web App Flow:
+
+- Handles file uploads via web interface
+
+- Processes transactions in background threads
+
+- Provides real-time status updates
+
+3. CLI Mode:
+
+- For local command-line usage
+
+- Direct file processing without web interface
+
+4. Background Processing:
+
+- Transaction loading and categorization
+
+- Financial analysis
+
+- Google Sheets operations
+
+5. Common Functions:
+
+- Transaction categorization
+
+- Financial analysis algorithms
+
+- Google Sheets integration
+
+The system processes CSV files, categorizes transactions, performs financial analysis, and updates Google Sheets with formatted results, providing both terminal output and web-based visualization.
+
+
+The following flowchart summarises the structure and logic of the application.
 
 <details><summary>Flowchart</summary>
-<img src="docs/Connect4-flowchart.jpg">
+<img src="docs/finance-manager-flowchart.jpg">
 </details>
 
 ## Technologies Used
