@@ -1657,66 +1657,60 @@ HTML = """
     </div>
 
     <script>
-        "document.getElementById('uploadForm')"
-        ".addEventListener('submit', function(e) {"
-            const statusElement = document.getElementById('statusMessage');
-            const submitBtn = document.getElementById('submitBtn');
-            const terminalElement = document.querySelector('.terminal');
-            const fileInput = document.querySelector('input[type="file"]');
+document.getElementById('uploadForm').addEventListener('submit', function(e) {
+    const statusElement = document.getElementById('statusMessage');
+    const submitBtn = document.getElementById('submitBtn');
+    const terminalElement = document.querySelector('.terminal');
+    const fileInput = document.querySelector('input[type="file"]');
 
-            if (terminalElement) {
-                terminalElement.innerHTML = '';
-                terminalElement.style.display = 'none';
-            }
+    if (terminalElement) {
+        terminalElement.innerHTML = '';
+        terminalElement.style.display = 'none';
+    }
 
-            if (fileInput.files.length > 0) {
-                const fileName = fileInput.files[0].name;
-                let fileInfoElement = document.querySelector('.file-info');
+    if (fileInput.files.length > 0) {
+        const fileName = fileInput.files[0].name;
+        let fileInfoElement = document.querySelector('.file-info');
 
-                if (!fileInfoElement) {
-                    fileInfoElement = document.createElement('div');
-                    fileInfoElement.className = 'file-info';
-                    document.querySelector('.input-group').after(fileInfoElement);
-                }
-                const fileMessage = `📁 Using : <strong>${fileName}</strong>`;
-                fileInfoElement.innerHTML = fileMessage;
-                fileInfoElement.style.display = 'block';
-            }
+        if (!fileInfoElement) {
+            fileInfoElement = document.createElement('div');
+            fileInfoElement.className = 'file-info';
+            document.querySelector('.input-group').after(fileInfoElement);
+        }
 
-            statusElement.classList.remove('hidden');
-            const statusClasses = [
-    'status-success',
-    'status-error',
-    'status-warning'
-];
-statusElement.classList.remove(statusClasses);
-            statusElement.classList.add('status-loading');
-            statusElement.textContent ='⏳ Google Sheets update in progress';
+        fileInfoElement.innerHTML = `📁 Using : <strong>${fileName}</strong>`;
+        fileInfoElement.style.display = 'block';
+    }
 
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Processing...';
-            submitBtn.style.opacity = '0.7';
-        });
+    statusElement.classList.remove('hidden');
+    statusElement.classList.remove('status-success','status-error','status-warning');
+    statusElement.classList.add('status-loading');
+    statusElement.textContent = '⏳ Google Sheets update in progress';
 
-        {% if status_message %}
-        document.addEventListener('DOMContentLoaded', function() {
-            const statusElement = document.getElementById('statusMessage');
-            statusElement.classList.remove('hidden');
-            statusElement.textContent = '{{ status_message }}';
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Processing...';
+    submitBtn.style.opacity = '0.7';
+});
 
-            {% if 'success' in status_message %}
-            statusElement.classList.add('status-success');
-            {% elif 'failed' in status_message %}
-            statusElement.classList.add('status-error');
-            {% elif 'warning' in status_message %}
-            statusElement.classList.add('status-warning');
-            {% else %}
-            statusElement.classList.add('status-loading');
-            {% endif %}
-        });
-        {% endif %}
+{% if status_message %}
+document.addEventListener('DOMContentLoaded', function() {
+    const statusElement = document.getElementById('statusMessage');
+    statusElement.classList.remove('hidden');
+    statusElement.textContent = '{{ status_message }}';
 
-        {% if operation_id %}
+    {% if 'success' in status_message %}
+    statusElement.classList.add('status-success');
+    {% elif 'failed' in status_message %}
+    statusElement.classList.add('status-error');
+    {% elif 'warning' in status_message %}
+    statusElement.classList.add('status-warning');
+    {% else %}
+    statusElement.classList.add('status-loading');
+    {% endif %}
+});
+{% endif %}
+
+{% if operation_id %}
 // Функция для проверки статуса операции
 function checkOperationStatus(operationId) {
     fetch('/status/' + operationId)
@@ -1750,7 +1744,7 @@ document.addEventListener('DOMContentLoaded', function() {
     checkOperationStatus('{{ operation_id }}');
 });
 {% endif %}
-    </script>
+</script>
 
 </body>
 </html>
