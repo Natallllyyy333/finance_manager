@@ -3,8 +3,9 @@
 **Developer: Nataliia Illiashenko**
 
 💻 [Visit live website](https://finance--manager-243259ec6a64.herokuapp.com/)
+📜 [Visit google sheets](https://docs.google.com/spreadsheets/d/1US65_F99qrkqbl2oVkMa4DGUiLacEDRoNz_J9hr2bbQ/edit?gid=2005600034#gid=2005600034)
 
-![Mockup image](docs/screenshot-home.JPG)
+![Mockup image](docs/screenshot-home.jpg)
 
 ## About
 
