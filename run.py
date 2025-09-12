@@ -1643,14 +1643,14 @@ HTML = """
                     </div>
                 </form>
                 {% if filename %}
-                <div class="file-info">
+                <div class="file-info anchor" id="fileInfoSection">
                     📁 Using file: <strong>{{ filename }}</strong>
                 </div>
                 {% endif %}
             </div>
 
             {% if result %}
-            <div class="terminal anchor" id="resultsSection">
+            <div class="terminal" id="resultsSection">
                 {{ result|safe }}
             </div>
             {% endif %}
@@ -1720,11 +1720,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
 {% if operation_id %}
 
-function scrollToResults() {
-    const resultsSection = document.getElementById('resultsSection');
-    if (resultsSection) {
+function scrollToFileInfo() {
+    const fileInfoSection = document.getElementById('fileInfoSection');
+    if (fileInfoSection) {
         setTimeout(() => {
-            resultsSection.scrollIntoView({ 
+            fileInfoSection.scrollIntoView({ 
                 behavior: 'smooth',
                 block: 'start'
             });
@@ -1733,7 +1733,7 @@ function scrollToResults() {
 }
 document.addEventListener('DOMContentLoaded', function() {
     {% if result %}
-    scrollToResults();
+    scrollToFileInfo();
     {% endif %}
     
     
