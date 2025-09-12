@@ -1618,7 +1618,7 @@ HTML = """
             justify-content: center;
             align-items: center;
             margin: 15px 0;
-        }        
+        }
         .anchor {
             scroll-margin-top: 20px;
         }
@@ -1724,7 +1724,7 @@ function scrollToFileInfo() {
     const fileInfoSection = document.getElementById('fileInfoSection');
     if (fileInfoSection) {
         setTimeout(() => {
-            fileInfoSection.scrollIntoView({ 
+            fileInfoSection.scrollIntoView({
                 behavior: 'smooth',
                 block: 'start'
             });
@@ -1735,8 +1735,6 @@ document.addEventListener('DOMContentLoaded', function() {
     {% if result %}
     scrollToFileInfo();
     {% endif %}
-    
-    
 });
 // Функция для проверки статуса операции
 function checkOperationStatus(operationId) {
