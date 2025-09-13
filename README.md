@@ -507,10 +507,10 @@ File Loading and Transaction Processing
 | Format preservation | Apply cell formatting in Google Sheets  | Currency, percentages, colors maintained | Works as expected |
 
 <details><summary>Income Detection. Expense Categories</summary>
-<img src="docs/testing/income_detection-expense_categories.JPG">
+<img src="docs/testing/income_detection-expense_categories.jpg">
 </details>
 <details><summary>Summary Worksheet Update</summary>
-<img src="docs/testing/summary_worksheet_update_.JPG">
+<img src="docs/testing/summary_worksheet_update_.jpg">
 </details>
 
 9. I want a user-friendly experience with clear feedback
