@@ -21,7 +21,6 @@ The application features both terminal-based visualization and Google Sheets int
   - [User Experience](#user-experience)
     - [Target Audience](#target-audience)
     - [User Requirements and Expectations](#user-requirements-and-expectations)
-    - [User Manual](#user-manual)
   - [User Stories](#user-stories)
     - [Users](#users)
     - [Site Owner](#site-owner)
@@ -35,7 +34,6 @@ The application features both terminal-based visualization and Google Sheets int
   - [Validation](#validation)
   - [Testing](#testing)
     - [Manual Testing](#manual-testing)
-    - [Automated Testing](#automated-testing)
   - [Bugs](#bugs)
   - [Deployment](#deployment)
   - [Credits](#credits)
@@ -349,6 +347,8 @@ VSCode was used to write the project code using Code Institute template
 ![Google Sheets Multi-Month Financial Summary](docs/features/summary_worksheet.jpg)
 </details>
 
+[Back to Table Of Contents](#table-of-contents)
+
 ### Validation & Error Handling
 The code includes basic error handling for:
 - Missing transaction files (`FileNotFoundError`)
@@ -363,6 +363,7 @@ The code includes basic error handling for:
 ![Validation & Error Handling](docs/features/no_valid_data_found_error.jpg)
 </details>
 
+[Back to Table Of Contents](#table-of-contents)
 
 #### Testing 
 ## Manual testing:
@@ -590,6 +591,8 @@ The application handles:
 
 The application meets all functional requirements and provides valuable financial insights through both terminal output and Google Sheets integration.
 
+[Back to Table Of Contents](#table-of-contents)
+
 ####  Deployment
 ## Local Deployment
 - Clone the repository
@@ -645,6 +648,7 @@ Maintained an updated requirements.txt file with all necessary dependencies:
 - Share the sheet with the service account email from your credentials `creds.json` file, giving it editor permissions.
 - User stories covered: 9
 
+[Back to Table Of Contents](#table-of-contents)
 
 ## Validation
 
