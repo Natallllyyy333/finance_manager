@@ -1736,7 +1736,7 @@ document.addEventListener('DOMContentLoaded', function() {
     scrollToFileInfo();
     {% endif %}
 });
-// Функция для проверки статуса операции
+// Function to check the status of the operation
 function checkOperationStatus(operationId) {
     fetch('/status/' + operationId)
         .then(response => response.json())
@@ -1745,14 +1745,14 @@ function checkOperationStatus(operationId) {
             if (statusElement) {
                 statusElement.textContent = data.status;
 
-                // Обновляем классы в зависимости от статуса
+                // Updating classes based on status
                 if (data.status.includes('✅')) {
                     statusElement.className = 'status status-success';
                 } else if (data.status.includes('❌')) {
                     statusElement.className = 'status status-error';
                 } else if (data.status.includes('⏳')) {
                     statusElement.className = 'status status-loading';
-                    // Продолжаем проверять статус каждые 5 секунд
+                    // We continue to check the status every 5 seconds.
                     setTimeout(() => checkOperationStatus(operationId), 5000);
                 } else if (data.status.includes('⚠️')) {
                     statusElement.className = 'status status-warning';
@@ -1764,7 +1764,7 @@ function checkOperationStatus(operationId) {
         });
 }
 
-// Запускаем проверку статуса при загрузке страницы
+// We are initiating a status check when the page loads.
 document.addEventListener('DOMContentLoaded', function() {
     checkOperationStatus('{{ operation_id }}');
 });

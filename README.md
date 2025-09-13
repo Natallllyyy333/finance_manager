@@ -384,13 +384,13 @@ File Loading and Transaction Processing
 | Invalid data rows	 | Process CSV with malformed rows | Invalid rows skipped, valid rows processed | Works as expected |
 
 <details><summary>Transactions loaded and categorized correctly Screenshot</summary>
-<img src="docs/testing/transactions_loaded_and_categorized_correctly.jpg">
+<img src="docs/testing/transactions_loaded_and_categorized_correctly_.jpg">
 </details>
 <details><summary>Processing Started Google Update in Background Screenshot</summary>
-<img src="docs/testing/processing_started_google_update_in_background.jpg">
+<img src="docs/testing/processing_started_google_update_in_background_.jpg">
 </details>
 <details><summary>No Valid Transactions Found in File Screenshot</summary>
-<img src="docs/testing/no_valid_data_found_error.jpg">
+<img src="docs/testing/no_valid_data_found_error_.jpg">
 </details>
 <details><summary>Invalid Rows Skipped Screenshot</summary>
 <img src="docs/testing/invalid_data_rows.jpg">
@@ -419,16 +419,16 @@ File Loading and Transaction Processing
 | Expense calculation | Process multiple expense transactions | Total expenses correctly summed | Works as expected |
 | Savings calculation | Calculate savings from income and expenses | Savings = Income - Expenses | Works as expected |
 | Daily averages | Calculate daily average expenses | Correct daily average calculation | Works as expected |
-| Daily Spending Analysis | Complete Daily Spending Analysiss | Correct Daily Spending Analysis | Works as expected |
+| Daily Spending Analysis | Complete Daily Spending Analysis | Correct Daily Spending Analysis | Works as expected |
 
 <details><summary>Month Financial Overview</summary>
-<img src="docs/testing/month_financial_overview.jpg">
+<img src="docs/testing/month_financial_overview_.jpg">
 </details>
 <details><summary>Terminal Expense Categories Output Screenshot</summary>
-<img src="docs/testing/terminal_expense_categories.jpg">
+<img src="docs/testing/terminal_expense_categories_.jpg">
 </details>
 <details><summary>Terminal Daily Spending Analysis Screenshot</summary>
-<img src="docs/testing/daily_spending_analysis.jpg">
+<img src="docs/testing/daily_spending_analysis_.jpg">
 </details>
 
 
@@ -441,13 +441,13 @@ File Loading and Transaction Processing
 | Daily norms comparison | Compare spending vs daily norms | Visual comparison with arrows and differences | Works as expected |
 
 <details><summary>Income, expenses, savings shown with visual bars</summary>
-<img src="docs/testing/month_financial_overview.jpg">
+<img src="docs/testing/month_financial_overview__.jpg">
 </details>
 <details><summary>Top expense categories displayed with visual bars</summary>
-<img src="docs/testing/terminal_expense_categories.jpg">
+<img src="docs/testing/terminal_expense_categories__.jpg">
 </details>
 <details><summary>Visual comparison with arrows and differences</summary>
-<img src="docs/testing/daily_spending_analysis.jpg">
+<img src="docs/testing/daily_spending_analysis__.jpg">
 </details>
 
 5. I want to receive personalized financial recommendations
@@ -459,10 +459,10 @@ File Loading and Transaction Processing
 | Fallback recommendations | Handle cases with no specific issues | General money-saving tips	 | Works as expected |
 
 <details><summary>Daily Spending Recommendations</summary>
-<img src="docs/testing/daily_spending_recommendations.jpg">
+<img src="docs/testing/daily_spending_recommendations_.jpg">
 </details>
 <details><summary>General Money-saving Recommendations</summary>
-<img src="docs/testing/daily_fallback_recommendations.jpg">
+<img src="docs/testing/daily_fallback_recommendations_.jpg">
 </details>
 
 6. I want to export my data to Google Sheets automatically
@@ -475,13 +475,13 @@ File Loading and Transaction Processing
 | Error handling | Simulate API connectivity issues	 | Graceful error messages, continued local operation | Works as expected |
 
 <details><summary>Month sheet created/updated and formated</summary>
-<img src="docs/testing/new_month_sheet_created.jpg">
+<img src="docs/testing/new_month_sheet_created_.jpg">
 </details>
 <details><summary>Summary worksheet updated and formated</summary>
-<img src="docs/testing/summary_worksheet_update.jpg">
+<img src="docs/testing/summary_worksheet_update_.jpg">
 </details>
 <details><summary>/No valid data found error</summary>
-<img src="docs/testing/no_valid_data_found_error.jpg">
+<img src="docs/testing/no_valid_data_found_error_.jpg">
 </details>
 
 7. I want the program to handle errors gracefully
@@ -493,7 +493,7 @@ File Loading and Transaction Processing
 | API rate limiting | Make multiple rapid API requests  | Sleep intervals prevent rate limiting | Works as expected |
 
 <details><summary>No valid data found error handled</summary>
-<img src="docs/testing/no_valid_data_found_error.jpg">
+<img src="docs/testing/no_valid_data_found_error_.jpg">
 </details>
 
 8. I want my exported data to be professionally formatted
@@ -509,7 +509,7 @@ File Loading and Transaction Processing
 <img src="docs/testing/income_detection-expense_categories.JPG">
 </details>
 <details><summary>Summary Worksheet Update</summary>
-<img src="docs/testing/summary_worksheet_update.JPG">
+<img src="docs/testing/summary_worksheet_update_.JPG">
 </details>
 
 9. I want a user-friendly experience with clear feedback
@@ -521,22 +521,22 @@ File Loading and Transaction Processing
 | Recommendation clarity | Generate financial advice  | Specific, measurable suggestions | Works as expected |
 
 <details><summary>Processing Financial Data, Google Sheet Update in Progress</summary>
-<img src="docs/testing/processing_started_google_update_in_background.jpg">
+<img src="docs/testing/processing_started_google_update_in_background_.jpg">
 </details>
 <details><summary>Month Sheet Updated. Updating Summary</summary>
-<img src="docs/testing/month_sheet_updated_updating_summary.jpg">
+<img src="docs/testing/month_sheet_updated_updating_summary_.jpg">
 </details>
 <details><summary>Google Sheets Updated Successfully</summary>
-<img src="docs/testing/google_sheets_updated_successfully.jpg">
+<img src="docs/testing/google_sheets_updated_successfully_.jpg">
 </details>
 <details><summary>Using File Name Message</summary>
-<img src="docs/testing/using_file_name_message.jpg">
+<img src="docs/testing/using_file_name_message_.jpg">
 </details>
 <details><summary>Clean formated Terminal Output with left-justified headers</summary>
-<img src="docs/testing/terminal_output.jpg">
+<img src="docs/testing/terminal_output_.jpg">
 </details>
 <details><summary>Terminal Daily Spending Recommendations</summary>
-<img src="docs/testing/daily_spending_recommendations.jpg">
+<img src="docs/testing/daily_spending_recommendations_.jpg">
 </details>
 <details><summary>Worksheet Daily Spending Recommendations</summary>
 <img src="docs/testing/worksheet_daily_spending_recommendations.jpg">
@@ -552,10 +552,10 @@ File Loading and Transaction Processing
 | Data separation | Handle monthly data  | Isolation between different months' data | Works as expected |
 
 <details><summary>Summary Worksheet Update</summary>
-<img src="docs/testing/summary_worksheet_update.jpg">
+<img src="docs/testing/summary_worksheet_update_.jpg">
 </details>
 <details><summary>Using File Name Message</summary>
-<img src="docs/testing/using_file_name_message.jpg">
+<img src="docs/testing/using_file_name_message_.jpg">
 </details>
 
 
@@ -598,47 +598,7 @@ The application meets all functional requirements and provides valuable financia
 - Place HSBC CSV files in the working directory
 - Run the application: python run.py
 
-#### Google Sheets Setup
-- Create a Google Sheet with ID
-- Add a worksheet named "SUMMARY"
-- Share the sheet with the service account email from your credentials `creds.json` file, giving it editor permissions.
-- User stories covered: 9
-
-
-## Validation
-
-[PEP8 Validation Service](http://pep8online.com/) was used to check the code for PEP8 requirements. All the code passes with no errors and no warnings to show.
-
-<details><summary>PEP3 check for run.py</summary>
-<img src="docs/validation/validator_pep8_testing.jpg">
-</details>
-
-
-## Testing
-### Manual Testing
-<details><summary>See user stories testing</summary>
-
-
-
-[Back to Table Of Contents](#table-of-contents)
-## Bugs
-
-| **Bug** | **Fix** |
-| ------- | ------- |
-|   Google Sheets timeout errors during large data uploads   | Implemented batch processing with 5-second delays between API calls and reduced batch size to 5 rows |
-| Status message not displaying during file processing | Added JavaScript event listeners to show/hide status elements and fixed CSS display properties |
-| CSV parsing errors with special characters and encoding | Added proper UTF-8 encoding handling and error-resistant line parsing with try-catch blocks |
-| Heroku deployment issues with temporary file storage | Implemented proper tempfile cleanup using shutil and automatic directory removal after processing |
-| Google API authentication failures in production | Created dual credential handling system for local development vs Heroku environment variables |
-| Month column detection failures in SUMMARY sheet | Enhanced header parsing logic with normalization and fallback empty column detection |
-| Percentage formatting errors in Google Sheets | Added explicit number formatting with PERCENT pattern and center alignment for percentage columns |
-| File upload validation issues | Implemented secure filename handling and proper file extension validation using Werkzeug |
-| Concurrent access issues with Google Sheets | Added threading for asynchronous operations to prevent blocking the main application thread |
-| Memory leaks with large CSV files | Optimized data processing with simplified datasets for large files and proper resource cleanup |
-
-## Deployment
-
-### Heroku
+## Heroku Deployment
 This application has been deployed from GitHub to Heroku by following the steps:
 
 1. Heroku App Creation
@@ -679,35 +639,39 @@ Maintained an updated requirements.txt file with all necessary dependencies:
 - Monitored build logs through Heroku's dashboard for any deployment issues
 - Verified successful deployment by checking application status
 
-8. Post-Deployment Verification
-8.1 Tested the live application functionality:
-- File upload capability
-- Google Sheets integration
-- Financial analysis processing
-- Response time and performance
-
-8.2 Verified that environment variables were properly loaded
-8.3 Confirmed that all third-party API connections were functioning correctly
-
-9. Monitoring and Maintenance
-- Set up Heroku logs for ongoing monitoring
-- Configured error tracking and performance monitoring
-- Established a process for regular updates and maintenance
+#### Google Sheets Setup
+- Create a Google Sheet with ID
+- Add a worksheet named "SUMMARY"
+- Share the sheet with the service account email from your credentials `creds.json` file, giving it editor permissions.
+- User stories covered: 9
 
 
-### Forking the GitHub Repository
-1. Go to the GitHub repository
-2. Click on Fork button in top right corner
-3. You will then have a copy of the repository in your own GitHub account.
-   
-### Making a Local Clone
-1. Go to the GitHub repository 
-2. Locate the Code button above the list of files and click it
-3. Highlight the "HTTPS" button to clone with HTTPS and copy the link
-4. Open Git Bash
-5. Change the current working directory to the one where you want the cloned directory
-6. Type git clone and paste the URL from the clipboard ($ git clone <span>https://</span>github.com/YOUR-USERNAME/YOUR-REPOSITORY)
-7. Press Enter to create your local clone
+## Validation
+
+[PEP8 Validation Service](http://pep8online.com/) was used to check the code for PEP8 requirements. All the code passes with no errors and no warnings to show.
+
+<details><summary>PEP3 check for run.py</summary>
+<img src="docs/validation/validator_pep8_testing.jpg">
+</details>
+
+
+[Back to Table Of Contents](#table-of-contents)
+## Bugs
+
+| **Bug** | **Fix** |
+| ------- | ------- |
+|   Google Sheets timeout errors during large data uploads   | Implemented batch processing with 5-second delays between API calls and reduced batch size to 5 rows |
+| Status message not displaying during file processing | Added JavaScript event listeners to show/hide status elements and fixed CSS display properties |
+| CSV parsing errors with special characters and encoding | Added proper UTF-8 encoding handling and error-resistant line parsing with try-catch blocks |
+| Heroku deployment issues with temporary file storage | Implemented proper tempfile cleanup using shutil and automatic directory removal after processing |
+| Google API authentication failures in production | Created dual credential handling system for local development vs Heroku environment variables |
+| Month column detection failures in SUMMARY sheet | Enhanced header parsing logic with normalization and fallback empty column detection |
+| Percentage formatting errors in Google Sheets | Added explicit number formatting with PERCENT pattern and center alignment for percentage columns |
+| File upload validation issues | Implemented secure filename handling and proper file extension validation using Werkzeug |
+| Concurrent access issues with Google Sheets | Added threading for asynchronous operations to prevent blocking the main application thread |
+| Memory leaks with large CSV files | Optimized data processing with simplified datasets for large files and proper resource cleanup |
+
+
 
 [Back to Table Of Contents](#table-of-contents)
 
