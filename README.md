@@ -200,9 +200,9 @@ VSCode was used to write the project code using Code Institute template
 - User stories covered: 1, 9
 
 <details>
-    <summary>CSV Transaction Loading Screenshot</summary>
+    <summary>CSV Transactions file Loaded and used</summary>
 
-![CSV Transaction Loading](docs/features/csv_transaction_loading.jpg)
+![CSV Transaction Loading](docs/features/using.jpg)
 </details>
 
 
@@ -262,9 +262,14 @@ VSCode was used to write the project code using Code Institute template
 - User stories covered: 6, 7, 8, 11, 12, 13
 
 <details>
-    <summary>Financial Data Analisys and Google Sheet Update in Progress</summary>
+    <summary>Month Sheet Updated, Updating Summary sheet Message Screenshot</summary>
 
-![Google Sheet Update in Progress](docs/features/google_sheet_update_in_progress.jpg)
+![Google Sheet Update in Progress](docs/features/month_sheet_updated_updating_summary.jpg)
+</details>
+<details>
+    <summary>Google Sheets Updated Successfully Message Screenshot</summary>
+
+![Google Sheet Update in Progress](docs/features/google_sheets_updated_successfully.jpg)
 </details>
 
 ### Google Sheets Financial Transactions Table
@@ -341,7 +346,7 @@ VSCode was used to write the project code using Code Institute template
 <details>
     <summary>Google Sheets Multi-Month Financial Summary</summary>
 
-![Google Sheets Multi-Month Financial Summary](docs/features/worksheet_month_summary.jpg)
+![Google Sheets Multi-Month Financial Summary](docs/features/summary_worksheet.jpg)
 </details>
 
 ### Validation & Error Handling
@@ -352,11 +357,6 @@ The code includes basic error handling for:
 
 - User stories covered: 1, 9, 12
 
-<details>
-    <summary>Successful Validation & Updating</summary>
-
-![Validation & Error Handling](docs/features/valid_data_found_updating.jpg)
-</details>
 <details>
     <summary>Validation & Error Handling</summary>
 
@@ -379,19 +379,20 @@ File Loading and Transaction Processing
 | **Feature**   | **Action**                    | **Expected Result**          | **Actual Result** |
 | ------------- | ----------------------------- | ---------------------------- | ----------------- |
 | CSV file loading	 | Provide valid HSBC CSV file | Transactions loaded and categorized correctly | Works as expected |
-| File not found | Provide non-existent filename | Error message displayed, program exits gracefully | Works as expected |
+| Processing started, Google sheets update in background	 |Processing and Update started message displayed | Transactions analysed, written into Google sheets, categorized correctly | Works as expected |
+| No valid transactions found in file | Provide non-valid transactions file name | Error message displayed, program exits gracefully | Works as expected |
 | Invalid data rows	 | Process CSV with malformed rows | Invalid rows skipped, valid rows processed | Works as expected |
 
-<details><summary>Screenshot</summary>
-<img src="docs/testing/terminal_expense_categorized.jpg">
+<details><summary>Transactions loaded and categorized correctly Screenshot</summary>
+<img src="docs/testing/transactions_loaded_and_categorized_correctly.jpg">
 </details>
-<details><summary>Screenshot</summary>
-<img src="docs/testing/google_sheet_update_in_progress.jpg">
+<details><summary>Processing Started Google Update in Background Screenshot</summary>
+<img src="docs/testing/processing_started_google_update_in_background.jpg">
 </details>
-<details><summary>Screenshot</summary>
+<details><summary>No Valid Transactions Found in File Screenshot</summary>
 <img src="docs/testing/no_valid_data_found_error.jpg">
 </details>
-<details><summary>Screenshot</summary>
+<details><summary>Invalid Rows Skipped Screenshot</summary>
 <img src="docs/testing/invalid_data_rows.jpg">
 </details>
 
@@ -403,10 +404,10 @@ File Loading and Transaction Processing
 | Expense and income categorization | Process various transaction descriptions | Correct category assignment based on keywords | Works as expected |
 | Unknown categories | Process transactions without matching keywords | Categorized as 'Other' | Works as expected |
 
-<details><summary>Screenshot</summary>
+<details><summary>Income Detection Screenshot</summary>
 <img src="docs/testing/income_detection.jpg">
 </details>
-<details><summary>Screenshot</summary>
+<details><summary>Expense and Income Categorization Screenshot</summary>
 <img src="docs/testing/income_detection-expense_categories.jpg">
 </details>
 
@@ -418,32 +419,34 @@ File Loading and Transaction Processing
 | Expense calculation | Process multiple expense transactions | Total expenses correctly summed | Works as expected |
 | Savings calculation | Calculate savings from income and expenses | Savings = Income - Expenses | Works as expected |
 | Daily averages | Calculate daily average expenses | Correct daily average calculation | Works as expected |
+| Daily Spending Analysis | Complete Daily Spending Analysiss | Correct Daily Spending Analysis | Works as expected |
 
 <details><summary>Month Financial Overview</summary>
 <img src="docs/testing/month_financial_overview.jpg">
 </details>
-<details><summary>Screenshot</summary>
-<img src="docs/testing/daily_spending_analysis.jpg">
-</details>
-<details><summary>Screenshot</summary>
+<details><summary>Terminal Expense Categories Output Screenshot</summary>
 <img src="docs/testing/terminal_expense_categories.jpg">
 </details>
+<details><summary>Terminal Daily Spending Analysis Screenshot</summary>
+<img src="docs/testing/daily_spending_analysis.jpg">
+</details>
+
 
 4. I want to visualize my finances with clear charts and graphs
 
 | **Feature**   | **Action**                    | **Expected Result**          | **Actual Result** |
 | ------------- | ----------------------------- | ---------------------------- | ----------------- |
 | Summary display | Process and display transactions | Income, expenses, savings shown with visual bars | Works as expected |
-| Category breakdown | Display multiple expense categories | Top categories displayed with visual bars | Works as expected |
+| Expense Category breakdown | Display multiple expense categories | Top expense categories displayed with visual bars | Works as expected |
 | Daily norms comparison | Compare spending vs daily norms | Visual comparison with arrows and differences | Works as expected |
 
-<details><summary>Screenshot</summary>
+<details><summary>Income, expenses, savings shown with visual bars</summary>
 <img src="docs/testing/month_financial_overview.jpg">
 </details>
-<details><summary>Screenshot</summary>
+<details><summary>Top expense categories displayed with visual bars</summary>
 <img src="docs/testing/terminal_expense_categories.jpg">
 </details>
-<details><summary>Screenshot</summary>
+<details><summary>Visual comparison with arrows and differences</summary>
 <img src="docs/testing/daily_spending_analysis.jpg">
 </details>
 
@@ -455,10 +458,10 @@ File Loading and Transaction Processing
 | Overspending alerts | Identify categories over daily norms | Specific recommendations for 10% over norm overspent categories	 | Works as expected |
 | Fallback recommendations | Handle cases with no specific issues | General money-saving tips	 | Works as expected |
 
-<details><summary>Screenshots</summary>
+<details><summary>Daily Spending Recommendations</summary>
 <img src="docs/testing/daily_spending_recommendations.jpg">
 </details>
-<details><summary>Screenshots</summary>
+<details><summary>General Money-saving Recommendations</summary>
 <img src="docs/testing/daily_fallback_recommendations.jpg">
 </details>
 
@@ -466,7 +469,7 @@ File Loading and Transaction Processing
 
 | **Feature**   | **Action**                    | **Expected Result**          | **Actual Result** |
 | ------------- | ----------------------------- | ---------------------------- | ----------------- |
-| Month Worksheet update | Process data for new month	 | New worksheet created automatically | Works as expected |
+| Month Worksheet create/update | Month Worksheet creation/update for new month	 | New worksheet created/updated automatically | Works as expected |
 | Data formatting | Export transactions to Google Sheets	 | Proper currency and percentage formatting | Works as expected |
 | Summary update | Update monthly data in SUMMARY sheet	 | Data written to SUMMARY sheet with proper columns | Works as expected |
 | Error handling | Simulate API connectivity issues	 | Graceful error messages, continued local operation | Works as expected |
@@ -502,7 +505,7 @@ File Loading and Transaction Processing
 | Financial summary | Update SUMMARY sheet with totals  | Totals and percentages calculated correctly | Works as expected |
 | Format preservation | Apply cell formatting in Google Sheets  | Currency, percentages, colors maintained | Works as expected |
 
-<details><summary>Income Detection Expense Categories</summary>
+<details><summary>Income Detection. Expense Categories</summary>
 <img src="docs/testing/income_detection-expense_categories.JPG">
 </details>
 <details><summary>Summary Worksheet Update</summary>
@@ -517,27 +520,28 @@ File Loading and Transaction Processing
 | Visual appeal | View terminal output  | Clean formatting with left-justified headers | Works as expected |
 | Recommendation clarity | Generate financial advice  | Specific, measurable suggestions | Works as expected |
 
-<details><summary>/Processing Financial Data, Google Sheet Update in Progress</summary>
-<img src="docs/testing/google_sheet_update_in_progress.jpg">
+<details><summary>Processing Financial Data, Google Sheet Update in Progress</summary>
+<img src="docs/testing/processing_started_google_update_in_background.jpg">
 </details>
-<details><summary>Screenshots</summary>
+<details><summary>Month Sheet Updated. Updating Summary</summary>
+<img src="docs/testing/month_sheet_updated_updating_summary.jpg">
+</details>
+<details><summary>Google Sheets Updated Successfully</summary>
+<img src="docs/testing/google_sheets_updated_successfully.jpg">
+</details>
+<details><summary>Using File Name Message</summary>
 <img src="docs/testing/using_file_name_message.jpg">
 </details>
-<details><summary>Screenshots</summary>
-<img src="docs/testing/summary_worksheet_update.jpg">
+<details><summary>Clean formated Terminal Output with left-justified headers</summary>
+<img src="docs/testing/terminal_output.jpg">
 </details>
-<details><summary>Screenshots</summary>
-<img src="docs/testing/new_month_sheet_created.jpg">
-</details>
-<details><summary>Screenshots</summary>
+<details><summary>Terminal Daily Spending Recommendations</summary>
 <img src="docs/testing/daily_spending_recommendations.jpg">
 </details>
-<details><summary>Screenshots</summary>
+<details><summary>Worksheet Daily Spending Recommendations</summary>
 <img src="docs/testing/worksheet_daily_spending_recommendations.jpg">
 </details>
-<details><summary>Screenshots</summary>
-<img src="docs/testing/analylis_completed_worksheets_updated_successfully.jpg">
-</details>
+
 
 10. I want to track my finances across multiple months
 
