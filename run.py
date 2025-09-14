@@ -2080,6 +2080,71 @@ document.addEventListener('DOMContentLoaded', function() {
         terminal.style.fontSize = '12px';
     }
 });
+document.addEventListener('DOMContentLoaded', function() {
+    const terminal = document.querySelector('.terminal');
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    if (terminal && isMobile) {
+        // Оптимизация для мобильных устройств
+        optimizeTerminalForMobile(terminal);
+    }
+});
+
+function optimizeTerminalForMobile(terminal) {
+    // Получаем размеры viewport
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    
+    // Вычисляем максимальную доступную ширину (минус отступы)
+    const maxWidth = Math.min(viewportWidth - 40, 800); // 40px отступы, макс 800px
+    
+    // Вычисляем оптимальную высоту (80% высоты экрана минус верхние элементы)
+    const headerHeight = document.querySelector('.header')?.offsetHeight || 100;
+    const formHeight = document.querySelector('.form-container')?.offsetHeight || 150;
+    const availableHeight = viewportHeight - headerHeight - formHeight - 50; // 50px дополнительный отступ
+    
+    // Применяем оптимальные размеры
+    terminal.style.width = '100%';
+    terminal.style.maxWidth = maxWidth + 'px';
+    terminal.style.maxHeight = Math.max(availableHeight, 300) + 'px'; // Минимум 300px
+    terminal.style.fontSize = viewportWidth < 400 ? '11px' : '12px';
+    terminal.style.lineHeight = '1.3';
+    terminal.style.overflowX = 'auto';
+    terminal.style.whiteSpace = 'pre-wrap';
+    terminal.style.wordBreak = 'break-word';
+    
+    console.log('📱 Mobile terminal optimized:', {
+        viewportWidth,
+        viewportHeight,
+        maxWidth,
+        availableHeight
+    });
+}
+
+// Также оптимизируем при изменении размера окна
+window.addEventListener('resize', function() {
+    const terminal = document.querySelector('.terminal');
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    if (terminal && isMobile) {
+        setTimeout(() => optimizeTerminalForMobile(terminal), 100);
+    }
+});
+
+// Оптимизация для горизонтальной ориентации
+function checkOrientation() {
+    const terminal = document.querySelector('.terminal');
+    if (terminal && window.innerWidth > window.innerHeight) {
+        // Ландшафтный режим - используем больше ширины
+        terminal.style.maxWidth = '90vw';
+        terminal.style.maxHeight = '80vh';
+    }
+}
+
+// Проверяем ориентацию при загрузке и изменении
+checkOrientation();
+window.addEventListener('orientationchange', checkOrientation);
+window.addEventListener('resize', checkOrientation);
 </script>
 
 </body>
