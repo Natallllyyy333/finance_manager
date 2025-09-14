@@ -2210,7 +2210,7 @@ function fixMobileLayout() {
     }
     
     if (isMobile && mainContainer) {
-        
+        mainContainer.style.width = '60%';
         mainContainer.style.maxWidth = '60%';
     }
 }
