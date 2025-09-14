@@ -1823,8 +1823,8 @@ HTML = """
             line-height: 1.3;
             padding: 8px;
 
-            width: 100vw !important;
-            max-width: 100vw !important;
+            width: 100% !important;
+            max-width: 100% !important;
             margin-left: -20px;
             margin-right: -20px;
             border-radius: 0;
