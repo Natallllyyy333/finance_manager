@@ -15,7 +15,7 @@ from gspread.utils import rowcol_to_a1
 from google.oauth2 import service_account
 from flask import Flask, request, render_template_string
 from werkzeug.utils import secure_filename
-from flask_wtf.csrf import CSRFProtect, generate_csrf
+from flask_wtf import CSRFProtect
 
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)
