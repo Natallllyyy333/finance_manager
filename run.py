@@ -1795,7 +1795,7 @@ HTML = """
     .main-container {
         width: 100%;
         max-width: 100%;
-        margin: 20px 0;
+        margin: 30px 0;
         border-radius: 15px;
         min-height: auto;
         display: flex;
@@ -1861,7 +1861,7 @@ HTML = """
     
     .main-container {
         border-radius: 10px;
-        margin: 15px 0;
+        margin: 20px 0;
         width: 100%;
     }
         .terminal {
