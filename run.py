@@ -1698,6 +1698,7 @@ HTML = """
             width: 700px;
             max-width: 95%;
             transition: all 0.3s ease;
+            margin: 0 auto;
         }
         .header {
             background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
@@ -1732,15 +1733,7 @@ HTML = """
             align-items: center;
             margin-bottom: 20px;
         }
-        /* Состояние при фокусе на любом поле ввода */
-        .input-group input:focus ~ .main-container,
-        .input-group input:valid ~ .main-container,
-        .form-container:has(input:focus) .main-container,
-        .form-container:has(input:valid) .main-container {
-            width: 90vw;
-            max-width: 90vw;
-            margin: 0 auto;
-        }
+        
         input[type="text"], input[type="file"] {
             padding: 14px 20px;
             border: 2px solid #e0e0e0;
@@ -1814,7 +1807,17 @@ HTML = """
         display: flex;
         flex-direction: column;
     }
+    .main-container {
+        width: 95% !important;
+        max-width: 95% !important;
+    }
     
+    .form-container:focus-within .main-container,
+    .main-container.expanded {
+        width: 95% !important;
+        max-width: 95% !important;
+    }
+}
     .content {
         flex: 1;
         display: flex;
@@ -2207,7 +2210,43 @@ window.addEventListener('resize', checkOrientation);
 
 
 
+// Управление шириной контейнера при вводе
+function setupContainerExpansion() {
+    const mainContainer = document.querySelector('.main-container');
+    const monthInput = document.querySelector('input[name="month"]');
+    const fileInput = document.querySelector('input[name="file"]');
+    
+    if (!mainContainer) return;
+    
+    function updateContainerState() {
+        const hasValue = monthInput.value || fileInput.files.length > 0;
+        const hasFocus = monthInput === document.activeElement;
+        
+        if (hasValue || hasFocus) {
+            mainContainer.classList.add('expanded');
+        } else {
+            mainContainer.classList.remove('expanded');
+        }
+    }
+    
+    // События для поля месяца
+    monthInput.addEventListener('focus', updateContainerState);
+    monthInput.addEventListener('blur', updateContainerState);
+    monthInput.addEventListener('input', updateContainerState);
+    
+    // События для поля файла
+    fileInput.addEventListener('focus', updateContainerState);
+    fileInput.addEventListener('blur', updateContainerState);
+    fileInput.addEventListener('change', updateContainerState);
+    
+    // Инициализация состояния
+    updateContainerState();
+}
 
+// Вызываем при загрузке
+document.addEventListener('DOMContentLoaded', function() {
+    setupContainerExpansion();
+});
 
 </script>
 
