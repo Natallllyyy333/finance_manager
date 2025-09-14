@@ -1811,9 +1811,7 @@ HTML = """
         flex-direction: column;
     }
 
-     .file-info {
-        display: none !important;
-    }
+    
 
 
 
@@ -1873,9 +1871,7 @@ HTML = """
         width: 100%;
     }
 
-     .file-info {
-        display: none !important;
-    }
+     
         .terminal {
             max-height: 90vh;
             min-height: 350px;
@@ -1980,7 +1976,7 @@ HTML = """
     </button>
 </div>
                 {% if filename %}
-                <div class="file-info anchor" id="fileInfoSection">
+                <div class="file-info" id="fileInfoSection">
                     📁 Using file: <strong>{{ filename }}</strong>
                 </div>
                 {% endif %}
