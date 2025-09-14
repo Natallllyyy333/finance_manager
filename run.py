@@ -1783,6 +1783,33 @@ HTML = """
             transition: all 0.3s ease;
         }
         @media (max-width: 768px) {
+
+        body {
+        padding: 10px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+    }
+    
+    .main-container {
+        width: 100%;
+        max-width: 100%;
+        margin: 0;
+        border-radius: 0;
+        min-height: auto;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+
+
         .terminal {
             max-height: 90vh; /* 80% высоты экрана */
             height: auto;
@@ -1827,6 +1854,16 @@ HTML = """
 
     /* Для очень маленьких экранов */
     @media (max-width: 480px) {
+
+     body {
+        padding: 5px;
+    }
+    
+    .main-container {
+        border-radius: 10px;
+        margin: 5px;
+        width: calc(100% - 10px);
+    }
         .terminal {
             max-height: 90vh;
             min-height: 350px;
@@ -2148,68 +2185,7 @@ window.addEventListener('resize', checkOrientation);
 
 
 
-// Защита от сдвига ТОЛЬКО на мобильных
-if (/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-    class ScrollProtector {
-        constructor() {
-            this.scrollPosition = 0;
-            this.isProtecting = true;
-            this.init();
-        }
-        
-        init() {
-            // Сохраняем позицию при скролле
-            window.addEventListener('scroll', () => {
-                if (this.isProtecting) {
-                    this.scrollPosition = window.scrollY;
-                }
-            });
-            
-            // Защита терминала
-            this.protectElement('resultsSection');
-            
-            console.log('🛡️ Mobile scroll protection activated');
-        }
-        
-        protectElement(elementId) {
-            const element = document.getElementById(elementId);
-            if (!element) return;
-            
-            // MutationObserver для отслеживания изменений
-            const observer = new MutationObserver(() => {
-                if (this.isProtecting) {
-                    window.scrollTo(0, this.scrollPosition);
-                }
-            });
-            
-            observer.observe(element, {
-                childList: true,
-                subtree: true,
-                characterData: true
-            });
-            
-            // Перехват innerHTML
-            const originalInnerHTML = Object.getOwnPropertyDescriptor(Element.prototype, 'innerHTML');
-            Object.defineProperty(element, 'innerHTML', {
-                set: (value) => {
-                    this.scrollPosition = window.scrollY;
-                    originalInnerHTML.set.call(element, value);
-                    setTimeout(() => {
-                        if (this.isProtecting) {
-                            window.scrollTo(0, this.scrollPosition);
-                        }
-                    }, 10);
-                },
-                get: originalInnerHTML.get
-            });
-        }
-    }
-    
-    // Запускаем защиту
-    document.addEventListener('DOMContentLoaded', () => {
-        new ScrollProtector();
-    });
-}
+
 
 </script>
 
