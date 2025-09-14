@@ -1788,6 +1788,17 @@ HTML = """
             font-size: 12px; /* Чуть меньший шрифт */
             line-height: 1.3;
             padding: 8px;
+
+            width: 100vw !important;
+            max-width: 100vw !important;
+            margin-left: -20px;
+            margin-right: -20px;
+            border-radius: 0;
+            border-left: none;
+            border-right: none;
+            padding: 12px;
+            font-size: 12px;
+            line-height: 1.3;
         }
         
         /* Дополнительно: уменьшите отступы на мобильных */
@@ -1795,6 +1806,17 @@ HTML = """
             padding: 15px;
         }
         
+         /* Чтобы контейнер не обрезал контент */
+        .main-container {
+            overflow-x: hidden;
+        }
+        
+        .content {
+            padding-left: 0;
+            padding-right: 0;
+        }
+    }
+
         .main-container {
             margin: 10px;
             width: 100%;
@@ -1806,6 +1828,11 @@ HTML = """
         .terminal {
             max-height: 75vh;
             font-size: 11px;
+
+            font-size: 11px;
+            padding: 10px;
+            margin-left: -15px;
+            margin-right: -15px;
         }
         
         input[type="text"], input[type="file"] {
@@ -1813,6 +1840,15 @@ HTML = """
             font-size: 14px; /* Увеличим для удобства касания */
         }
     }
+
+    /* Для горизонтальной ориентации */
+    @media (max-width: 768px) and (orientation: landscape) {
+        .terminal {
+            max-height: 60vh;
+            font-size: 11px;
+        }
+    }
+
         .terminal:empty {
             display: none !important;
         }
