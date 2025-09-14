@@ -1825,8 +1825,7 @@ HTML = """
 
             width: 100% !important;
             max-width: 100% !important;
-            margin-left: -20px;
-            margin-right: -20px;
+           
             border-radius: 0;
             border-left: none;
             border-right: none;
@@ -1879,8 +1878,7 @@ HTML = """
 
             
             padding: 10px;
-            margin-left: -15px;
-            margin-right: -15px;
+           
         }
         
         input[type="text"], input[type="file"] {
