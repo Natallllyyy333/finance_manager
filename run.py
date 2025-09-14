@@ -2249,8 +2249,8 @@ function setupMobileLayout() {
         inputs.forEach(input => {
             input.addEventListener('focus', () => {
             
-                mainContainer.style.width = '800px';
-                mainContainer.style.maxWidth = '800px';
+                mainContainer.style.width = '600px';
+                mainContainer.style.maxWidth = '600px';
             });
             
             input.addEventListener('blur', () => {
