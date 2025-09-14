@@ -15,12 +15,11 @@ from gspread.utils import rowcol_to_a1
 from google.oauth2 import service_account
 from flask import Flask, request, render_template_string
 from werkzeug.utils import secure_filename
-from flask_wtf.csrf import CSRFProtect, generate_csrf
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-123')
-csrf = CSRFProtect(app)
+
 OPERATION_STATUS = {}
 
 DAILY_NORMS = {
@@ -1640,7 +1639,7 @@ HTML = """
                 <form method="POST"
                 enctype="multipart/form-data"
                 id="uploadForm">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                
                     <div class="input-group">
                         <input type="text" name="month"
                         placeholder="Enter month (e.g. March, April)" required>
@@ -1873,7 +1872,7 @@ def index():
             filename=filename,
             status_message=status_message,
             operation_id=operation_id,
-            csrf_token=generate_csrf()
+            
         )
 
     except Exception as e:
