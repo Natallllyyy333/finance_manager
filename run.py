@@ -1785,7 +1785,7 @@ HTML = """
         @media (max-width: 768px) {
 
         body {
-        padding: 10px;
+        padding: 15px;
         display: flex;
         justify-content: center;
         align-items: center;
@@ -1796,7 +1796,7 @@ HTML = """
         width: 100%;
         max-width: 100%;
         margin: 20px 0;
-        border-radius: 0;
+        border-radius: 15px;
         min-height: auto;
         display: flex;
         flex-direction: column;
@@ -1840,29 +1840,22 @@ HTML = """
             overflow-x: hidden;
         }
         
-        .content {
-            padding-left: 0;
-            padding-right: 0;
-        }
+        
     }
 
-        .main-container {
-            margin: 10px;
-            width: 100%;
-        }
-    }
+        
 
     /* Для очень маленьких экранов */
     @media (max-width: 480px) {
 
      body {
-        padding: 5px;
+        padding: 10px;
     }
     
     .main-container {
         border-radius: 10px;
         margin: 15px 0;
-        width: calc(100% - 10px);
+        width: 100%;
     }
         .terminal {
             max-height: 90vh;
