@@ -15,9 +15,12 @@ from gspread.utils import rowcol_to_a1
 from google.oauth2 import service_account
 from flask import Flask, request, render_template_string
 from werkzeug.utils import secure_filename
+from flask_wtf.csrf import CSRFProtect, generate_csrf
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 app = Flask(__name__)
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-123')
+csrf = CSRFProtect(app)
 OPERATION_STATUS = {}
 
 DAILY_NORMS = {
@@ -1194,6 +1197,8 @@ def load_transactions(file_path_or_object):
         # Handle both file objects and file paths
         if hasattr(file_path_or_object, "read"):
             # File object - read content
+            # Rewind file to beginning for mobile devices
+            file_path_or_object.seek(0)
             content = file_path_or_object.read()
             if isinstance(content, bytes):
                 content = content.decode("utf-8")
@@ -1635,6 +1640,7 @@ HTML = """
                 <form method="POST"
                 enctype="multipart/form-data"
                 id="uploadForm">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <div class="input-group">
                         <input type="text" name="month"
                         placeholder="Enter month (e.g. March, April)" required>
@@ -1787,6 +1793,11 @@ def index():
     try:
         if request.method == "POST":
             print("📨 POST request received")
+            # Mobile device detection and delay
+            user_agent = request.headers.get('User-Agent', '').lower()
+            if 'android' in user_agent or 'mobile' in user_agent:
+                print("📱 Mobile device detected - adding delay")
+                time.sleep(2)  # 2 second delay for mobile devices
             month = request.form["month"].strip().lower()
             print(f"📅 Month: {month}")
 
@@ -1862,6 +1873,7 @@ def index():
             filename=filename,
             status_message=status_message,
             operation_id=operation_id,
+            csrf_token=generate_csrf()
         )
 
     except Exception as e:
