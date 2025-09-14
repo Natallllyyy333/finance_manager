@@ -1861,13 +1861,12 @@ HTML = """
 
             
             padding: 10px;
-            margin: 0 !important;
+            margin-left: -15px;
+            margin-right: -15px;
         }
         
         input[type="text"], input[type="file"] {
             font-size: 14px; /* Увеличим для удобства касания */
-            width: 100%; 
-            max-width: 280px; 
         }
         
     }
