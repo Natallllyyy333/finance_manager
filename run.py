@@ -1848,7 +1848,7 @@ HTML = """
             padding-right: 0;
         }
          .anchor {
-            scroll-margin-top: 0;
+            scroll-margin-top: 50px;
         }
     }
 
@@ -1882,10 +1882,10 @@ HTML = """
         }
         
         input[type="text"], input[type="file"] {
-            font-size: 12px; /* Увеличим для удобства касания */
+            font-size: 14px; /* Увеличим для удобства касания */
         }
          .anchor {
-            scroll-margin-top: 0;
+            scroll-margin-top: 50px;
         }
     }
 
