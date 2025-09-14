@@ -37,10 +37,34 @@ ALLOWED_EXTENSIONS = {"csv"}
 
 
 def allowed_file(filename):
-    return ('.' in filename and 
-            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS and
-            not filename.startswith('.') and  # Запретить скрытые файлы
-            len(filename) < 100)  # Ограничение длины имени
+    """
+    Проверяет, что файл имеет допустимое расширение и имя.
+    Возвращает True если файл допустим, False в противном случае.
+    """
+    # Проверяем основные условия
+    if not filename or not isinstance(filename, str):
+        return False
+    
+    # Запрещаем скрытые файлы (начинающиеся с точки)
+    if filename.startswith('.'):
+        return False
+    
+    # Проверяем наличие точки в имени файла
+    if '.' not in filename:
+        return False
+    
+    # Проверяем длину имени файла (не более 100 символов)
+    if len(filename) > 100:
+        return False
+    
+    # Извлекаем расширение и проверяем его
+    try:
+        extension = filename.rsplit('.', 1)[1].lower()
+    except IndexError:
+        return False
+    
+    # Проверяем, что расширение в списке допустимых
+    return extension in ALLOWED_EXTENSIONS  # Ограничение длины имени
 
 
 def get_google_credentials():
@@ -1271,6 +1295,88 @@ def write_to_target_sheet(table_data, month_name):
 #         return [], defaultdict(lambda: defaultdict(float))
 
 #     return transactions, daily_categories
+# def load_transactions(file_path_or_object):
+#     """Load transactions from uploaded file with proper CSV parsing"""
+#     transactions = []
+#     daily_categories = defaultdict(lambda: defaultdict(float))
+
+#     try:
+#         # Handle both file objects and file paths
+#         if hasattr(file_path_or_object, "read"):
+#             # File object - rewind to beginning and read content
+#             file_path_or_object.seek(0)
+            
+#             # Read content in chunks for large files
+#             content = b''
+#             while True:
+#                 chunk = file_path_or_object.read(8192)  # 8KB chunks
+#                 if not chunk:
+#                     break
+#                 content += chunk
+            
+#             if isinstance(content, bytes):
+#                 content = content.decode("utf-8")
+#             lines = content.split("\n")
+#         else:
+#             # File path
+#             with open(file_path_or_object, "r", encoding="utf-8") as file:
+#                 lines = file.readlines()
+
+#         # Parse CSV lines
+#         for line in lines:
+#             line = line.strip()
+#             if line and not line.startswith(("#", "Date")):
+#                 try:
+#                     parts = line.split(",")
+#                     if len(parts) >= 5:
+#                         # Parse date (assuming format: "31 Mar 2025")
+#                         date_str = parts[0].strip()
+#                         description = parts[1].strip()
+#                         amount = float(parts[2].strip())
+#                         currency = parts[3].strip()
+#                         transaction_type = parts[4].strip().lower()
+
+#                         # Convert date to standard format
+#                         try:
+#                             date_obj = datetime.strptime(date_str, "%d %b %Y")
+#                         except ValueError:
+#                             print(f"Warning: Error parsing date '{date_str}' - skipping")
+#                             continue
+
+#                         date_formatted = date_obj.strftime("%Y-%m-%d")
+
+#                         # Categorize
+#                         category = categorize(description)
+
+#                         transaction = {
+#                             "date": date_formatted,
+#                             "desc": description[:30],
+#                             "amount": amount,
+#                             "type": (
+#                                 "income"
+#                                 if transaction_type == "credit"
+#                                 else "expense"
+#                             ),
+#                             "category": category,
+#                         }
+
+#                         transactions.append(transaction)
+
+#                         # Track daily categories for expenses
+#                         if transaction_type != "credit":
+#                             daily = daily_categories[date_formatted]
+#                             daily[category] += amount
+
+#                 except (ValueError, IndexError) as e:
+#                     print(f"Warning: Error parsing line '{line}' - {e}")
+#                     continue
+
+#     except Exception as e:
+#         print(f"Error loading transactions: {e}")
+#         return [], defaultdict(lambda: defaultdict(float))
+
+#     return transactions, daily_categories
+
 def load_transactions(file_path_or_object):
     """Load transactions from uploaded file with proper CSV parsing"""
     transactions = []
@@ -1279,10 +1385,10 @@ def load_transactions(file_path_or_object):
     try:
         # Handle both file objects and file paths
         if hasattr(file_path_or_object, "read"):
-            # File object - rewind to beginning and read content
+            # File object - rewind to beginning for mobile devices
             file_path_or_object.seek(0)
             
-            # Read content in chunks for large files
+            # Read content in chunks for better memory handling
             content = b''
             while True:
                 chunk = file_path_or_object.read(8192)  # 8KB chunks
@@ -1291,68 +1397,89 @@ def load_transactions(file_path_or_object):
                 content += chunk
             
             if isinstance(content, bytes):
-                content = content.decode("utf-8")
-            lines = content.split("\n")
+                try:
+                    content = content.decode("utf-8")
+                except UnicodeDecodeError:
+                    # Try other encodings if UTF-8 fails
+                    try:
+                        content = content.decode("latin-1")
+                    except:
+                        print("❌ Error decoding file content")
+                        return [], defaultdict(lambda: defaultdict(float))
+            
+            lines = content.splitlines()
         else:
             # File path
-            with open(file_path_or_object, "r", encoding="utf-8") as file:
-                lines = file.readlines()
+            try:
+                with open(file_path_or_object, "r", encoding="utf-8") as file:
+                    lines = file.readlines()
+            except UnicodeDecodeError:
+                # Try other encodings
+                try:
+                    with open(file_path_or_object, "r", encoding="latin-1") as file:
+                        lines = file.readlines()
+                except Exception as e:
+                    print(f"❌ Error reading file: {e}")
+                    return [], defaultdict(lambda: defaultdict(float))
 
         # Parse CSV lines
-        for line in lines:
+        for line_num, line in enumerate(lines, 1):
             line = line.strip()
-            if line and not line.startswith(("#", "Date")):
+            if line and not line.startswith(("#", "Date", "Date,")):
                 try:
-                    parts = line.split(",")
-                    if len(parts) >= 5:
-                        # Parse date (assuming format: "31 Mar 2025")
-                        date_str = parts[0].strip()
-                        description = parts[1].strip()
-                        amount = float(parts[2].strip())
-                        currency = parts[3].strip()
-                        transaction_type = parts[4].strip().lower()
+                    # More robust CSV parsing
+                    parts = [part.strip() for part in line.split(',')]
+                    if len(parts) < 5:
+                        continue
 
-                        # Convert date to standard format
-                        try:
-                            date_obj = datetime.strptime(date_str, "%d %b %Y")
-                        except ValueError:
-                            print(f"Warning: Error parsing date '{date_str}' - skipping")
-                            continue
+                    # Parse date (assuming format: "31 Mar 2025")
+                    date_str = parts[0]
+                    description = parts[1]
+                    
+                    try:
+                        amount = float(parts[2])
+                    except ValueError:
+                        continue
+                    
+                    currency = parts[3]
+                    transaction_type = parts[4].lower()
 
+                    # Convert date to standard format
+                    try:
+                        date_obj = datetime.strptime(date_str, "%d %b %Y")
                         date_formatted = date_obj.strftime("%Y-%m-%d")
+                    except ValueError:
+                        # Try other date formats if needed
+                        continue
 
-                        # Categorize
-                        category = categorize(description)
+                    # Categorize
+                    category = categorize(description)
 
-                        transaction = {
-                            "date": date_formatted,
-                            "desc": description[:30],
-                            "amount": amount,
-                            "type": (
-                                "income"
-                                if transaction_type == "credit"
-                                else "expense"
-                            ),
-                            "category": category,
-                        }
+                    transaction = {
+                        "date": date_formatted,
+                        "desc": description[:30],
+                        "amount": amount,
+                        "type": "income" if transaction_type == "credit" else "expense",
+                        "category": category,
+                    }
 
-                        transactions.append(transaction)
+                    transactions.append(transaction)
 
-                        # Track daily categories for expenses
-                        if transaction_type != "credit":
-                            daily = daily_categories[date_formatted]
-                            daily[category] += amount
+                    # Track daily categories for expenses
+                    if transaction_type != "credit":
+                        daily = daily_categories[date_formatted]
+                        daily[category] += amount
 
                 except (ValueError, IndexError) as e:
-                    print(f"Warning: Error parsing line '{line}' - {e}")
+                    print(f"⚠️ Warning: Error parsing line {line_num}: {e}")
                     continue
 
     except Exception as e:
-        print(f"Error loading transactions: {e}")
+        print(f"❌ Error loading transactions: {e}")
         return [], defaultdict(lambda: defaultdict(float))
 
+    print(f"✅ Loaded {len(transactions)} transactions")
     return transactions, daily_categories
-
 
 def get_operation_status(
     analysis_success, month_sheet_success, summary_sheet_success
@@ -1889,33 +2016,55 @@ def index():
     try:
         if request.method == "POST":
             print("📨 POST request received")
+
+            
             # Mobile device detection and delay
             user_agent = request.headers.get('User-Agent', '').lower()
             if 'android' in user_agent or 'mobile' in user_agent:
                 print("📱 Mobile device detected - adding delay")
                 time.sleep(3)  # 3 second delay for mobile devices
-            month = request.form["month"].strip().lower()
+            
+            month = request.form.get("month", "").strip().lower()
+            if not month:
+                return render_template_string(
+                    HTML, result="Month is required", status_message="❌ Please enter a month"
+                )
+
             print(f"📅 Month: {month}")
 
             if "file" not in request.files:
                 return render_template_string(
-                    HTML, result="No file uploaded", month=month
-                )
-            
-            if not request.files.get('file'):
-                return render_template_string(
-                    HTML, 
-                    result="Upload was interrupted - please try again",
-                    status_message="❌ Upload failed"
+                    HTML, result="No file uploaded", status_message="❌ No file selected"
                 )
 
             file = request.files["file"]
             if file.filename == "":
                 return render_template_string(
-                    HTML, result="No file selected", month=month
+                    HTML, result="No file selected", status_message="❌ Please select a file"
                 )
 
-            if file and allowed_file(file.filename):
+            # Enhanced file validation
+            if not file or not allowed_file(file.filename):
+                return render_template_string(
+                    HTML, 
+                    result="Invalid file type. Please upload a CSV file.", 
+                    status_message="❌ Invalid file type"
+                )
+
+            # Check file size (max 10MB)
+            file.seek(0, 2)  # Seek to end to get size
+            file_size = file.tell()
+            file.seek(0)  # Reset to beginning
+            
+            if file_size > 10 * 1024 * 1024:  # 10MB limit
+                return render_template_string(
+                    HTML,
+                    result="File too large. Maximum size is 10MB.",
+                    status_message="❌ File too large"
+                )
+
+
+                
                 try:
                     filename = secure_filename(file.filename)
                     # Create temporary file for processing
