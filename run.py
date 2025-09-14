@@ -44,25 +44,25 @@ def allowed_file(filename):
     # Проверяем основные условия
     if not filename or not isinstance(filename, str):
         return False
-    
+
     # Запрещаем скрытые файлы (начинающиеся с точки)
     if filename.startswith('.'):
         return False
-    
+
     # Проверяем наличие точки в имени файла
     if '.' not in filename:
         return False
-    
+
     # Проверяем длину имени файла (не более 100 символов)
     if len(filename) > 100:
         return False
-    
+
     # Извлекаем расширение и проверяем его
     try:
         extension = filename.rsplit('.', 1)[1].lower()
     except IndexError:
         return False
-    
+
     # Проверяем, что расширение в списке допустимых
     return extension in ALLOWED_EXTENSIONS  # Ограничение длины имени
 
@@ -1305,7 +1305,7 @@ def write_to_target_sheet(table_data, month_name):
 #         if hasattr(file_path_or_object, "read"):
 #             # File object - rewind to beginning and read content
 #             file_path_or_object.seek(0)
-            
+
 #             # Read content in chunks for large files
 #             content = b''
 #             while True:
@@ -1313,7 +1313,7 @@ def write_to_target_sheet(table_data, month_name):
 #                 if not chunk:
 #                     break
 #                 content += chunk
-            
+
 #             if isinstance(content, bytes):
 #                 content = content.decode("utf-8")
 #             lines = content.split("\n")
@@ -1387,7 +1387,7 @@ def load_transactions(file_path_or_object):
         if hasattr(file_path_or_object, "read"):
             # File object - rewind to beginning for mobile devices
             file_path_or_object.seek(0)
-            
+
             # Read content in chunks for better memory handling
             content = b''
             while True:
@@ -1395,7 +1395,7 @@ def load_transactions(file_path_or_object):
                 if not chunk:
                     break
                 content += chunk
-            
+
             if isinstance(content, bytes):
                 try:
                     content = content.decode("utf-8")
@@ -1406,7 +1406,7 @@ def load_transactions(file_path_or_object):
                     except:
                         print("❌ Error decoding file content")
                         return [], defaultdict(lambda: defaultdict(float))
-            
+
             lines = content.splitlines()
         else:
             # File path
@@ -1435,12 +1435,12 @@ def load_transactions(file_path_or_object):
                     # Parse date (assuming format: "31 Mar 2025")
                     date_str = parts[0]
                     description = parts[1]
-                    
+
                     try:
                         amount = float(parts[2])
                     except ValueError:
                         continue
-                    
+
                     currency = parts[3]
                     transaction_type = parts[4].lower()
 
@@ -1480,6 +1480,7 @@ def load_transactions(file_path_or_object):
 
     print(f"✅ Loaded {len(transactions)} transactions")
     return transactions, daily_categories
+
 
 def get_operation_status(
     analysis_success, month_sheet_success, summary_sheet_success
@@ -1798,11 +1799,12 @@ HTML = """
     .main-container {
         width: 95% !important;
         max-width: 95% !important;
-        margin: 50px 0;
+        margin: 30px 0;
         border-radius: 15px;
         min-height: auto;
         display: flex;
         flex-direction: column;
+        overflow: hidden;
     }
     
     .content {
@@ -1813,15 +1815,12 @@ HTML = """
         padding-right: 15px !important;
     }
         .terminal {
-            max-height: 90vh; /* 80% высоты экрана */
+            max-height: 90vh; 
             height: auto;
             min-height: 400px; /* Минимальная высота */
             font-size: 12px; /* Чуть меньший шрифт */
             line-height: 1.3;
             padding: 8px;           
-            font-size: 12px;
-            line-height: 1.3;
-
             width: 100% !important;
             max-width: 100% !important;
             margin-left: 0 !important;
@@ -1838,13 +1837,7 @@ HTML = """
         
        
          
-    }
-
-        .main-container {
-           
-            width: 100%;
-        }
-    }
+   
 
     /* Для очень маленьких экранов */
     @media (max-width: 480px) {
@@ -1854,9 +1847,10 @@ HTML = """
     }
     
     .main-container {
-        border-radius: 10px;
-        margin: 30px 0;
+        border-radius: 12px;
+        margin: 20px 0;
         width: 100%;
+        max-width: 100%;
     }
 
      
@@ -1867,12 +1861,13 @@ HTML = """
 
             
             padding: 10px;
-            margin-left: -15px;
-            margin-right: -15px;
+            margin: 0 !important;
         }
         
         input[type="text"], input[type="file"] {
             font-size: 14px; /* Увеличим для удобства касания */
+            width: 100%; 
+            max-width: 280px; 
         }
         
     }
@@ -2205,15 +2200,14 @@ def index():
         if request.method == "POST":
             print("📨 POST request received")
 
-            
             # Mobile device detection and delay
             user_agent = request.headers.get('User-Agent', '').lower()
             if 'android' in user_agent or 'mobile' in user_agent:
                 print("📱 Mobile device detected - adding delay")
                 time.sleep(3)  # 3 second delay for mobile devices
-            
+
             month = request.form.get("month", "").strip().lower()
-            
+
             if not month:
                 return render_template_string(
                     HTML, result="Month is required", status_message="❌ Please enter a month"
@@ -2235,17 +2229,16 @@ def index():
             # Enhanced file validation
             if not file or not allowed_file(file.filename):
                 return render_template_string(
-                    HTML, 
-                    result="Invalid file type. Please upload a CSV file.", 
+                    HTML,
+                    result="Invalid file type. Please upload a CSV file.",
                     status_message="❌ Invalid file type"
                 )
-            
 
             # Check file size (max 10MB)
             file.seek(0, 2)  # Seek to end to get size
             file_size = file.tell()
             file.seek(0)  # Reset to beginning
-            
+
             if file_size > 10 * 1024 * 1024:  # 10MB limit
                 return render_template_string(
                     HTML,
@@ -2257,9 +2250,9 @@ def index():
             print(f"📄 Content type: {file.content_type}")
             print(f"✅ Allowed check: {allowed_file(file.filename)}")
 
-            if file and (allowed_file(file.filename) or 
-                        file.filename.lower().endswith('.csv') or 
-                        file.content_type in ['text/csv', 'application/vnd.ms-excel', 'text/plain']):
+            if file and (allowed_file(file.filename) or
+                         file.filename.lower().endswith('.csv') or
+                         file.content_type in ['text/csv', 'application/vnd.ms-excel', 'text/plain']):
                 print("✅ File accepted for processing")
             if file and allowed_file(file.filename):
                 # ← ВСТАВЬТЕ ЗДЕСЬ
@@ -2267,8 +2260,6 @@ def index():
                 print(f"📏 File size: {file_size} bytes")
                 print(f"🔍 File content type: {file.content_type}")
 
-
-                
                 try:
                     filename = secure_filename(file.filename)
                     # Create temporary file for processing
@@ -2329,7 +2320,7 @@ def index():
             filename=filename,
             status_message=status_message,
             operation_id=operation_id,
-            
+
         )
 
     except Exception as e:
