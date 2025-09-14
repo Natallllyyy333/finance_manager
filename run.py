@@ -1697,6 +1697,7 @@ HTML = """
             overflow: hidden;
             width: 700px;
             max-width: 95%;
+            transition: all 0.3s ease;
         }
         .header {
             background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
@@ -1730,6 +1731,15 @@ HTML = """
             justify-content: center;
             align-items: center;
             margin-bottom: 20px;
+        }
+        /* Состояние при фокусе на любом поле ввода */
+        .input-group input:focus ~ .main-container,
+        .input-group input:valid ~ .main-container,
+        .form-container:has(input:focus) .main-container,
+        .form-container:has(input:valid) .main-container {
+            width: 90%;
+            max-width: 90%;
+            margin: 0 auto;
         }
         input[type="text"], input[type="file"] {
             padding: 14px 20px;
@@ -2068,7 +2078,7 @@ function scrollToFileInfo() {
     
     // Если это мобильное устройство - выходим из функции
     if (isMobile) return;
-    
+
     const fileInfoSection = document.getElementById('fileInfoSection');
     if (fileInfoSection) {
         setTimeout(() => {
