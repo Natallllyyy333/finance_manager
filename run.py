@@ -2211,7 +2211,7 @@ function fixMobileLayout() {
     
     if (isMobile && mainContainer) {
         mainContainer.style.width = '95%';
-        mainContainer.style.maxWidth = '95%';
+        mainContainer.style.maxWidth = '80%';
     }
 }
 
