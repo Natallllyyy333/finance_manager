@@ -1809,8 +1809,8 @@ HTML = """
     }
     
  .main-container.expanded {
-    width: 95% !important;
-    max-width: 95% !important;
+    width: 95vw !important;
+    max-width: 95vw !important;
     
 }   
    
