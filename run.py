@@ -1809,11 +1809,7 @@ HTML = """
     }
     
     
-    .form-container:focus-within .main-container,
-    .main-container.expanded {
-        width: 95% !important;
-        max-width: 95% !important;
-    }
+   
 }
     .content {
         flex: 1;
