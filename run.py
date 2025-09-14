@@ -1796,8 +1796,8 @@ HTML = """
     }
     
     .main-container {
-        width: 100%;
-        max-width: 100%;
+        width: 95% !important;
+        max-width: 95% !important;
         margin: 50px 0;
         border-radius: 15px;
         min-height: auto;
@@ -1809,30 +1809,25 @@ HTML = """
         flex: 1;
         display: flex;
         flex-direction: column;
+        padding-left: 15px !important;
+        padding-right: 15px !important;
     }
-
-    
-
-
-
         .terminal {
             max-height: 90vh; /* 80% высоты экрана */
             height: auto;
             min-height: 400px; /* Минимальная высота */
             font-size: 12px; /* Чуть меньший шрифт */
             line-height: 1.3;
-            padding: 8px;
-
-            width: 100vw !important;
-            max-width: 100vw !important;
-            margin-left: -20px;
-            margin-right: -20px;
-            border-radius: 0;
-            border-left: none;
-            border-right: none;
-            
+            padding: 8px;           
             font-size: 12px;
             line-height: 1.3;
+
+            width: 100% !important;
+            max-width: 100% !important;
+            margin-left: 0 !important;
+            margin-right: 0 !important;
+            border-radius: 8px !important;
+            border: 2px solid #667eea !important;
         }
         
         /* Дополнительно: уменьшите отступы на мобильных */
@@ -1840,15 +1835,8 @@ HTML = """
             padding: 15px;
         }
         
-         /* Чтобы контейнер не обрезал контент */
-        .main-container {
-            overflow-x: hidden;
-        }
         
-        .content {
-            padding-left: 0;
-            padding-right: 0;
-        }
+       
          
     }
 
@@ -1883,7 +1871,9 @@ HTML = """
             margin-right: -15px;
         }
         
-       
+        input[type="text"], input[type="file"] {
+            font-size: 14px; /* Увеличим для удобства касания */
+        }
         
     }
 
