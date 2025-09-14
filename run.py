@@ -1782,6 +1782,9 @@ HTML = """
             scroll-margin-top: 20px;
             transition: all 0.3s ease;
         }
+         .anchor {
+            scroll-margin-top: 20px;
+        }
         @media (max-width: 768px) {
 
         body {
@@ -1844,6 +1847,9 @@ HTML = """
             padding-left: 0;
             padding-right: 0;
         }
+         .anchor {
+            scroll-margin-top: 0;
+        }
     }
 
         .main-container {
@@ -1876,7 +1882,10 @@ HTML = """
         }
         
         input[type="text"], input[type="file"] {
-            font-size: 14px; /* Увеличим для удобства касания */
+            font-size: 12px; /* Увеличим для удобства касания */
+        }
+         .anchor {
+            scroll-margin-top: 0;
         }
     }
 
@@ -1938,7 +1947,7 @@ HTML = """
             align-items: center;
             margin: 15px 0;
         }
-        
+       
     </style>
 </head>
 <body>
