@@ -1883,9 +1883,7 @@ HTML = """
             margin-right: -15px;
         }
         
-        input[type="text"], input[type="file"] {
-            font-size: 14px; /* Увеличим для удобства касания */
-        }
+       
         
     }
 
