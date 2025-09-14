@@ -1807,10 +1807,7 @@ HTML = """
         display: flex;
         flex-direction: column;
     }
-    .main-container {
-        width: 95% !important;
-        max-width: 95% !important;
-    }
+    
     
     .form-container:focus-within .main-container,
     .main-container.expanded {
