@@ -1846,7 +1846,7 @@ HTML = """
     /* Для горизонтальной ориентации */
     @media (max-width: 768px) and (orientation: landscape) {
         .terminal {
-            max-height: 60vh;
+            
             height: auto;
             font-size: 11px;
         }
