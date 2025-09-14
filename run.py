@@ -15,8 +15,7 @@ from gspread.utils import rowcol_to_a1
 from google.oauth2 import service_account
 from flask import Flask, request, render_template_string
 from werkzeug.utils import secure_filename
-from flask_wtf import CSRFProtect
-
+from flask_wtf.csrf import CSRFProtect, generate_csrf
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 app = Flask(__name__)
@@ -1874,7 +1873,7 @@ def index():
             filename=filename,
             status_message=status_message,
             operation_id=operation_id,
-            srf_token=csrf.generate_csrf_token()
+            csrf_token=generate_csrf()
         )
 
     except Exception as e:
