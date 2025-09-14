@@ -1799,8 +1799,8 @@ HTML = """
     }
     
     .main-container {
-        width: 95%;
-        max-width: 95%;
+        width: 95vw;
+        max-width: 95vw;
         margin: 30px 0;
         border-radius: 15px;
         min-height: auto;
@@ -1867,13 +1867,13 @@ HTML = """
     
     .main-container {
         
-        max-width: 95% !important;
+        max-width: 96vw !important;
         margin: 20px 0;
         border-radius: 12px;
     }
     .main-container.expanded {
-        width: 100% !important;
-        max-width: 100% !important;
+        width: 97vw !important;
+        max-width: 97vw !important;
     }
 
      
