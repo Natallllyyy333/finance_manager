@@ -2216,7 +2216,7 @@ function setupContainerExpansion() {
     const fileInput = document.querySelector('input[name="file"]');
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     
-    if (!mainContainer || isMobile) return; // Не применяем к мобильным
+   
     
     function updateContainerState() {
         const hasValue = monthInput.value || fileInput.files.length > 0;
