@@ -1808,7 +1808,11 @@ HTML = """
         flex-direction: column;
     }
     
-    
+ .main-container.expanded {
+    width: 90%;
+    max-width: 90%;
+    margin: 0 auto;
+}   
    
 }
     .content {
@@ -1873,7 +1877,7 @@ HTML = """
     
     .main-container {
         border-radius: 10px;
-        margin: 30px 0;
+       
         width: 100%;
     }
 
