@@ -1833,13 +1833,9 @@ HTML = """
             line-height: 1.3;
             padding: 8px;
 
-            width: 100vw !important;
+            
             max-width: 100vw !important;
-            margin-left: -20px;
-            margin-right: -20px;
-            border-radius: 0;
-            border-left: none;
-            border-right: none;
+          
             
             font-size: 12px;
             line-height: 1.3;
@@ -1855,10 +1851,7 @@ HTML = """
             overflow-x: hidden;
         }
         
-        .content {
-            padding-left: 0;
-            padding-right: 0;
-        }
+       
          
     }
 
@@ -1873,8 +1866,8 @@ HTML = """
     }
     
     .main-container {
-        width: 100% !important;
-        max-width: 100% !important;
+        
+        max-width: 95% !important;
         margin: 20px 0;
         border-radius: 12px;
     }
@@ -2216,7 +2209,7 @@ function setupContainerExpansion() {
     const fileInput = document.querySelector('input[name="file"]');
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     
-   
+    if (!mainContainer || isMobile) return; // Не применяем к мобильным
     
     function updateContainerState() {
         const hasValue = monthInput.value || fileInput.files.length > 0;
