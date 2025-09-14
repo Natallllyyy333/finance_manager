@@ -2197,7 +2197,30 @@ window.addEventListener('resize', checkOrientation);
 
 
 
+function fixMobileLayout() {
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const terminal = document.querySelector('.terminal');
+    const mainContainer = document.querySelector('.main-container');
+    
+    if (isMobile && terminal) {
+        terminal.style.width = '100%';
+        terminal.style.maxWidth = '100%';
+        terminal.style.marginLeft = '0';
+        terminal.style.marginRight = '0';
+        terminal.style.borderRadius = '8px';
+        terminal.style.border = '2px solid #667eea';
+    }
+    
+    if (isMobile && mainContainer) {
+        mainContainer.style.width = '95%';
+        mainContainer.style.maxWidth = '95%';
+    }
+}
 
+// Вызываем при загрузке и изменении размера
+document.addEventListener('DOMContentLoaded', fixMobileLayout);
+window.addEventListener('resize', fixMobileLayout);
+window.addEventListener('orientationchange', fixMobileLayout);
 </script>
 
 </body>
