@@ -1847,9 +1847,7 @@ HTML = """
             padding-left: 0;
             padding-right: 0;
         }
-         .anchor {
-            scroll-margin-top: 50px;
-        }
+         
     }
 
         .main-container {
@@ -1884,9 +1882,7 @@ HTML = """
         input[type="text"], input[type="file"] {
             font-size: 14px; /* Увеличим для удобства касания */
         }
-         .anchor {
-            scroll-margin-top: 50px;
-        }
+        
     }
 
     /* Для горизонтальной ориентации */
@@ -1975,11 +1971,7 @@ HTML = """
         🔄 Retry Upload
     </button>
 </div>
-                {% if filename %}
-                <div class="file-info anchor" id="fileInfoSection">
-                    📁 Using file: <strong>{{ filename }}</strong>
-                </div>
-                {% endif %}
+               
             </div>
 
             {% if result %}
