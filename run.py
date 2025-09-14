@@ -1788,17 +1788,17 @@ HTML = """
         @media (max-width: 768px) {
 
         body {
-        padding: 15px;
+        padding: 5px;
         display: flex;
         justify-content: center;
-        align-items: flex-start;;
-        min-height: 100vh;
+        align-items: flex-start;
+        min-height: 100%;
     }
     
     .main-container {
         width: 100%;
         max-width: 100%;
-        margin: 50px 0;
+        margin: 5px 0;
         border-radius: 15px;
         min-height: auto;
         display: flex;
@@ -1836,7 +1836,7 @@ HTML = """
         
         /* Дополнительно: уменьшите отступы на мобильных */
         .content {
-            padding: 15px;
+            padding: 5px;
         }
         
          /* Чтобы контейнер не обрезал контент */
@@ -1861,18 +1861,18 @@ HTML = """
     @media (max-width: 480px) {
 
      body {
-        padding: 10px;
+        padding: 5px;
     }
     
     .main-container {
         border-radius: 10px;
-        margin: 30px 0;
+        margin: 5px 0;
         width: 100%;
     }
 
      
         .terminal {
-            max-height: 90vh;
+            max-height: 90%;
             min-height: 350px;
             font-size: 11px;
 
@@ -2210,8 +2210,8 @@ function fixMobileLayout() {
     }
     
     if (isMobile && mainContainer) {
-        mainContainer.style.width = '800px';
-        mainContainer.style.maxWidth = '50%';
+        mainContainer.style.width = '95%';
+        mainContainer.style.maxWidth = '95%';
     }
 }
 
