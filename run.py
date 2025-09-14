@@ -1784,7 +1784,7 @@ HTML = """
         }
         @media (max-width: 768px) {
         .terminal {
-            max-height: 80vh; /* 80% высоты экрана */
+            max-height: 90vh; /* 80% высоты экрана */
             height: auto;
             min-height: 400px; /* Минимальная высота */
             font-size: 12px; /* Чуть меньший шрифт */
@@ -1828,7 +1828,7 @@ HTML = """
     /* Для очень маленьких экранов */
     @media (max-width: 480px) {
         .terminal {
-            max-height: 75vh;
+            max-height: 90vh;
             min-height: 350px;
             font-size: 11px;
 
@@ -1839,7 +1839,6 @@ HTML = """
         }
         
         input[type="text"], input[type="file"] {
-            width: 95%;
             font-size: 14px; /* Увеличим для удобства касания */
         }
     }
@@ -1848,6 +1847,7 @@ HTML = """
     @media (max-width: 768px) and (orientation: landscape) {
         .terminal {
             max-height: 60vh;
+            height: auto;
             font-size: 11px;
         }
     }
