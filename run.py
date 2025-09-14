@@ -1840,10 +1840,17 @@ HTML = """
             overflow-x: hidden;
         }
         
-        
+        .content {
+            padding-left: 0;
+            padding-right: 0;
+        }
     }
 
-        
+        .main-container {
+           
+            width: 100%;
+        }
+    }
 
     /* Для очень маленьких экранов */
     @media (max-width: 480px) {
