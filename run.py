@@ -1811,6 +1811,10 @@ HTML = """
         flex-direction: column;
     }
 
+     .file-info {
+        display: none !important;
+    }
+
 
 
         .terminal {
@@ -1867,6 +1871,10 @@ HTML = """
         border-radius: 10px;
         margin: 30px 0;
         width: 100%;
+    }
+
+     .file-info {
+        display: none !important;
     }
         .terminal {
             max-height: 90vh;
@@ -1971,7 +1979,11 @@ HTML = """
         🔄 Retry Upload
     </button>
 </div>
-               
+                {% if filename %}
+                <div class="file-info anchor" id="fileInfoSection">
+                    📁 Using file: <strong>{{ filename }}</strong>
+                </div>
+                {% endif %}
             </div>
 
             {% if result %}
