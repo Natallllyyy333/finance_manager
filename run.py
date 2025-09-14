@@ -1695,10 +1695,8 @@ HTML = """
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             overflow: hidden;
-            width: 90%;
-            max-width: 700px;
-            transition: all 0.3s ease;
-            margin: 0 auto;
+            width: 700px;
+            max-width: 95%;
         }
         .header {
             background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
@@ -1733,7 +1731,6 @@ HTML = """
             align-items: center;
             margin-bottom: 20px;
         }
-        
         input[type="text"], input[type="file"] {
             padding: 14px 20px;
             border: 2px solid #e0e0e0;
@@ -1785,46 +1782,7 @@ HTML = """
             scroll-margin-top: 20px;
             transition: all 0.3s ease;
         }
-         .anchor {
-            scroll-margin-top: 20px;
-        }
         @media (max-width: 768px) {
-
-        body {
-        padding: 15px;
-        display: flex;
-        justify-content: center;
-        align-items: flex-start;;
-        min-height: 100vh;
-    }
-    
-    .main-container {
-        width: 95vw;
-        max-width: 95vw;
-        margin: 30px 0;
-        border-radius: 15px;
-        min-height: auto;
-        display: flex;
-        flex-direction: column;
-    }
-    
- .main-container.expanded {
-    width: 95vw !important;
-    max-width: 95vw !important;
-    
-}   
-   
-}
-    .content {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-    }
-
-    
-
-
-
         .terminal {
             max-height: 90vh; /* 80% высоты экрана */
             height: auto;
@@ -1833,9 +1791,13 @@ HTML = """
             line-height: 1.3;
             padding: 8px;
 
-            
+            width: 100vw !important;
             max-width: 100vw !important;
-          
+            margin-left: -20px;
+            margin-right: -20px;
+            border-radius: 0;
+            border-left: none;
+            border-right: none;
             
             font-size: 12px;
             line-height: 1.3;
@@ -1851,32 +1813,20 @@ HTML = """
             overflow-x: hidden;
         }
         
-       
-         
+        .content {
+            padding-left: 0;
+            padding-right: 0;
+        }
     }
 
-        
+        .main-container {
+            margin: 10px;
+            width: 100%;
+        }
     }
 
     /* Для очень маленьких экранов */
     @media (max-width: 480px) {
-
-     body {
-        padding: 10px;
-    }
-    
-    .main-container {
-        
-        max-width: 96vw !important;
-        margin: 20px 0;
-        border-radius: 12px;
-    }
-    .main-container.expanded {
-        width: 97vw !important;
-        max-width: 97vw !important;
-    }
-
-     
         .terminal {
             max-height: 90vh;
             min-height: 350px;
@@ -1891,7 +1841,6 @@ HTML = """
         input[type="text"], input[type="file"] {
             font-size: 14px; /* Увеличим для удобства касания */
         }
-        
     }
 
     /* Для горизонтальной ориентации */
@@ -1952,7 +1901,9 @@ HTML = """
             align-items: center;
             margin: 15px 0;
         }
-       
+        .anchor {
+            scroll-margin-top: 20px;
+        }
     </style>
 </head>
 <body>
@@ -2069,11 +2020,6 @@ document.addEventListener('DOMContentLoaded', function() {
 {% if operation_id %}
 
 function scrollToFileInfo() {
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    
-    // Если это мобильное устройство - выходим из функции
-    if (isMobile) return;
-
     const fileInfoSection = document.getElementById('fileInfoSection');
     if (fileInfoSection) {
         setTimeout(() => {
@@ -2199,48 +2145,6 @@ function checkOrientation() {
 checkOrientation();
 window.addEventListener('orientationchange', checkOrientation);
 window.addEventListener('resize', checkOrientation);
-
-
-
-// Управление шириной контейнера при вводе
-function setupContainerExpansion() {
-    const mainContainer = document.querySelector('.main-container');
-    const monthInput = document.querySelector('input[name="month"]');
-    const fileInput = document.querySelector('input[name="file"]');
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    
-    if (!mainContainer || isMobile) return; // Не применяем к мобильным
-    
-    function updateContainerState() {
-        const hasValue = monthInput.value || fileInput.files.length > 0;
-        const hasFocus = monthInput === document.activeElement || fileInput === document.activeElement;
-        
-        if (hasValue || hasFocus) {
-            mainContainer.classList.add('expanded');
-        } else {
-            mainContainer.classList.remove('expanded');
-        }
-    }
-    
-    // События для поля месяца
-    monthInput.addEventListener('focus', updateContainerState);
-    monthInput.addEventListener('blur', updateContainerState);
-    monthInput.addEventListener('input', updateContainerState);
-    
-    // События для поля файла
-    fileInput.addEventListener('focus', updateContainerState);
-    fileInput.addEventListener('blur', updateContainerState);
-    fileInput.addEventListener('change', updateContainerState);
-    
-    // Инициализация состояния
-    updateContainerState();
-}
-
-// Вызываем при загрузке
-document.addEventListener('DOMContentLoaded', function() {
-    setupContainerExpansion();
-});
-
 </script>
 
 </body>
