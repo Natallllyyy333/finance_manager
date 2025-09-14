@@ -1782,6 +1782,37 @@ HTML = """
             scroll-margin-top: 20px;
             transition: all 0.3s ease;
         }
+        @media (max-width: 768px) {
+        .terminal {
+            max-height: 80vh; /* 80% высоты экрана */
+            font-size: 12px; /* Чуть меньший шрифт */
+            line-height: 1.3;
+            padding: 8px;
+        }
+        
+        /* Дополнительно: уменьшите отступы на мобильных */
+        .content {
+            padding: 15px;
+        }
+        
+        .main-container {
+            margin: 10px;
+            width: 100%;
+        }
+    }
+
+    /* Для очень маленьких экранов */
+    @media (max-width: 480px) {
+        .terminal {
+            max-height: 75vh;
+            font-size: 11px;
+        }
+        
+        input[type="text"], input[type="file"] {
+            width: 95%;
+            font-size: 14px; /* Увеличим для удобства касания */
+        }
+    }
         .terminal:empty {
             display: none !important;
         }
