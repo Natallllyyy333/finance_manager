@@ -1695,8 +1695,8 @@ HTML = """
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             overflow: hidden;
-            width: 700px;
-            
+            width: 90%;
+            max-width: 700px;
             transition: all 0.3s ease;
             margin: 0 auto;
         }
@@ -1799,9 +1799,9 @@ HTML = """
     }
     
     .main-container {
-        width: 100%;
-        max-width: 100%;
-        margin: 50px 0;
+        width: 95%;
+        max-width: 95%;
+        margin: 30px 0;
         border-radius: 15px;
         min-height: auto;
         display: flex;
@@ -1809,9 +1809,9 @@ HTML = """
     }
     
  .main-container.expanded {
-    width: 90%;
-    max-width: 90%;
-    margin: 0 auto;
+    width: 95% !important;
+    max-width: 95% !important;
+    
 }   
    
 }
@@ -1862,10 +1862,7 @@ HTML = """
          
     }
 
-        .main-container {
-           
-            width: 100%;
-        }
+        
     }
 
     /* Для очень маленьких экранов */
@@ -1876,9 +1873,14 @@ HTML = """
     }
     
     .main-container {
-        border-radius: 10px;
-       
-        width: 100%;
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 20px 0;
+        border-radius: 12px;
+    }
+    .main-container.expanded {
+        width: 100% !important;
+        max-width: 100% !important;
     }
 
      
@@ -2212,12 +2214,13 @@ function setupContainerExpansion() {
     const mainContainer = document.querySelector('.main-container');
     const monthInput = document.querySelector('input[name="month"]');
     const fileInput = document.querySelector('input[name="file"]');
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     
-    if (!mainContainer) return;
+    if (!mainContainer || isMobile) return; // Не применяем к мобильным
     
     function updateContainerState() {
         const hasValue = monthInput.value || fileInput.files.length > 0;
-        const hasFocus = monthInput === document.activeElement;
+        const hasFocus = monthInput === document.activeElement || fileInput === document.activeElement;
         
         if (hasValue || hasFocus) {
             mainContainer.classList.add('expanded');
