@@ -17,6 +17,7 @@ from flask import Flask, request, render_template_string
 from werkzeug.utils import secure_filename
 from flask_wtf.csrf import CSRFProtect
 
+
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-123')
