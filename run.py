@@ -1938,9 +1938,7 @@ HTML = """
             align-items: center;
             margin: 15px 0;
         }
-        .anchor {
-            scroll-margin-top: 20px;
-        }
+        
     </style>
 </head>
 <body>
