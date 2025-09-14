@@ -1782,7 +1782,39 @@ HTML = """
             scroll-margin-top: 20px;
             transition: all 0.3s ease;
         }
+         .anchor {
+            scroll-margin-top: 20px;
+        }
         @media (max-width: 768px) {
+
+        body {
+        padding: 15px;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;;
+        min-height: 100vh;
+    }
+    
+    .main-container {
+        width: 100%;
+        max-width: 100%;
+        margin: 50px 0;
+        border-radius: 15px;
+        min-height: auto;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    
+
+
+
         .terminal {
             max-height: 90vh; /* 80% высоты экрана */
             height: auto;
@@ -1817,16 +1849,29 @@ HTML = """
             padding-left: 0;
             padding-right: 0;
         }
+         
     }
 
         .main-container {
-            margin: 10px;
+           
             width: 100%;
         }
     }
 
     /* Для очень маленьких экранов */
     @media (max-width: 480px) {
+
+     body {
+        padding: 10px;
+    }
+    
+    .main-container {
+        border-radius: 10px;
+        margin: 30px 0;
+        width: 100%;
+    }
+
+     
         .terminal {
             max-height: 90vh;
             min-height: 350px;
@@ -1841,6 +1886,7 @@ HTML = """
         input[type="text"], input[type="file"] {
             font-size: 14px; /* Увеличим для удобства касания */
         }
+        
     }
 
     /* Для горизонтальной ориентации */
@@ -1901,9 +1947,7 @@ HTML = """
             align-items: center;
             margin: 15px 0;
         }
-        .anchor {
-            scroll-margin-top: 20px;
-        }
+       
     </style>
 </head>
 <body>
@@ -2020,6 +2064,10 @@ document.addEventListener('DOMContentLoaded', function() {
 {% if operation_id %}
 
 function scrollToFileInfo() {
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    // Если это мобильное устройство - выходим из функции
+    if (isMobile) return;
     const fileInfoSection = document.getElementById('fileInfoSection');
     if (fileInfoSection) {
         setTimeout(() => {
@@ -2145,6 +2193,11 @@ function checkOrientation() {
 checkOrientation();
 window.addEventListener('orientationchange', checkOrientation);
 window.addEventListener('resize', checkOrientation);
+
+
+
+
+
 </script>
 
 </body>
