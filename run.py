@@ -2248,11 +2248,13 @@ function setupMobileLayout() {
         // Обработчики для инпутов
         inputs.forEach(input => {
             input.addEventListener('focus', () => {
+            body.style.width = '100vw';
                 mainContainer.style.width = '95%';
                 mainContainer.style.maxWidth = '95%';
             });
             
             input.addEventListener('blur', () => {
+            
                 mainContainer.style.width = '95%';
                 mainContainer.style.maxWidth = '95%';
             });
