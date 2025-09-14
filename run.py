@@ -1874,7 +1874,7 @@ def index():
             filename=filename,
             status_message=status_message,
             operation_id=operation_id,
-            csrf_token=csrf.generate_csrf()
+            srf_token=csrf.generate_csrf_token()
         )
 
     except Exception as e:
