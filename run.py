@@ -1784,7 +1784,9 @@ HTML = """
         }
         @media (max-width: 768px) {
         .terminal {
-            max-height: 90vh; /* 80% высоты экрана */
+            max-height: 80vh; /* 80% высоты экрана */
+            height: auto;
+            min-height: 400px; /* Минимальная высота */
             font-size: 12px; /* Чуть меньший шрифт */
             line-height: 1.3;
             padding: 8px;
@@ -1826,7 +1828,8 @@ HTML = """
     /* Для очень маленьких экранов */
     @media (max-width: 480px) {
         .terminal {
-            max-height: 85vh;
+            max-height: 75vh;
+            min-height: 350px;
             font-size: 11px;
 
             
