@@ -1737,8 +1737,8 @@ HTML = """
         .input-group input:valid ~ .main-container,
         .form-container:has(input:focus) .main-container,
         .form-container:has(input:valid) .main-container {
-            width: 90%;
-            max-width: 90%;
+            width: 90vw;
+            max-width: 90vw;
             margin: 0 auto;
         }
         input[type="text"], input[type="file"] {
