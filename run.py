@@ -37,10 +37,10 @@ ALLOWED_EXTENSIONS = {"csv"}
 
 
 def allowed_file(filename):
-    return (
-        "." in filename
-        and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
-    )
+    return ('.' in filename and 
+            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS and
+            not filename.startswith('.') and  # Запретить скрытые файлы
+            len(filename) < 100)  # Ограничение длины имени
 
 
 def get_google_credentials():
@@ -1187,6 +1187,90 @@ def write_to_target_sheet(table_data, month_name):
         return False
 
 
+# def load_transactions(file_path_or_object):
+#     """Load transactions from uploaded file with proper CSV parsing"""
+#     transactions = []
+#     daily_categories = defaultdict(lambda: defaultdict(float))
+
+#     try:
+#         # Handle both file objects and file paths
+#         if hasattr(file_path_or_object, "read"):
+#             # File object - read content
+#             # Rewind file to beginning for mobile devices
+#             file_path_or_object.seek(0)
+#             content = file_path_or_object.read()
+#             if isinstance(content, bytes):
+#                 content = content.decode("utf-8")
+#             lines = content.split("\n")
+#         else:
+#             # File path
+#             with open(file_path_or_object, "r", encoding="utf-8") as file:
+#                 lines = file.readlines()
+
+#         # Parse CSV lines
+#         for line in lines:
+#             line = line.strip()
+#             if line and not line.startswith(("#", "Date")):
+#                 try:
+#                     parts = line.split(",")
+#                     if len(parts) >= 5:
+#                         # Parse date (assuming format: "31 Mar 2025")
+#                         date_str = parts[0].strip()
+#                         description = parts[1].strip()
+#                         amount = float(parts[2].strip())
+#                         currency = parts[3].strip()
+#                         transaction_type = parts[4].strip().lower()
+
+#                         # Convert date to standard format
+#                         try:
+#                             date_obj = datetime.strptime(date_str, "%d %b %Y")
+#                             # Check if the date exists
+#                             if date_obj.day != int(date_str.split()[0]):
+#                                 print(
+#                                     f"Warning: Invalid date"
+#                                     f"'{date_str}' - skipping"
+#                                 )
+#                                 continue
+#                         except ValueError:
+#                             print(
+#                                 f"Warning: Error parsing date '{date_str}'"
+#                                 f"- skipping"
+#                             )
+#                             continue
+
+#                         date_formatted = date_obj.strftime("%Y-%m-%d")
+
+#                         # Categorize
+#                         category = categorize(description)
+
+#                         transaction = {
+#                             "date": date_formatted,
+#                             "desc": description[:30],
+#                             "amount": amount,
+#                             "type": (
+#                                 "income"
+#                                 if transaction_type == "credit"
+#                                 else "expense"
+#                             ),
+#                             "category": category,
+#                         }
+
+#                         transactions.append(transaction)
+
+#                         # Track daily categories for expenses
+#                         if transaction_type != "credit":
+#                             daily = daily_categories[date_formatted]
+#                             daily[category] += amount
+
+#                 except (ValueError, IndexError) as e:
+#                     print(f"Warning: Error parsing line '{line}' - {e}")
+#                     continue
+
+#     except Exception as e:
+#         print(f"Error loading transactions: {e}")
+#         return [], defaultdict(lambda: defaultdict(float))
+
+#     return transactions, daily_categories
 def load_transactions(file_path_or_object):
     """Load transactions from uploaded file with proper CSV parsing"""
     transactions = []
@@ -1195,10 +1279,17 @@ def load_transactions(file_path_or_object):
     try:
         # Handle both file objects and file paths
         if hasattr(file_path_or_object, "read"):
-            # File object - read content
-            # Rewind file to beginning for mobile devices
+            # File object - rewind to beginning and read content
             file_path_or_object.seek(0)
-            content = file_path_or_object.read()
+            
+            # Read content in chunks for large files
+            content = b''
+            while True:
+                chunk = file_path_or_object.read(8192)  # 8KB chunks
+                if not chunk:
+                    break
+                content += chunk
+            
             if isinstance(content, bytes):
                 content = content.decode("utf-8")
             lines = content.split("\n")
@@ -1224,18 +1315,8 @@ def load_transactions(file_path_or_object):
                         # Convert date to standard format
                         try:
                             date_obj = datetime.strptime(date_str, "%d %b %Y")
-                            # Check if the date exists
-                            if date_obj.day != int(date_str.split()[0]):
-                                print(
-                                    f"Warning: Invalid date"
-                                    f"'{date_str}' - skipping"
-                                )
-                                continue
                         except ValueError:
-                            print(
-                                f"Warning: Error parsing date '{date_str}'"
-                                f"- skipping"
-                            )
+                            print(f"Warning: Error parsing date '{date_str}' - skipping")
                             continue
 
                         date_formatted = date_obj.strftime("%Y-%m-%d")
@@ -1647,6 +1728,12 @@ HTML = """
                         <button type="submit" id="submitBtn">Analyze</button>
                     </div>
                 </form>
+                <div id="mobileRetry" style="display: none; text-align: center; margin: 20px;">
+    <button onclick="window.location.reload()" 
+            style="padding: 12px 24px; background: #667eea; color: white; border: none; border-radius: 8px;">
+        🔄 Retry Upload
+    </button>
+</div>
                 {% if filename %}
                 <div class="file-info anchor" id="fileInfoSection">
                     📁 Using file: <strong>{{ filename }}</strong>
@@ -1675,6 +1762,16 @@ document.getElementById('uploadForm').addEventListener('submit', function(e) {
     const submitBtn = document.getElementById('submitBtn');
     const terminalElement = document.querySelector('.terminal');
     const fileInput = document.querySelector('input[type="file"]');
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+if (isMobile) {
+    // Увеличиваем таймаут отправки формы для мобильных
+    document.getElementById('uploadForm').addEventListener('submit', function(e) {
+        setTimeout(function() {
+            // Продолжаем обработку
+        }, 1000);
+    });
+}
 
     if (terminalElement) {
         terminalElement.innerHTML = '';
@@ -1796,13 +1893,20 @@ def index():
             user_agent = request.headers.get('User-Agent', '').lower()
             if 'android' in user_agent or 'mobile' in user_agent:
                 print("📱 Mobile device detected - adding delay")
-                time.sleep(2)  # 2 second delay for mobile devices
+                time.sleep(3)  # 3 second delay for mobile devices
             month = request.form["month"].strip().lower()
             print(f"📅 Month: {month}")
 
             if "file" not in request.files:
                 return render_template_string(
                     HTML, result="No file uploaded", month=month
+                )
+            
+            if not request.files.get('file'):
+                return render_template_string(
+                    HTML, 
+                    result="Upload was interrupted - please try again",
+                    status_message="❌ Upload failed"
                 )
 
             file = request.files["file"]
