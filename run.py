@@ -2145,6 +2145,72 @@ function checkOrientation() {
 checkOrientation();
 window.addEventListener('orientationchange', checkOrientation);
 window.addEventListener('resize', checkOrientation);
+
+
+
+// Защита от сдвига ТОЛЬКО на мобильных
+if (/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+    class ScrollProtector {
+        constructor() {
+            this.scrollPosition = 0;
+            this.isProtecting = true;
+            this.init();
+        }
+        
+        init() {
+            // Сохраняем позицию при скролле
+            window.addEventListener('scroll', () => {
+                if (this.isProtecting) {
+                    this.scrollPosition = window.scrollY;
+                }
+            });
+            
+            // Защита терминала
+            this.protectElement('resultsSection');
+            
+            console.log('🛡️ Mobile scroll protection activated');
+        }
+        
+        protectElement(elementId) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+            
+            // MutationObserver для отслеживания изменений
+            const observer = new MutationObserver(() => {
+                if (this.isProtecting) {
+                    window.scrollTo(0, this.scrollPosition);
+                }
+            });
+            
+            observer.observe(element, {
+                childList: true,
+                subtree: true,
+                characterData: true
+            });
+            
+            // Перехват innerHTML
+            const originalInnerHTML = Object.getOwnPropertyDescriptor(Element.prototype, 'innerHTML');
+            Object.defineProperty(element, 'innerHTML', {
+                set: (value) => {
+                    this.scrollPosition = window.scrollY;
+                    originalInnerHTML.set.call(element, value);
+                    setTimeout(() => {
+                        if (this.isProtecting) {
+                            window.scrollTo(0, this.scrollPosition);
+                        }
+                    }, 10);
+                },
+                get: originalInnerHTML.get
+            });
+        }
+    }
+    
+    // Запускаем защиту
+    document.addEventListener('DOMContentLoaded', () => {
+        new ScrollProtector();
+    });
+}
+
 </script>
 
 </body>
