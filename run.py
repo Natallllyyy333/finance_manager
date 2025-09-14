@@ -33,7 +33,7 @@ DAILY_NORMS = {
     "Dining": 10.00,
 }
 
-ALLOWED_EXTENSIONS = {"csv"}
+ALLOWED_EXTENSIONS = {"csv", "txt"}
 
 
 def allowed_file(filename):
@@ -2025,6 +2025,7 @@ def index():
                 time.sleep(3)  # 3 second delay for mobile devices
             
             month = request.form.get("month", "").strip().lower()
+            
             if not month:
                 return render_template_string(
                     HTML, result="Month is required", status_message="❌ Please enter a month"
@@ -2050,6 +2051,7 @@ def index():
                     result="Invalid file type. Please upload a CSV file.", 
                     status_message="❌ Invalid file type"
                 )
+            
 
             # Check file size (max 10MB)
             file.seek(0, 2)  # Seek to end to get size
@@ -2062,6 +2064,20 @@ def index():
                     result="File too large. Maximum size is 10MB.",
                     status_message="❌ File too large"
                 )
+            print(f"🔍 Checking file: {file.filename}")
+            print(f"📏 File size: {file_size} bytes")
+            print(f"📄 Content type: {file.content_type}")
+            print(f"✅ Allowed check: {allowed_file(file.filename)}")
+
+            if file and (allowed_file(file.filename) or 
+                        file.filename.lower().endswith('.csv') or 
+                        file.content_type in ['text/csv', 'application/vnd.ms-excel', 'text/plain']):
+                print("✅ File accepted for processing")
+            if file and allowed_file(file.filename):
+                # ← ВСТАВЬТЕ ЗДЕСЬ
+                print(f"📁 File received: {file.filename}")
+                print(f"📏 File size: {file_size} bytes")
+                print(f"🔍 File content type: {file.content_type}")
 
 
                 
