@@ -2029,6 +2029,18 @@ document.addEventListener('DOMContentLoaded', function() {
     checkOperationStatus('{{ operation_id }}');
 });
 {% endif %}
+document.addEventListener('DOMContentLoaded', function() {
+    const terminal = document.querySelector('.terminal');
+    if (terminal && /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+        // Вычисляем доступную высоту для терминала
+        const viewportHeight = window.innerHeight;
+        const terminalTop = terminal.getBoundingClientRect().top;
+        const availableHeight = viewportHeight - terminalTop - 30; // 30px отступ снизу
+        
+        terminal.style.maxHeight = availableHeight + 'px';
+        terminal.style.fontSize = '12px';
+    }
+});
 </script>
 
 </body>
