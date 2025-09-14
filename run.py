@@ -1976,7 +1976,7 @@ HTML = """
     </button>
 </div>
                 {% if filename %}
-                <div class="file-info" id="fileInfoSection">
+                <div class="file-info anchor" id="fileInfoSection">
                     📁 Using file: <strong>{{ filename }}</strong>
                 </div>
                 {% endif %}
@@ -2064,6 +2064,11 @@ document.addEventListener('DOMContentLoaded', function() {
 {% if operation_id %}
 
 function scrollToFileInfo() {
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    // Если это мобильное устройство - выходим из функции
+    if (isMobile) return;
+    
     const fileInfoSection = document.getElementById('fileInfoSection');
     if (fileInfoSection) {
         setTimeout(() => {
