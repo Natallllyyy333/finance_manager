@@ -2210,8 +2210,8 @@ function fixMobileLayout() {
     }
     
     if (isMobile && mainContainer) {
-        mainContainer.style.width = '600px';
-        mainContainer.style.maxWidth = '60%';
+        mainContainer.style.width = '800px';
+        mainContainer.style.maxWidth = '50%';
     }
 }
 
