@@ -38,33 +38,28 @@ ALLOWED_EXTENSIONS = {"csv", "txt"}
 
 def allowed_file(filename):
     """
-    Проверяет, что файл имеет допустимое расширение и имя.
-    Возвращает True если файл допустим, False в противном случае.
+    Checks that the file has a valid extension and name.
+    Returns True if the file is valid, False otherwise.
     """
-    # Проверяем основные условия
+    # Checking the main conditions
     if not filename or not isinstance(filename, str):
         return False
-    
-    # Запрещаем скрытые файлы (начинающиеся с точки)
+    # We prohibit hidden files (starting with a dot)
     if filename.startswith('.'):
         return False
-    
-    # Проверяем наличие точки в имени файла
+    # Checking for the presence of a dot in the filename
     if '.' not in filename:
         return False
-    
-    # Проверяем длину имени файла (не более 100 символов)
+    # Checking the length of the file name (no more than 100 characters)
     if len(filename) > 100:
         return False
-    
-    # Извлекаем расширение и проверяем его
+    # Extracting the extension and checking it
     try:
         extension = filename.rsplit('.', 1)[1].lower()
     except IndexError:
         return False
-    
-    # Проверяем, что расширение в списке допустимых
-    return extension in ALLOWED_EXTENSIONS  # Ограничение длины имени
+    # Сhecking that the extension is in the list of allowed ones
+    return extension in ALLOWED_EXTENSIONS
 
 
 def get_google_credentials():
@@ -431,11 +426,11 @@ def prepare_summary_data(data, transactions):
         "",
         "EXPENSE CATEGORIES:",
         "Rent",
-        "Groceries",
+        "Store",
         "Dining",
         "Transport",
-        "Entertainment",
-        "Utilities",
+        "Pastime",
+        "Services",
         "Gym",
         "Shopping",
         "Health",
@@ -1211,172 +1206,6 @@ def write_to_target_sheet(table_data, month_name):
         return False
 
 
-# def load_transactions(file_path_or_object):
-#     """Load transactions from uploaded file with proper CSV parsing"""
-#     transactions = []
-#     daily_categories = defaultdict(lambda: defaultdict(float))
-
-#     try:
-#         # Handle both file objects and file paths
-#         if hasattr(file_path_or_object, "read"):
-#             # File object - read content
-#             # Rewind file to beginning for mobile devices
-#             file_path_or_object.seek(0)
-#             content = file_path_or_object.read()
-#             if isinstance(content, bytes):
-#                 content = content.decode("utf-8")
-#             lines = content.split("\n")
-#         else:
-#             # File path
-#             with open(file_path_or_object, "r", encoding="utf-8") as file:
-#                 lines = file.readlines()
-
-#         # Parse CSV lines
-#         for line in lines:
-#             line = line.strip()
-#             if line and not line.startswith(("#", "Date")):
-#                 try:
-#                     parts = line.split(",")
-#                     if len(parts) >= 5:
-#                         # Parse date (assuming format: "31 Mar 2025")
-#                         date_str = parts[0].strip()
-#                         description = parts[1].strip()
-#                         amount = float(parts[2].strip())
-#                         currency = parts[3].strip()
-#                         transaction_type = parts[4].strip().lower()
-
-#                         # Convert date to standard format
-#                         try:
-#                             date_obj = datetime.strptime(date_str, "%d %b %Y")
-#                             # Check if the date exists
-#                             if date_obj.day != int(date_str.split()[0]):
-#                                 print(
-#                                     f"Warning: Invalid date"
-#                                     f"'{date_str}' - skipping"
-#                                 )
-#                                 continue
-#                         except ValueError:
-#                             print(
-#                                 f"Warning: Error parsing date '{date_str}'"
-#                                 f"- skipping"
-#                             )
-#                             continue
-
-#                         date_formatted = date_obj.strftime("%Y-%m-%d")
-
-#                         # Categorize
-#                         category = categorize(description)
-
-#                         transaction = {
-#                             "date": date_formatted,
-#                             "desc": description[:30],
-#                             "amount": amount,
-#                             "type": (
-#                                 "income"
-#                                 if transaction_type == "credit"
-#                                 else "expense"
-#                             ),
-#                             "category": category,
-#                         }
-
-#                         transactions.append(transaction)
-
-#                         # Track daily categories for expenses
-#                         if transaction_type != "credit":
-#                             daily = daily_categories[date_formatted]
-#                             daily[category] += amount
-
-#                 except (ValueError, IndexError) as e:
-#                     print(f"Warning: Error parsing line '{line}' - {e}")
-#                     continue
-
-#     except Exception as e:
-#         print(f"Error loading transactions: {e}")
-#         return [], defaultdict(lambda: defaultdict(float))
-
-#     return transactions, daily_categories
-# def load_transactions(file_path_or_object):
-#     """Load transactions from uploaded file with proper CSV parsing"""
-#     transactions = []
-#     daily_categories = defaultdict(lambda: defaultdict(float))
-
-#     try:
-#         # Handle both file objects and file paths
-#         if hasattr(file_path_or_object, "read"):
-#             # File object - rewind to beginning and read content
-#             file_path_or_object.seek(0)
-            
-#             # Read content in chunks for large files
-#             content = b''
-#             while True:
-#                 chunk = file_path_or_object.read(8192)  # 8KB chunks
-#                 if not chunk:
-#                     break
-#                 content += chunk
-            
-#             if isinstance(content, bytes):
-#                 content = content.decode("utf-8")
-#             lines = content.split("\n")
-#         else:
-#             # File path
-#             with open(file_path_or_object, "r", encoding="utf-8") as file:
-#                 lines = file.readlines()
-
-#         # Parse CSV lines
-#         for line in lines:
-#             line = line.strip()
-#             if line and not line.startswith(("#", "Date")):
-#                 try:
-#                     parts = line.split(",")
-#                     if len(parts) >= 5:
-#                         # Parse date (assuming format: "31 Mar 2025")
-#                         date_str = parts[0].strip()
-#                         description = parts[1].strip()
-#                         amount = float(parts[2].strip())
-#                         currency = parts[3].strip()
-#                         transaction_type = parts[4].strip().lower()
-
-#                         # Convert date to standard format
-#                         try:
-#                             date_obj = datetime.strptime(date_str, "%d %b %Y")
-#                         except ValueError:
-#                             print(f"Warning: Error parsing date '{date_str}' - skipping")
-#                             continue
-
-#                         date_formatted = date_obj.strftime("%Y-%m-%d")
-
-#                         # Categorize
-#                         category = categorize(description)
-
-#                         transaction = {
-#                             "date": date_formatted,
-#                             "desc": description[:30],
-#                             "amount": amount,
-#                             "type": (
-#                                 "income"
-#                                 if transaction_type == "credit"
-#                                 else "expense"
-#                             ),
-#                             "category": category,
-#                         }
-
-#                         transactions.append(transaction)
-
-#                         # Track daily categories for expenses
-#                         if transaction_type != "credit":
-#                             daily = daily_categories[date_formatted]
-#                             daily[category] += amount
-
-#                 except (ValueError, IndexError) as e:
-#                     print(f"Warning: Error parsing line '{line}' - {e}")
-#                     continue
-
-#     except Exception as e:
-#         print(f"Error loading transactions: {e}")
-#         return [], defaultdict(lambda: defaultdict(float))
-
-#     return transactions, daily_categories
-
 def load_transactions(file_path_or_object):
     """Load transactions from uploaded file with proper CSV parsing"""
     transactions = []
@@ -1387,7 +1216,6 @@ def load_transactions(file_path_or_object):
         if hasattr(file_path_or_object, "read"):
             # File object - rewind to beginning for mobile devices
             file_path_or_object.seek(0)
-            
             # Read content in chunks for better memory handling
             content = b''
             while True:
@@ -1395,7 +1223,6 @@ def load_transactions(file_path_or_object):
                 if not chunk:
                     break
                 content += chunk
-            
             if isinstance(content, bytes):
                 try:
                     content = content.decode("utf-8")
@@ -1403,10 +1230,9 @@ def load_transactions(file_path_or_object):
                     # Try other encodings if UTF-8 fails
                     try:
                         content = content.decode("latin-1")
-                    except:
+                    except UnicodeDecodeError:
                         print("❌ Error decoding file content")
                         return [], defaultdict(lambda: defaultdict(float))
-            
             lines = content.splitlines()
         else:
             # File path
@@ -1416,7 +1242,9 @@ def load_transactions(file_path_or_object):
             except UnicodeDecodeError:
                 # Try other encodings
                 try:
-                    with open(file_path_or_object, "r", encoding="latin-1") as file:
+                    with open(file_path_or_object,
+                              "r",
+                              encoding="latin-1") as file:
                         lines = file.readlines()
                 except Exception as e:
                     print(f"❌ Error reading file: {e}")
@@ -1435,12 +1263,10 @@ def load_transactions(file_path_or_object):
                     # Parse date (assuming format: "31 Mar 2025")
                     date_str = parts[0]
                     description = parts[1]
-                    
                     try:
                         amount = float(parts[2])
                     except ValueError:
                         continue
-                    
                     currency = parts[3]
                     transaction_type = parts[4].lower()
 
@@ -1459,7 +1285,8 @@ def load_transactions(file_path_or_object):
                         "date": date_formatted,
                         "desc": description[:30],
                         "amount": amount,
-                        "type": "income" if transaction_type == "credit" else "expense",
+                        "type": "income" if transaction_type == "credit"
+                                else "expense",
                         "category": category,
                     }
 
@@ -1480,6 +1307,7 @@ def load_transactions(file_path_or_object):
 
     print(f"✅ Loaded {len(transactions)} transactions")
     return transactions, daily_categories
+
 
 def get_operation_status(
     analysis_success, month_sheet_success, summary_sheet_success
@@ -1676,9 +1504,13 @@ HTML = """
 <html>
 <head>
      <title>Finance Analyzer</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width,
+                               initial-scale=1.0,
+                               maximum-scale=1.0,
+                               user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-status-bar-style"
+          content="black-translucent">
     <style>
         html {
                 scroll-behavior: smooth;
@@ -1811,7 +1643,6 @@ HTML = """
         text-size-adjust: 100% !important;
         -webkit-overflow-scrolling: touch !important;
     }
-    
     .main-container {
         width: 100%;
         max-width: 100%;
@@ -1824,7 +1655,6 @@ HTML = """
         transform: none !important;
         will-change: auto !important;
     }
-    
     .content {
         flex: 1;
         display: flex;
@@ -1833,87 +1663,70 @@ HTML = """
 
     input[type="text"], input[type="file"] {
         font-size: 18px !important;
-        min-height: 44px !important; /* Минимальная высота для touch */
+        min-height: 44px !important;
     }
 
 
 
         .terminal {
-            max-height: 90vh; /* 80% высоты экрана */
+            max-height: 90vh;
             height: auto;
-            min-height: 400px; /* Минимальная высота */
-            font-size: 12px; /* Чуть меньший шрифт */
+            min-height: 400px;
+            font-size: 12px;
             line-height: 1.3;
             padding: 8px;
 
             width: 100% !important;
             max-width: 100% !important;
-           
             border-radius: 0;
             border-left: none;
             border-right: none;
-            
             font-size: 12px;
             line-height: 1.3;
         }
-        
-        /* Дополнительно: уменьшите отступы на мобильных */
         .content {
             padding: 5px;
         }
-        
-         /* Чтобы контейнер не обрезал контент */
         .main-container {
             overflow-x: hidden;
         }
-        
         .content {
             padding-left: 0;
             padding-right: 0;
         }
-         
     }
 
         .main-container {
-           
             width: 100%;
         }
     }
 
-    /* Для очень маленьких экранов */
     @media (max-width: 480px) {
 
      body {
         padding: 0;
     }
-    
     .main-container {
         border-radius: 10px;
         margin: 0;
         width: 100%;
     }
 
-     
         .terminal {
             max-height: 90%;
             min-height: 350px;
             font-size: 11px;
 
-            
             padding: 10px;
-           
         }
-        
         input[type="text"], input[type="file"] {
-            font-size: 14px; /* Увеличим для удобства касания */
+            font-size: 14px;
         }
-        
     }
 
-    /* Для горизонтальной ориентации */
+    /* For horizontal orientation */
     @media (max-width: 768px) and (orientation: landscape) {
         .terminal {
-            
             height: auto;
             font-size: 11px;
         }
@@ -1968,7 +1781,6 @@ HTML = """
             align-items: center;
             margin: 15px 0;
         }
-       
     </style>
 </head>
 <body>
@@ -1982,7 +1794,6 @@ HTML = """
                 <form method="POST"
                 enctype="multipart/form-data"
                 id="uploadForm">
-                
                     <div class="input-group">
                         <input type="text" name="month"
                         placeholder="Enter month (e.g. March, April)" required>
@@ -1990,9 +1801,19 @@ HTML = """
                         <button type="submit" id="submitBtn">Analyze</button>
                     </div>
                 </form>
-                <div id="mobileRetry" style="display: none; text-align: center; margin: 20px;">
-    <button onclick="window.location.reload()" 
-            style="padding: 12px 24px; background: #667eea; color: white; border: none; border-radius: 8px;">
+                <div id="mobileRetry" style="
+                     display: none;
+                     text-align: center;
+                     margin: 20px;
+                     ">
+    <button onclick="window.location.reload()"
+    style="
+    padding: 12px 24px;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 8px;
+"
         🔄 Retry Upload
     </button>
 </div>
@@ -2024,13 +1845,14 @@ document.getElementById('uploadForm').addEventListener('submit', function(e) {
     const submitBtn = document.getElementById('submitBtn');
     const terminalElement = document.querySelector('.terminal');
     const fileInput = document.querySelector('input[type="file"]');
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|
+                  IEMobile|Opera Mini/i.test(navigator.userAgent);
 
 if (isMobile) {
-    // Увеличиваем таймаут отправки формы для мобильных
-    document.getElementById('uploadForm').addEventListener('submit', function(e) {
+    // Increasing the form submission timeout for mobile devices
+    document.getElementById('uploadForm')
+            .addEventListener('submit', function(e) {
         setTimeout(function() {
-            // Продолжаем обработку
         }, 1000);
     });
 }
@@ -2085,10 +1907,8 @@ document.addEventListener('DOMContentLoaded', function() {
 {% if operation_id %}
 
 function scrollToFileInfo() {
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    
-    // Если это мобильное устройство - выходим из функции
-    
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|
+                    IEMobile|Opera Mini/i.test(navigator.userAgent);
     const fileInfoSection = document.getElementById('fileInfoSection');
     if (fileInfoSection) {
         setTimeout(() => {
@@ -2132,56 +1952,57 @@ function checkOperationStatus(operationId) {
         });
 }
 
-// We are initiating a status check when the page loads.
+// Initiating a status check when the page loads.
 document.addEventListener('DOMContentLoaded', function() {
     checkOperationStatus('{{ operation_id }}');
 });
 {% endif %}
 document.addEventListener('DOMContentLoaded', function() {
     const terminal = document.querySelector('.terminal');
-    if (terminal && /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-        // Вычисляем доступную высоту для терминала
+   if (terminal &&
+    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+        navigator.userAgent
+    )) {
+        // Calculating the available height for the terminal
         const viewportHeight = window.innerHeight;
         const terminalTop = terminal.getBoundingClientRect().top;
-        const availableHeight = viewportHeight - terminalTop - 30; // 30px отступ снизу
-        
+        const availableHeight = viewportHeight - terminalTop - 30;
         terminal.style.maxHeight = availableHeight + 'px';
         terminal.style.fontSize = '12px';
     }
 });
 document.addEventListener('DOMContentLoaded', function() {
     const terminal = document.querySelector('.terminal');
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|
+                 BlackBerry|IEMobile|Opera Mini/i
+    .test(navigator.userAgent);
     if (terminal && isMobile) {
-        // Оптимизация для мобильных устройств
         optimizeTerminalForMobile(terminal);
     }
 });
 
 function optimizeTerminalForMobile(terminal) {
-    // Получаем размеры viewport
+    // getting viewport sizes
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
-    
-    // Вычисляем максимальную доступную ширину (минус отступы)
-    const maxWidth = Math.min(viewportWidth - 40, 800); // 40px отступы, макс 800px
-    
-    // Вычисляем оптимальную высоту (80% высоты экрана минус верхние элементы)
-    const headerHeight = document.querySelector('.header')?.offsetHeight || 100;
-    const formHeight = document.querySelector('.form-container')?.offsetHeight || 150;
-    const availableHeight = viewportHeight - headerHeight - formHeight - 50; // 50px дополнительный отступ
-    
-    // Применяем оптимальные размеры
+    // Calculating the maximum available width (minus the margins)
+    const maxWidth = Math.min(viewportWidth - 40, 800);
+    // Calculating the optimal height
+    //(80% of the screen height minus the top elements)
+    const headerHeight = document.querySelector('.header')
+    ?.offsetHeight || 100;
+    const formHeight = document.querySelector('.form-container')
+    ?.offsetHeight || 150;
+    const availableHeight = viewportHeight - headerHeight - formHeight - 50;
+    // Applying optimal dimensions
     terminal.style.width = '100%';
     terminal.style.maxWidth = maxWidth + 'px';
-    terminal.style.maxHeight = Math.max(availableHeight, 300) + 'px'; // Минимум 300px
+    terminal.style.maxHeight = Math.max(availableHeight, 300) + 'px';
     terminal.style.fontSize = viewportWidth < 400 ? '11px' : '12px';
     terminal.style.lineHeight = '1.3';
     terminal.style.overflowX = 'auto';
     terminal.style.whiteSpace = 'pre-wrap';
     terminal.style.wordBreak = 'break-word';
-    
     console.log('📱 Mobile terminal optimized:', {
         viewportWidth,
         viewportHeight,
@@ -2190,27 +2011,28 @@ function optimizeTerminalForMobile(terminal) {
     });
 }
 
-// Также оптимизируем при изменении размера окна
+// Optimize changing the window size.
 window.addEventListener('resize', function() {
     const terminal = document.querySelector('.terminal');
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|
+                 BlackBerry|IEMobile|Opera Mini/i
+    .test(navigator.userAgent);
     if (terminal && isMobile) {
         setTimeout(() => optimizeTerminalForMobile(terminal), 100);
     }
 });
 
-// Оптимизация для горизонтальной ориентации
+// Optimization for horizontal orientation
 function checkOrientation() {
     const terminal = document.querySelector('.terminal');
     if (terminal && window.innerWidth > window.innerHeight) {
-        // Ландшафтный режим - используем больше ширины
+        // landscape mode - use more width
         terminal.style.maxWidth = '90vw';
         terminal.style.maxHeight = '80vh';
     }
 }
 
-// Проверяем ориентацию при загрузке и изменении
+// Checking orientation during loading and changing
 checkOrientation();
 window.addEventListener('orientationchange', checkOrientation);
 window.addEventListener('resize', checkOrientation);
@@ -2219,10 +2041,11 @@ window.addEventListener('resize', checkOrientation);
 
 
 function fixMobileLayout() {
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|
+    IEMobile|Opera Mini/i
+    .test(navigator.userAgent);
     const terminal = document.querySelector('.terminal');
     const mainContainer = document.querySelector('.main-container');
-    
     if (isMobile && terminal) {
         terminal.style.width = '100%';
         terminal.style.maxWidth = '100%';
@@ -2231,14 +2054,13 @@ function fixMobileLayout() {
         terminal.style.borderRadius = '8px';
         terminal.style.border = '2px solid #667eea';
     }
-    
     if (isMobile && mainContainer) {
         mainContainer.style.width = '100%';
         mainContainer.style.maxWidth = '100%';
     }
 }
 
-// Вызываем при загрузке и изменении размера
+// Called on load and resize
 document.addEventListener('DOMContentLoaded', fixMobileLayout);
 window.addEventListener('resize', fixMobileLayout);
 window.addEventListener('orientationchange', fixMobileLayout);
@@ -2263,48 +2085,47 @@ def index():
     try:
         if request.method == "POST":
             print("📨 POST request received")
-
-            
             # Mobile device detection and delay
             user_agent = request.headers.get('User-Agent', '').lower()
             if 'android' in user_agent or 'mobile' in user_agent:
                 print("📱 Mobile device detected - adding delay")
                 time.sleep(3)  # 3 second delay for mobile devices
-            
             month = request.form.get("month", "").strip().lower()
-            
             if not month:
                 return render_template_string(
-                    HTML, result="Month is required", status_message="❌ Please enter a month"
-                )
+                        HTML,
+                        result="Month is required",
+                        status_message="❌ Please enter a month"
+                    )
 
             print(f"📅 Month: {month}")
 
             if "file" not in request.files:
                 return render_template_string(
-                    HTML, result="No file uploaded", status_message="❌ No file selected"
+                    HTML,
+                    result="No file uploaded",
+                    status_message="❌ No file selected"
                 )
 
             file = request.files["file"]
             if file.filename == "":
                 return render_template_string(
-                    HTML, result="No file selected", status_message="❌ Please select a file"
+                        HTML, result="No file selected",
+                        status_message="❌ Please select a file"
                 )
 
             # Enhanced file validation
             if not file or not allowed_file(file.filename):
                 return render_template_string(
-                    HTML, 
-                    result="Invalid file type. Please upload a CSV file.", 
+                    HTML,
+                    result="Invalid file type. Please upload a CSV file.",
                     status_message="❌ Invalid file type"
                 )
-            
 
             # Check file size (max 10MB)
             file.seek(0, 2)  # Seek to end to get size
             file_size = file.tell()
             file.seek(0)  # Reset to beginning
-            
             if file_size > 10 * 1024 * 1024:  # 10MB limit
                 return render_template_string(
                     HTML,
@@ -2316,18 +2137,15 @@ def index():
             print(f"📄 Content type: {file.content_type}")
             print(f"✅ Allowed check: {allowed_file(file.filename)}")
 
-            if file and (allowed_file(file.filename) or 
-                        file.filename.lower().endswith('.csv') or 
-                        file.content_type in ['text/csv', 'application/vnd.ms-excel', 'text/plain']):
+            if file and (allowed_file(file.filename) or
+                         file.filename.lower().endswith('.csv') or
+                         file.content_type in ['text/csv',
+                         'application/vnd.ms-excel', 'text/plain']):
                 print("✅ File accepted for processing")
             if file and allowed_file(file.filename):
-                # ← ВСТАВЬТЕ ЗДЕСЬ
                 print(f"📁 File received: {file.filename}")
                 print(f"📏 File size: {file_size} bytes")
                 print(f"🔍 File content type: {file.content_type}")
-
-
-                
                 try:
                     filename = secure_filename(file.filename)
                     # Create temporary file for processing
@@ -2388,7 +2206,6 @@ def index():
             filename=filename,
             status_message=status_message,
             operation_id=operation_id,
-            
         )
 
     except Exception as e:
