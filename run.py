@@ -1802,7 +1802,7 @@ HTML = """
         @media (max-width: 768px) {
 
         body {
-        padding: 0;
+        padding: 5px;
         display: flex;
         justify-content: center;
         align-items: flex-start;
@@ -2233,8 +2233,8 @@ function fixMobileLayout() {
     }
     
     if (isMobile && mainContainer) {
-        mainContainer.style.width = '100%';
-        mainContainer.style.maxWidth = '100%';
+        mainContainer.style.width = '95%';
+        mainContainer.style.maxWidth = '95%';
     }
 }
 
