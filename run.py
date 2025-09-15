@@ -25,9 +25,9 @@ OPERATION_STATUS = {}
 DAILY_NORMS = {
     "Rent": 50.0,
     "Gym": 3.0,
-    "Groceries": 3,
+    "Store": 3,
     "Transport": 0.27,
-    "Entertainment": 0.17,
+    "Pastime": 0.17,
     "Utilities": 2.0,
     "Shopping": 3.33,
     "Dining": 10.00,
