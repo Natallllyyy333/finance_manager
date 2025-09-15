@@ -1802,7 +1802,7 @@ HTML = """
         @media (max-width: 768px) {
 
         body {
-        padding: 5px;
+        padding: 0px;
         display: flex;
         justify-content: center;
         align-items: flex-start;
@@ -1815,13 +1815,13 @@ HTML = """
     .main-container {
         width: 100%;
         max-width: 100%;
-        margin: 5px 0;
+        margin:  0;
         border-radius: 15px;
         min-height: auto;
         display: flex;
         flex-direction: column;
 
-         transform: none !important;
+        transform: none !important;
         will-change: auto !important;
     }
     
@@ -1884,12 +1884,12 @@ HTML = """
     @media (max-width: 480px) {
 
      body {
-        padding: 5px;
+        padding: 0;
     }
     
     .main-container {
         border-radius: 10px;
-        margin: 5px 0;
+        margin: 0;
         width: 100%;
     }
 
@@ -2233,8 +2233,8 @@ function fixMobileLayout() {
     }
     
     if (isMobile && mainContainer) {
-        mainContainer.style.width = '95%';
-        mainContainer.style.maxWidth = '95%';
+        mainContainer.style.width = '100%';
+        mainContainer.style.maxWidth = '100%';
     }
 }
 
