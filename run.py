@@ -1675,7 +1675,10 @@ HTML = """
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Finance Analyzer</title>
+     <title>Finance Analyzer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <style>
         html {
                 scroll-behavior: smooth;
@@ -1689,6 +1692,11 @@ HTML = """
             display: flex;
             justify-content: center;
             align-items: center;
+
+            width: 100% !important;
+            overflow-x: hidden !important;
+            position: relative !important;
+            transform: none !important;
         }
         .main-container {
             background: white;
@@ -1698,6 +1706,12 @@ HTML = """
             width: 700px;
             max-width: 95%;
         }
+
+        input[type="text"], input[type="file"] {
+    font-size: 16px !important; /* Важно для iOS */
+    transform: scale(1) !important;
+    transform-origin: center !important;
+}
         .header {
             background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
             padding: 25px;
@@ -1793,6 +1807,9 @@ HTML = """
         justify-content: center;
         align-items: flex-start;
         min-height: 100%;
+        -webkit-text-size-adjust: 100% !important;
+        text-size-adjust: 100% !important;
+        -webkit-overflow-scrolling: touch !important;
     }
     
     .main-container {
@@ -1803,6 +1820,9 @@ HTML = """
         min-height: auto;
         display: flex;
         flex-direction: column;
+
+         transform: none !important;
+        will-change: auto !important;
     }
     
     .content {
@@ -1811,7 +1831,10 @@ HTML = """
         flex-direction: column;
     }
 
-    
+    input[type="text"], input[type="file"] {
+        font-size: 18px !important;
+        min-height: 44px !important; /* Минимальная высота для touch */
+    }
 
 
 
@@ -2210,8 +2233,8 @@ function fixMobileLayout() {
     }
     
     if (isMobile && mainContainer) {
-        mainContainer.style.width = '600px';
-        mainContainer.style.maxWidth = '600px';
+        mainContainer.style.width = '100%';
+        mainContainer.style.maxWidth = '100%';
     }
 }
 
