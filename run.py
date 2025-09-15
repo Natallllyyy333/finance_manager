@@ -1802,7 +1802,7 @@ HTML = """
         @media (max-width: 768px) {
 
         body {
-        padding: 5px;
+        padding: 0;
         display: flex;
         justify-content: center;
         align-items: flex-start;
@@ -2088,7 +2088,7 @@ function scrollToFileInfo() {
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     
     // Если это мобильное устройство - выходим из функции
-    if (isMobile) return;
+    
     const fileInfoSection = document.getElementById('fileInfoSection');
     if (fileInfoSection) {
         setTimeout(() => {
