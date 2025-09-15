@@ -191,7 +191,7 @@ def analyze(transactions, daily_categories, month):
         if category in DAILY_NORMS:
             if daily_avg > DAILY_NORMS[category] * 1.1:
                 analysis["norms_violations"].append(
-                    f"Daily average for {category} "
+                    f"Daily Avg for {category} "
                     f"overspent: {daily_avg:.2f}€ "
                     f"vs norm: {DAILY_NORMS[category]:.2f}€"
                 )
