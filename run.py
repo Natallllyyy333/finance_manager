@@ -2221,53 +2221,7 @@ window.addEventListener('resize', fixMobileLayout);
 window.addEventListener('orientationchange', fixMobileLayout);
 
 
-function setupMobileLayout() {
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    if (!isMobile) return;
-    
-    const mainContainer = document.querySelector('.main-container');
-    const inputs = document.querySelectorAll('input[type="text"], input[type="file"]');
-    const terminal = document.querySelector('.terminal');
-    
-    // Фиксим терминал
-    if (terminal) {
-        terminal.style.width = '100%';
-        terminal.style.maxWidth = '100%';
-        terminal.style.margin = '0';
-        terminal.style.borderRadius = '8px';
-        terminal.style.border = '2px solid #667eea';
-    }
-    
-    // Настраиваем основной контейнер
-    if (mainContainer) {
-        mainContainer.style.width = '95%';
-        mainContainer.style.maxWidth = '95%';
-        mainContainer.style.margin = '20px auto';
-        mainContainer.style.transition = 'all 0.3s ease';
-        
-        // Обработчики для инпутов
-        inputs.forEach(input => {
-            input.addEventListener('focus', () => {
-            
-                mainContainer.style.width = '600px';
-                mainContainer.style.maxWidth = '600px';
-            });
-            
-            input.addEventListener('blur', () => {
-            
-                mainContainer.style.width = '95%';
-                mainContainer.style.maxWidth = '95%';
-            });
-        });
-    }
-}
 
-// Запускаем
-document.addEventListener('DOMContentLoaded', setupMobileLayout);
-window.addEventListener('resize', setupMobileLayout);
-window.addEventListener('orientationchange', function() {
-    setTimeout(setupMobileLayout, 100);
-});
 </script>
 
 </body>
