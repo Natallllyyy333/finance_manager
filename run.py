@@ -18,7 +18,7 @@ from werkzeug.utils import secure_filename
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-123')
+app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret-key-123")
 
 OPERATION_STATUS = {}
 
@@ -38,32 +38,33 @@ ALLOWED_EXTENSIONS = {"csv", "txt"}
 
 def allowed_file(filename):
     """
-    Checks that the file has a valid extension and name. Returns True if the file is valid, False otherwise.
+    Checks that the file has a valid extension and name.
+    Returns True if the file is valid, False otherwise.
     """
     # Checking the main conditions
     if not filename or not isinstance(filename, str):
         return False
-    
+
     # We prohibit hidden files (starting with a dot)
-    if filename.startswith('.'):
+    if filename.startswith("."):
         return False
-    
+
     # Checking for the presence of a dot in the filename
-    if '.' not in filename:
+    if "." not in filename:
         return False
-    
+
     # Checking the length of the file name (no more than 100 characters)
     if len(filename) > 100:
         return False
-    
+
     # Extracting the extension and checking it
     try:
-        extension = filename.rsplit('.', 1)[1].lower()
+        extension = filename.rsplit(".", 1)[1].lower()
     except IndexError:
         return False
-    
+
     # Сhecking that the extension is in the list of allowed ones
-    return extension in ALLOWED_EXTENSIONS  
+    return extension in ALLOWED_EXTENSIONS
 
 
 def get_google_credentials():
@@ -76,9 +77,8 @@ def get_google_credentials():
 
         if "DYNO" in os.environ:
             print("🔑 Using environment credentials from Heroku")
-            service_account_json = os.environ.get(
-                "GOOGLE_SERVICE_ACCOUNT_JSON"
-            )
+            service_key = "GOOGLE_SERVICE_ACCOUNT_JSON"
+            service_account_json = os.environ.get(service_key)
             if service_account_json:
                 try:
                     creds_dict = json.loads(service_account_json)
@@ -90,8 +90,7 @@ def get_google_credentials():
                     return None
             else:
                 print(
-                    "❌ GOOGLE_SERVICE_ACCOUNT_JSON environment  "
-                    "variable not found"
+                    "❌ GOOGLE_SERVICE_ACCOUNT_JSON envir " "variable not found"
                 )
                 return None
         else:
@@ -105,8 +104,7 @@ def get_google_credentials():
             else:
                 print("❌ Local creds.json file not found")
                 print(
-                    "💡 Create creds.json  "
-                    "with Google Service Account credentials"
+                    "💡 Create creds.json  " "with Google Service Account creds"
                 )
                 return None
     except Exception as e:
@@ -208,9 +206,8 @@ def format_terminal_output(data, month, transactions_count=0):
         (data["expenses"] / data["income"] * 100) if data["income"] > 0 else 0
     )
 
-    savings_rate = (
-        (data["savings"] / data["income"] * 100) if data["income"] > 0 else 0
-    )
+    savings_rate = (data["savings"] / data["income"] * 100)
+    if data["income"] > 0 else 0
 
     centered_title = f"<u>FINANCIAL OVERVIEW: {month.upper()}</u>"
     output.append(centered_title)
@@ -286,9 +283,8 @@ def terminal_visualization(data):
         (data["expenses"] / data["income"] * 100) if data["income"] > 0 else 0
     )
 
-    savings_rate = (
-        (data["savings"] / data["income"] * 100) if data["income"] > 0 else 0
-    )
+    savings_rate = (data["savings"] / data["income"] * 100)
+    if data["income"] > 0 else 0
 
     print(
         f"Expenses: {data['expenses']:8.2f}€ "
@@ -309,18 +305,14 @@ def terminal_visualization(data):
 
     categories_with_percent = []
     max_percent = (
-        max(
-            (amount / data["expenses"] * 100)
-            for category, amount in top_categories
-        )
+        max((amount / data["expenses"] * 100)
+        for category, amount in top_categories)
         if data["expenses"] > 0
         else 0
     )
 
     for category, amount in top_categories:
-        percent = (
-            (amount / data["expenses"] * 100) if data["expenses"] > 0 else 0
-        )
+        percent = (amount / data["expenses"] * 100) if data["expenses"] > 0 else 0
 
         if max_percent > 0:
             scaled_percent = max(1, int(percent / max_percent * 8))
@@ -463,14 +455,10 @@ def prepare_summary_data(data, transactions):
         if category == "TOTAL INCOME":
             table_data.append([category, data["income"], 1.0])
         elif category == "TOTAL EXPENSES":
-            percentage = (
-                data["expenses"] / data["income"] if data["income"] > 0 else 0
-            )
+            percentage = data["expenses"] / data["income"] if data["income"] > 0 else 0
             table_data.append([category, data["expenses"], percentage])
         elif category == "SAVINGS":
-            percentage = (
-                data["savings"] / data["income"] if data["income"] > 0 else 0
-            )
+            percentage = data["savings"] / data["income"] if data["income"] > 0 else 0
             table_data.append([category, data["savings"], percentage])
         elif category in ["", "INCOME CATEGORIES:", "EXPENSE CATEGORIES:"]:
             table_data.append([category, "", ""])
@@ -482,9 +470,7 @@ def prepare_summary_data(data, transactions):
             matched = False
             for income_cat in income_by_category:
                 amount = income_by_category[income_cat]
-                percentage = (
-                    amount / data["income"] if data["income"] > 0 else 0
-                )
+                percentage = amount / data["income"] if data["income"] > 0 else 0
                 table_data.append([category, amount, percentage])
                 matched = True
                 break
@@ -498,9 +484,7 @@ def prepare_summary_data(data, transactions):
                         ):
                             amount = income_by_category[income_cat]
                             percentage = (
-                                amount / data["income"]
-                                if data["income"] > 0
-                                else 0
+                                amount / data["income"] if data["income"] > 0 else 0
                             )
                             table_data.append([category, amount, percentage])
                             matched = True
@@ -510,9 +494,7 @@ def prepare_summary_data(data, transactions):
                 table_data.append([category, 0, 0])
         elif category in expenses_by_category:
             amount = expenses_by_category[category]
-            percentage = (
-                amount / data["expenses"] if data["expenses"] > 0 else 0
-            )
+            percentage = amount / data["expenses"] if data["expenses"] > 0 else 0
             table_data.append([category, amount, percentage])
         else:
             table_data.append([category, 0, 0])
@@ -566,9 +548,7 @@ def write_to_month_sheet(month_name, transactions, data):
             worksheet = sh.worksheet(month_name)
         except gspread.WorksheetNotFound:
             print(f"📝 Creating new worksheet '{month_name}'...")
-            worksheet = sh.add_worksheet(
-                title=month_name, rows="100", cols="20"
-            )
+            worksheet = sh.add_worksheet(title=month_name, rows="100", cols="20")
             print(f"✅ Worksheet '{month_name}' created")
             time.sleep(3)
 
@@ -650,14 +630,10 @@ def write_to_month_sheet(month_name, transactions, data):
 
                 # Summary section at the top
                 expense_percentage = (
-                    (data["expenses"] / data["income"])
-                    if data["income"] > 0
-                    else 0
+                    (data["expenses"] / data["income"]) if data["income"] > 0 else 0
                 )
                 savings_percentage = (
-                    (data["savings"] / data["income"])
-                    if data["income"] > 0
-                    else 0
+                    (data["savings"] / data["income"]) if data["income"] > 0 else 0
                 )
 
                 summary_data = [
@@ -1087,9 +1063,7 @@ def sync_google_sheets_operation(month_name, table_data):
                     print(f"✅ Found empty column at position: {month_col}")
                     print(f"📝 Creating new column for {normalized_month}...")
                     summary_sheet.update_cell(2, month_col, normalized_month)
-                    summary_sheet.update_cell(
-                        3, month_col + 1, f"{normalized_month} %"
-                    )
+                    summary_sheet.update_cell(3, month_col + 1, f"{normalized_month} %")
                     print(
                         f"✅ Created new column for {normalized_month}  "
                         f"at position: {month_col}"
@@ -1106,9 +1080,7 @@ def sync_google_sheets_operation(month_name, table_data):
 
             print(f"📝 Adding new column at position: {month_col}")
             summary_sheet.update_cell(2, month_col, normalized_month)
-            summary_sheet.update_cell(
-                3, month_col + 1, f"{normalized_month} %"
-            )
+            summary_sheet.update_cell(3, month_col + 1, f"{normalized_month} %")
             print(
                 f"✅ Added new column for {normalized_month} "
                 f"at position: {month_col}"
@@ -1138,7 +1110,7 @@ def sync_google_sheets_operation(month_name, table_data):
             max_retries = 3
 
             for i in range(0, len(update_data), batch_size):
-                batch = update_data[i: i + batch_size]
+                batch = update_data[i : i + batch_size]
                 retry_count = 0
                 success = False
 
@@ -1197,9 +1169,7 @@ def write_to_target_sheet(table_data, month_name):
             for row in table_data:
                 if row[0] in ["TOTAL INCOME", "TOTAL EXPENSES", "SAVINGS"]:
                     simplified_data.append(row)
-                elif row[0] and not any(
-                    x in row[0] for x in ["CATEGORIES", ""]
-                ):
+                elif row[0] and not any(x in row[0] for x in ["CATEGORIES", ""]):
                     simplified_data.append([row[0], row[1], 0])
             table_data = simplified_data
 
@@ -1220,15 +1190,15 @@ def load_transactions(file_path_or_object):
         if hasattr(file_path_or_object, "read"):
             # File object - rewind to beginning for mobile devices
             file_path_or_object.seek(0)
-            
+
             # Read content in chunks for better memory handling
-            content = b''
+            content = b""
             while True:
                 chunk = file_path_or_object.read(8192)  # 8KB chunks
                 if not chunk:
                     break
                 content += chunk
-            
+
             if isinstance(content, bytes):
                 try:
                     content = content.decode("utf-8")
@@ -1239,7 +1209,7 @@ def load_transactions(file_path_or_object):
                     except:
                         print("❌ Error decoding file content")
                         return [], defaultdict(lambda: defaultdict(float))
-            
+
             lines = content.splitlines()
         else:
             # File path
@@ -1261,19 +1231,19 @@ def load_transactions(file_path_or_object):
             if line and not line.startswith(("#", "Date", "Date,")):
                 try:
                     # More robust CSV parsing
-                    parts = [part.strip() for part in line.split(',')]
+                    parts = [part.strip() for part in line.split(",")]
                     if len(parts) < 5:
                         continue
 
                     # Parse date (assuming format: "31 Mar 2025")
                     date_str = parts[0]
                     description = parts[1]
-                    
+
                     try:
                         amount = float(parts[2])
                     except ValueError:
                         continue
-                    
+
                     currency = parts[3]
                     transaction_type = parts[4].lower()
 
@@ -1314,100 +1284,69 @@ def load_transactions(file_path_or_object):
     print(f"✅ Loaded {len(transactions)} transactions")
     return transactions, daily_categories
 
-def get_operation_status(
-    analysis_success, month_sheet_success, summary_sheet_success
-):
-    """Return operation status message"""
-    if analysis_success and month_sheet_success and summary_sheet_success:
-        return ("✅ Analysis completed successfully  "
-                "and data written to Google Sheets")
-    elif (
-        analysis_success
-        and month_sheet_success
-        and not summary_sheet_success
-    ):
-        return ("⚠️ Analysis completed, Month sheet updated "
-                "but failed to update Summary sheet")
-    elif (
-        analysis_success and not month_sheet_success and summary_sheet_success
-    ):
-        return ("⚠️ Analysis completed, Summary sheet updated "
-                "but failed to update Month sheet")
-    elif (
-        analysis_success
-        and not month_sheet_success
-        and not summary_sheet_success
-    ):
-        return (
-            "⚠️ Analysis completed but failed to write data to Google Sheets"
-        )
-    elif (
-        not analysis_success and month_sheet_success and summary_sheet_success
-    ):
-        return ("⚠️ Analysis failed but Google Sheets operations completed")
-    elif (
-        not analysis_success
-        and month_sheet_success
-        and not summary_sheet_success
-    ):
-        return ("⚠️ Analysis failed, Month sheet updated "
-                "but failed to update Summary sheet")
-    elif (
-        not analysis_success
-        and not month_sheet_success
-        and summary_sheet_success
-    ):
-        return ("⚠️ Analysis failed, Summary sheet updated "
-                "but failed to update Month sheet")
 
-
-def get_operation_status(
-    analysis_success, month_sheet_success, summary_sheet_success
-):
+def get_operation_status(analysis_success, month_sheet_success, summary_sheet_success):
     """Return operation status message"""
     if analysis_success and month_sheet_success and summary_sheet_success:
         return (
-            "✅ Analysis completed successfully  "
-            "and data written to Google Sheets"
+            "✅ Analysis completed successfully  " "and data written to Google Sheets"
         )
-    elif (
-        analysis_success
-        and month_sheet_success
-        and not summary_sheet_success
-    ):
-        return ("⚠️ Analysis completed, Month sheet updated "
-                "but failed to update Summary sheet")
-    elif (
-        analysis_success and not month_sheet_success and summary_sheet_success
-    ):
-        return ("⚠️ Analysis completed, Summary sheet updated "
-                "but failed to update Month sheet")
-    elif (
-        analysis_success
-        and not month_sheet_success
-        and not summary_sheet_success
-    ):
+    elif analysis_success and month_sheet_success and not summary_sheet_success:
         return (
-            "⚠️ Analysis completed but failed to write data to Google Sheets"
+            "⚠️ Analysis completed, Month sheet updated "
+            "but failed to update Summary sheet"
         )
-    elif (
-        not analysis_success and month_sheet_success and summary_sheet_success
-    ):
-        return ("⚠️ Analysis failed but Google Sheets operations completed")
-    elif (
-        not analysis_success
-        and month_sheet_success
-        and not summary_sheet_success
-    ):
-        return ("⚠️ Analysis failed, Month sheet updated "
-                "but failed to update Summary sheet")
-    elif (
-        not analysis_success
-        and not month_sheet_success
-        and summary_sheet_success
-    ):
-        return ("⚠️ Analysis failed, Summary sheet updated "
-                "but failed to update Month sheet")
+    elif analysis_success and not month_sheet_success and summary_sheet_success:
+        return (
+            "⚠️ Analysis completed, Summary sheet updated "
+            "but failed to update Month sheet"
+        )
+    elif analysis_success and not month_sheet_success and not summary_sheet_success:
+        return "⚠️ Analysis completed but failed to write data to Google Sheets"
+    elif not analysis_success and month_sheet_success and summary_sheet_success:
+        return "⚠️ Analysis failed but Google Sheets operations completed"
+    elif not analysis_success and month_sheet_success and not summary_sheet_success:
+        return (
+            "⚠️ Analysis failed, Month sheet updated "
+            "but failed to update Summary sheet"
+        )
+    elif not analysis_success and not month_sheet_success and summary_sheet_success:
+        return (
+            "⚠️ Analysis failed, Summary sheet updated "
+            "but failed to update Month sheet"
+        )
+
+
+def get_operation_status(analysis_success, month_sheet_success, summary_sheet_success):
+    """Return operation status message"""
+    if analysis_success and month_sheet_success and summary_sheet_success:
+        return (
+            "✅ Analysis completed successfully  " "and data written to Google Sheets"
+        )
+    elif analysis_success and month_sheet_success and not summary_sheet_success:
+        return (
+            "⚠️ Analysis completed, Month sheet updated "
+            "but failed to update Summary sheet"
+        )
+    elif analysis_success and not month_sheet_success and summary_sheet_success:
+        return (
+            "⚠️ Analysis completed, Summary sheet updated "
+            "but failed to update Month sheet"
+        )
+    elif analysis_success and not month_sheet_success and not summary_sheet_success:
+        return "⚠️ Analysis completed but failed to write data to Google Sheets"
+    elif not analysis_success and month_sheet_success and summary_sheet_success:
+        return "⚠️ Analysis failed but Google Sheets operations completed"
+    elif not analysis_success and month_sheet_success and not summary_sheet_success:
+        return (
+            "⚠️ Analysis failed, Month sheet updated "
+            "but failed to update Summary sheet"
+        )
+    elif not analysis_success and not month_sheet_success and summary_sheet_success:
+        return (
+            "⚠️ Analysis failed, Summary sheet updated "
+            "but failed to update Month sheet"
+        )
     else:
         return "❌ All operations failed"
 
@@ -1426,8 +1365,7 @@ def run_full_analysis_with_file(month, file_path, temp_dir, operation_id):
 
     try:
         print(
-            f"🚀 Starting FULL background analysis "
-            f"for {month} with uploaded file"
+            f"🚀 Starting FULL background analysis " f"for {month} with uploaded file"
         )
         transactions, daily_categories = load_transactions(file_path)
 
@@ -1452,9 +1390,7 @@ def run_full_analysis_with_file(month, file_path, temp_dir, operation_id):
             )
         else:
             print(f"❌ Failed to update {month} worksheet")
-            OPERATION_STATUS[operation_id] = (
-                "❌ Failed to update Month worksheet"
-            )
+            OPERATION_STATUS[operation_id] = "❌ Failed to update Month worksheet"
 
         time.sleep(10)
 
@@ -1462,9 +1398,7 @@ def run_full_analysis_with_file(month, file_path, temp_dir, operation_id):
         print("⏳ Starting Google Sheets SUMMARY update...")
         table_data = prepare_summary_data(data, transactions)
         MONTH_NORMALIZED = get_month_column_name(month)
-        summary_sheet_success = write_to_target_sheet(
-            table_data, MONTH_NORMALIZED
-        )
+        summary_sheet_success = write_to_target_sheet(table_data, MONTH_NORMALIZED)
 
         if summary_sheet_success:
 
@@ -1473,9 +1407,7 @@ def run_full_analysis_with_file(month, file_path, temp_dir, operation_id):
             )
         else:
             print("❌ Failed to update Google Sheets SUMMARY")
-            OPERATION_STATUS[operation_id] = (
-                "❌ Failed to update Google Sheets"
-            )
+            OPERATION_STATUS[operation_id] = "❌ Failed to update Google Sheets"
 
         # Printing status message
         status_message = get_operation_status(
@@ -1485,9 +1417,7 @@ def run_full_analysis_with_file(month, file_path, temp_dir, operation_id):
 
     except Exception as e:
         print(f"Background analysis error: {e}")
-        OPERATION_STATUS[operation_id] = (
-            f"❌ Error during processing: {str(e)}"
-        )
+        OPERATION_STATUS[operation_id] = f"❌ Error during processing: {str(e)}"
         import traceback
 
         print(f"Traceback: {traceback.format_exc()}")
@@ -2092,90 +2022,89 @@ def index():
         if request.method == "POST":
             print("📨 POST request received")
 
-            
             # Mobile device detection and delay
-            user_agent = request.headers.get('User-Agent', '').lower()
-            if 'android' in user_agent or 'mobile' in user_agent:
+            user_agent = request.headers.get("User-Agent", "").lower()
+            if "android" in user_agent or "mobile" in user_agent:
                 print("📱 Mobile device detected - adding delay")
                 time.sleep(3)  # 3 second delay for mobile devices
-            
+
             month = request.form.get("month", "").strip().lower()
-            
+
             if not month:
                 return render_template_string(
-                    HTML, result="Month is required", status_message="❌ Please enter a month"
+                    HTML,
+                    result="Month is required",
+                    status_message="❌ Please enter a month",
                 )
 
             print(f"📅 Month: {month}")
 
             if "file" not in request.files:
                 return render_template_string(
-                    HTML, result="No file uploaded", status_message="❌ No file selected"
+                    HTML,
+                    result="No file uploaded",
+                    status_message="❌ No file selected",
                 )
 
             file = request.files["file"]
             if file.filename == "":
                 return render_template_string(
-                    HTML, result="No file selected", status_message="❌ Please select a file"
+                    HTML,
+                    result="No file selected",
+                    status_message="❌ Please select a file",
                 )
 
             # Enhanced file validation
             if not file or not allowed_file(file.filename):
                 return render_template_string(
-                    HTML, 
-                    result="Invalid file type. Please upload a CSV file.", 
-                    status_message="❌ Invalid file type"
+                    HTML,
+                    result="Invalid file type. Please upload a CSV file.",
+                    status_message="❌ Invalid file type",
                 )
-            
 
             # Check file size (max 10MB)
             file.seek(0, 2)  # Seek to end to get size
             file_size = file.tell()
             file.seek(0)  # Reset to beginning
-            
+
             if file_size > 10 * 1024 * 1024:  # 10MB limit
                 return render_template_string(
                     HTML,
                     result="File too large. Maximum size is 10MB.",
-                    status_message="❌ File too large"
+                    status_message="❌ File too large",
                 )
             print(f"🔍 Checking file: {file.filename}")
             print(f"📏 File size: {file_size} bytes")
             print(f"📄 Content type: {file.content_type}")
             print(f"✅ Allowed check: {allowed_file(file.filename)}")
 
-            if file and (allowed_file(file.filename) or 
-                        file.filename.lower().endswith('.csv') or 
-                        file.content_type in ['text/csv', 'application/vnd.ms-excel', 'text/plain']):
+            if file and (
+                allowed_file(file.filename)
+                or file.filename.lower().endswith(".csv")
+                or file.content_type
+                in ["text/csv", "application/vnd.ms-excel", "text/plain"]
+            ):
                 print("✅ File accepted for processing")
             if file and allowed_file(file.filename):
-                
+
                 print(f"📁 File received: {file.filename}")
                 print(f"📏 File size: {file_size} bytes")
                 print(f"🔍 File content type: {file.content_type}")
 
-
-                
                 try:
                     filename = secure_filename(file.filename)
                     # Create temporary file for processing
                     temp_dir = tempfile.mkdtemp()
-                    temp_file_path = os.path.join(
-                        temp_dir, f"hsbc_{month}.csv"
-                    )
+                    temp_file_path = os.path.join(temp_dir, f"hsbc_{month}.csv")
                     # Save uploaded file
                     file.save(temp_file_path)
 
                     # Load transactions for immediate display
-                    transactions, daily_categories = load_transactions(
-                        temp_file_path
-                    )
+                    transactions, daily_categories = load_transactions(temp_file_path)
 
                     if transactions:
                         data = analyze(transactions, daily_categories, month)
-                        result = format_terminal_output(
-                            data, month, len(transactions)
-                        )
+                        result = format_terminal_output(data, month, len(transactions))
 
                         # Generate unique operation ID
                         operation_id = f"{month}_{
@@ -2198,9 +2127,7 @@ def index():
                         f"Operation ID: {operation_id}"
                     else:
                         result = f"No valid transactions found in {filename}"
-                        status_message = (
-                            "❌ Analysis failed - no transactions found"
-                        )
+                        status_message = "❌ Analysis failed - no transactions found"
 
                 except Exception as e:
                     result = f"Error processing file: {str(e)}"
@@ -2216,7 +2143,6 @@ def index():
             filename=filename,
             status_message=status_message,
             operation_id=operation_id,
-            
         )
 
     except Exception as e:
@@ -2244,11 +2170,7 @@ def main():
     else:
         # Local mode
         print(f"PERSONAL FINANCE ANALYZER")
-        MONTH = (
-            input("Enter the month (e.g. 'March, April, May'): ")
-            .strip()
-            .lower()
-        )
+        MONTH = input("Enter the month (e.g. 'March, April, May'): ").strip().lower()
         FILE = f"hsbc_{MONTH}.csv"
         print(f"Loading file: {FILE}")
 
