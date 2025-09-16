@@ -1414,13 +1414,11 @@ def run_full_analysis_with_file(month, file_path, temp_dir, operation_id):
     month_sheet_success = False
     summary_sheet_success = False
 
-    OPERATION_STATUS[operation_id] = (
-        "⏳ Processing started... Google Sheets update in background"
+    OPERATION_STATUS[operation_id] = ("⏳ Processing started... Google Sheets update in background"
     )
 
     try:
-        print(
-            "🚀 Starting FULL background analysis "
+        print("🚀 Starting FULL background analysis "
             f"for {month} with uploaded file"
         )
         transactions, daily_categories = load_transactions(file_path)
@@ -1462,8 +1460,7 @@ def run_full_analysis_with_file(month, file_path, temp_dir, operation_id):
 
         if summary_sheet_success:
 
-            OPERATION_STATUS[operation_id] = (
-                "✅ Google Sheets update completed successfully!"
+            OPERATION_STATUS[operation_id] = ("✅ Google Sheets update completed successfully!"
             )
         else:
             print("❌ Failed to update Google Sheets SUMMARY")
