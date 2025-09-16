@@ -1776,7 +1776,7 @@ HTML = """
     @media (max-width: 480px) {
 
      body {
-        padding: 10px;
+        padding: 5px;
         align-items: center;
         justify-content: center;
     }
