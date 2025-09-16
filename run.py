@@ -1734,32 +1734,25 @@ HTML = """
 
             width: 100% !important;
             max-width: 100% !important;
-           
             border-radius: 0;
             border-left: none;
             border-right: none;
-            
             font-size: 12px;
             line-height: 1.3;
         }
-              
         .content {
             padding: 5px;
         }
-        
         .main-container {
             overflow-x: hidden;
         }
-        
         .content {
             padding-left: 0;
             padding-right: 0;
         }
-         
     }
 
         .main-container {
-           
             width: 100%;
         }
     }
@@ -1769,34 +1762,27 @@ HTML = """
      body {
         padding: 0;
     }
-    
     .main-container {
         border-radius: 10px;
         margin: 0;
         width: 100%;
     }
 
-     
         .terminal {
             max-height: 90%;
             min-height: 350px;
             font-size: 11px;
 
-            
             padding: 10px;
-           
         }
-        
         input[type="text"], input[type="file"] {
-            font-size: 14px; 
+            font-size: 14px;
         }
-        
     }
 
     /* For horizontal orientation */
     @media (max-width: 768px) and (orientation: landscape) {
         .terminal {
-            
             height: auto;
             font-size: 11px;
         }
@@ -1851,7 +1837,6 @@ HTML = """
             align-items: center;
             margin: 15px 0;
         }
-       
     </style>
 </head>
 <body>
@@ -1865,7 +1850,6 @@ HTML = """
                 <form method="POST"
                 enctype="multipart/form-data"
                 id="uploadForm">
-                
                     <div class="input-group">
                         <input type="text" name="month"
                         placeholder="Enter month (e.g. March, April)" required>
@@ -1874,7 +1858,7 @@ HTML = """
                     </div>
                 </form>
                 <div id="mobileRetry" style="display: none; text-align: center; margin: 20px;">
-    <button onclick="window.location.reload()" 
+    <button onclick="window.location.reload()"
             style="padding: 12px 24px; background: #667eea; color: white; border: none; border-radius: 8px;">
         🔄 Retry Upload
     </button>
@@ -1913,7 +1897,6 @@ if (isMobile) {
     // Increasing the form submission timeout for mobile devices
     document.getElementById('uploadForm').addEventListener('submit', function(e) {
         setTimeout(function() {
-            
         }, 1000);
     });
 }
@@ -1969,7 +1952,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function scrollToFileInfo() {
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-       
     const fileInfoSection = document.getElementById('fileInfoSection');
     if (fileInfoSection) {
         setTimeout(() => {
@@ -2032,9 +2014,7 @@ document.addEventListener('DOMContentLoaded', function() {
 document.addEventListener('DOMContentLoaded', function() {
     const terminal = document.querySelector('.terminal');
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    
     if (terminal && isMobile) {
-        
         optimizeTerminalForMobile(terminal);
     }
 });
@@ -2043,7 +2023,6 @@ function optimizeTerminalForMobile(terminal) {
     // getting viewport sizes
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
-    
     // Calculating the maximum available width (minus the margins)
     const maxWidth = Math.min(viewportWidth - 40, 800); // 40px отступы, макс 800px
     // Calculating the optimal height (80% of the screen height minus the top elements)
