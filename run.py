@@ -1420,7 +1420,7 @@ def run_full_analysis_with_file(month, file_path, temp_dir, operation_id):
 
     try:
         print(
-            f"🚀 Starting FULL background analysis "
+            "🚀 Starting FULL background analysis "
             f"for {month} with uploaded file"
         )
         transactions, daily_categories = load_transactions(file_path)
