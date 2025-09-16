@@ -2099,7 +2099,8 @@ window.addEventListener('resize', checkOrientation);
 
 
 function fixMobileLayout() {
-    const MOBILE_USER_AGENTS = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
+    const MOBILE_USER_AGENTS =
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
     const isMobile = MOBILE_USER_AGENTS.test(navigator.userAgent);
     const terminal = document.querySelector('.terminal');
     const mainContainer = document.querySelector('.main-container');
@@ -2216,7 +2217,8 @@ def index():
                     filename = secure_filename(file.filename)
                     # Create temporary file for processing
                     temp_dir = tempfile.mkdtemp()
-                    temp_file_path = os.path.join(temp_dir, f"hsbc_{month}.csv")
+                    filename = f"hsbc_{month}.csv"
+                    temp_file_path = os.path.join(temp_dir, filename)
                     # Save uploaded file
                     file.save(temp_file_path)
 
