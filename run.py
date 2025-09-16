@@ -1564,9 +1564,17 @@ HTML = """
 <html>
 <head>
      <title>Finance Analyzer</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+   <meta name="viewport" content="
+    width=device-width,
+    initial-scale=1.0,
+    maximum-scale=1.0,
+    user-scalable=no
+">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+   <meta
+    name="apple-mobile-web-app-status-bar-style"
+    content="black-translucent"
+>
     <style>
         html {
                 scroll-behavior: smooth;
@@ -1857,7 +1865,10 @@ HTML = """
                         <button type="submit" id="submitBtn">Analyze</button>
                     </div>
                 </form>
-                <div id="mobileRetry" style="display: none; text-align: center; margin: 20px;">
+               <div
+                    id="mobileRetry"
+                    style="display: none; text-align: center; margin: 20px;"
+                >
     <button onclick="window.location.reload()"
             style="padding: 12px 24px; background: #667eea; color: white; border: none; border-radius: 8px;">
         🔄 Retry Upload
