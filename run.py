@@ -2256,7 +2256,10 @@ def index():
                         f"Operation ID: {operation_id}"
                     else:
                         result = f"No valid transactions found in {filename}"
-                        status_message = "❌ Analysis failed - no transactions found"
+                        status_message = (
+                            "❌ Analysis failed"
+                            " - no transactions found"
+                        )
 
                 except Exception as e:
                     result = f"Error processing file: {str(e)}"
