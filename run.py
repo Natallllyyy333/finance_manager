@@ -1314,8 +1314,7 @@ def get_operation_status(
 ):
     """Return operation status message"""
     if analysis_success and month_sheet_success and summary_sheet_success:
-        return ("✅ Analysis completed successfully  "
-                "and data written to Google Sheets")
+        return "✅ Analysis completed successfully and data written to Google Sheets"
     elif (
         analysis_success
         and month_sheet_success
@@ -1361,8 +1360,7 @@ def get_operation_status(
 ):
     """Return operation status message"""
     if analysis_success and month_sheet_success and summary_sheet_success:
-        return ("✅ Analysis completed successfully  "
-                "and data written to Google Sheets")
+        return ("✅ Analysis completed successfully and data written to Google Sheets")
     elif (
         analysis_success
         and month_sheet_success
@@ -1414,12 +1412,11 @@ def run_full_analysis_with_file(month, file_path, temp_dir, operation_id):
     month_sheet_success = False
     summary_sheet_success = False
 
-    OPERATION_STATUS[operation_id] = ("⏳ Processing started... Google Sheets update in background"
-    )
+    OPERATION_STATUS[operation_id] = "⏳ Processing started... Google Sheets update in background"
+    
 
     try:
-        print("🚀 Starting FULL background analysis "
-            f"for {month} with uploaded file"
+        print(f"🚀 Starting FULL background analysis for {month} with uploaded file"
         )
         transactions, daily_categories = load_transactions(file_path)
 
