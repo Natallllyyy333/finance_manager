@@ -1912,7 +1912,8 @@ document.getElementById('uploadForm').addEventListener('submit', function(e) {
 
 if (isMobile) {
     // Increasing the form submission timeout for mobile devices
-    document.getElementById('uploadForm').addEventListener('submit', function(e) {
+    document.getElementById('uploadForm')
+    .addEventListener('submit', function(e) {
         setTimeout(function() {
         }, 1000);
     });
@@ -1968,7 +1969,7 @@ document.addEventListener('DOMContentLoaded', function() {
 {% if operation_id %}
 
 function scrollToFileInfo() {
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const isMobile = window.matchMedia('(max-width: 768px)').matches;
     const fileInfoSection = document.getElementById('fileInfoSection');
     if (fileInfoSection) {
         setTimeout(() => {
