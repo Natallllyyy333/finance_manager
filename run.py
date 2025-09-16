@@ -1710,7 +1710,7 @@ HTML = """
         display: flex;
         justify-content: center;
         align-items: center;
-        min-height: 100%;
+        min-height: 100vh;
         -webkit-text-size-adjust: 100% !important;
         text-size-adjust: 100% !important;
         -webkit-overflow-scrolling: touch !important;
@@ -1718,7 +1718,7 @@ HTML = """
     .main-container {
         width: 90%;
         max-width: 100%;
-        margin:  0;
+        margin:  20px 0;
         border-radius: 15px;
         min-height: auto;
         display: flex;
@@ -1776,11 +1776,13 @@ HTML = """
     @media (max-width: 480px) {
 
      body {
-        padding: 0;
+        padding: 10px;
+        align-items: center;
+        justify-content: center;
     }
     .main-container {
         border-radius: 10px;
-        margin: 0;
+        margin: 10px 0;
         width: 90%;
     }
 
@@ -1921,6 +1923,10 @@ document.getElementById('uploadForm').addEventListener('submit', function(e) {
     const isMobile = window.matchMedia('(max-width: 768px)').matches;
 
 if (isMobile) {
+    body.style.display = 'flex';
+    body.style.justifyContent = 'center';
+    body.style.alignItems = 'center';
+    body.style.minHeight = '100vh';
     // Increasing the form submission timeout for mobile devices
     document.getElementById('uploadForm')
     .addEventListener('submit', function(e) {
