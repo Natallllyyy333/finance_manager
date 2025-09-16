@@ -1706,7 +1706,7 @@ HTML = """
         @media (max-width: 768px) {
 
         body {
-        padding: 2px;
+        padding: 0px;
         display: flex;
         justify-content: center;
         align-items: center;
@@ -1716,7 +1716,7 @@ HTML = """
         -webkit-overflow-scrolling: touch !important;
     }
     .main-container {
-        width: 96%;
+        width: 90%;
         max-width: 100%;
         margin:  20px 0;
         border-radius: 15px;
@@ -1776,14 +1776,14 @@ HTML = """
     @media (max-width: 480px) {
 
      body {
-        padding: 2px;
+        padding: 10px;
         align-items: center;
         justify-content: center;
     }
     .main-container {
         border-radius: 10px;
         margin: 10px 0;
-        width: 96%;
+        width: 90%;
     }
 
         .terminal {
@@ -1924,10 +1924,9 @@ document.getElementById('uploadForm').addEventListener('submit', function(e) {
 
 if (isMobile) {
     body.style.display = 'flex';
-    body.style.justifyContent = 'center';
-    body.style.alignItems = 'center';
-    body.style.minHeight = '100vh';
-    body.style.padding = 2px;
+        body.style.justifyContent = 'center';
+        body.style.alignItems = 'center';
+        body.style.minHeight = '100vh';
     // Increasing the form submission timeout for mobile devices
     document.getElementById('uploadForm')
     .addEventListener('submit', function(e) {
