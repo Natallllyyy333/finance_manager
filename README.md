@@ -156,6 +156,8 @@ The following flowchart summarises the structure and logic of the application.
 
 ### Frameworks & Tools
 
+- [Python](https://www.python.org/) was used as the core programming language for backend logic and data processing
+- [Flask](https://flask.palletsprojects.com/) was used as a web framework to create the application interface and handle routing
 - [Diagrams.net](https://app.diagrams.net/) was used to draw program flowchart
 - [Git](https://git-scm.com/) was used for version control within VSCode to push the code to GitHub
 - [GitHub](https://github.com/) was used as a remote repository to store project code
