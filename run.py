@@ -1709,7 +1709,7 @@ HTML = """
         padding: 0px;
         display: flex;
         justify-content: center;
-        align-items: flex-start;
+        align-items: center;
         min-height: 100%;
         -webkit-text-size-adjust: 100% !important;
         text-size-adjust: 100% !important;
