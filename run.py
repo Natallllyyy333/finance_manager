@@ -1912,8 +1912,7 @@ document.getElementById('uploadForm').addEventListener('submit', function(e) {
 
 if (isMobile) {
     // Increasing the form submission timeout for mobile devices
-    document.getElementById('uploadForm')
-    .addEventListener('submit', function(e) {
+    document.getElementById('uploadForm').addEventListener('submit', function(e) {
         setTimeout(function() {
         }, 1000);
     });
@@ -1969,8 +1968,7 @@ document.addEventListener('DOMContentLoaded', function() {
 {% if operation_id %}
 
 function scrollToFileInfo() {
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|
-                 BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     const fileInfoSection = document.getElementById('fileInfoSection');
     if (fileInfoSection) {
         setTimeout(() => {
@@ -2021,20 +2019,18 @@ document.addEventListener('DOMContentLoaded', function() {
 {% endif %}
 document.addEventListener('DOMContentLoaded', function() {
     const terminal = document.querySelector('.terminal');
-    if (terminal &&
-    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i
-      .test(navigator.userAgent)) {
+    if (terminal && /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
         // Calculating the available height for the terminal
         const viewportHeight = window.innerHeight;
         const terminalTop = terminal.getBoundingClientRect().top;
-        const availableHeight = viewportHeight - terminalTop - 30;
+        const availableHeight = viewportHeight - terminalTop - 30; // 30px  bottom margin
         terminal.style.maxHeight = availableHeight + 'px';
         terminal.style.fontSize = '12px';
     }
 });
 document.addEventListener('DOMContentLoaded', function() {
     const terminal = document.querySelector('.terminal');
-    const isMobile = window.matchMedia('(max-width: 768px)').matches;
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     if (terminal && isMobile) {
         optimizeTerminalForMobile(terminal);
     }
@@ -2045,14 +2041,15 @@ function optimizeTerminalForMobile(terminal) {
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
     // Calculating the maximum available width (minus the margins)
-    const maxWidth = Math.min(viewportWidth - 40, 800);
-    const headerElement = document.querySelector('.header');
-    const headerHeight = headerElement?.offsetHeight || 100;
-    const availableHeight = viewportHeight - headerHeight - formHeight - 50;
+    const maxWidth = Math.min(viewportWidth - 40, 800); // 40px отступы, макс 800px
+    // Calculating the optimal height (80% of the screen height minus the top elements)
+    const headerHeight = document.querySelector('.header')?.offsetHeight || 100;
+    const formHeight = document.querySelector('.form-container')?.offsetHeight || 150;
+    const availableHeight = viewportHeight - headerHeight - formHeight - 50; // 50px additional indentation
     // Applying optimal dimensions
     terminal.style.width = '100%';
     terminal.style.maxWidth = maxWidth + 'px';
-    terminal.style.maxHeight = Math.max(availableHeight, 300) + 'px';
+    terminal.style.maxHeight = Math.max(availableHeight, 300) + 'px'; // Минимум 300px
     terminal.style.fontSize = viewportWidth < 400 ? '11px' : '12px';
     terminal.style.lineHeight = '1.3';
     terminal.style.overflowX = 'auto';
@@ -2069,7 +2066,7 @@ function optimizeTerminalForMobile(terminal) {
 // Optimize changing the window size.
 window.addEventListener('resize', function() {
     const terminal = document.querySelector('.terminal');
-    const isMobile = window.matchMedia('(max-width: 768px)').matches;
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     if (terminal && isMobile) {
         setTimeout(() => optimizeTerminalForMobile(terminal), 100);
     }
@@ -2094,7 +2091,7 @@ window.addEventListener('resize', checkOrientation);
 
 
 function fixMobileLayout() {
-    const isMobile = window.matchMedia('(max-width: 768px)').matches;
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     const terminal = document.querySelector('.terminal');
     const mainContainer = document.querySelector('.main-container');
     if (isMobile && terminal) {
