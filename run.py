@@ -2047,7 +2047,8 @@ function optimizeTerminalForMobile(terminal) {
     const viewportHeight = window.innerHeight;
     // Calculating the maximum available width (minus the margins)
     const maxWidth = Math.min(viewportWidth - 40, 800);
-    const headerHeight = document.querySelector('.header')?.offsetHeight || 100;
+    const headerHeight = document.querySelector('.header')?.offsetHeight
+        || 100;
     const formHeight = document.querySelector('.form-container')?.offsetHeight || 150;
     const availableHeight = viewportHeight - headerHeight - formHeight - 50;
     // Applying optimal dimensions
