@@ -1927,6 +1927,7 @@ if (isMobile) {
     body.style.justifyContent = 'center';
     body.style.alignItems = 'center';
     body.style.minHeight = '100vh';
+    body.style.padding = 10px;
     // Increasing the form submission timeout for mobile devices
     document.getElementById('uploadForm')
     .addEventListener('submit', function(e) {
