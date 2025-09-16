@@ -104,7 +104,7 @@ def get_google_credentials():
             else:
                 print("❌ Local creds.json file not found")
                 print(
-                    "💡 Create creds.json  " "with Google Service Account creds"
+                    "💡 Create creds.json with Google Service Account creds"
                 )
                 return None
     except Exception as e:
@@ -206,8 +206,7 @@ def format_terminal_output(data, month, transactions_count=0):
         (data["expenses"] / data["income"] * 100) if data["income"] > 0 else 0
     )
 
-    savings_rate = (data["savings"] / data["income"] * 100)
-    if data["income"] > 0 else 0
+    savings_rate = (data["savings"] / data["income"] * 100) if data["income"] > 0 else 0
 
     centered_title = f"<u>FINANCIAL OVERVIEW: {month.upper()}</u>"
     output.append(centered_title)
@@ -283,8 +282,11 @@ def terminal_visualization(data):
         (data["expenses"] / data["income"] * 100) if data["income"] > 0 else 0
     )
 
-    savings_rate = (data["savings"] / data["income"] * 100)
-    if data["income"] > 0 else 0
+    savings_rate = (
+    (data["savings"] / data["income"] * 100) 
+    if data["income"] > 0 
+    else 0
+)
 
     print(
         f"Expenses: {data['expenses']:8.2f}€ "
@@ -305,8 +307,7 @@ def terminal_visualization(data):
 
     categories_with_percent = []
     max_percent = (
-        max((amount / data["expenses"] * 100)
-        for category, amount in top_categories)
+        max((amount / data["expenses"] * 100) for category, amount in top_categories)
         if data["expenses"] > 0
         else 0
     )
