@@ -2072,7 +2072,8 @@ function optimizeTerminalForMobile(terminal) {
 // Optimize changing the window size.
 window.addEventListener('resize', function() {
     const terminal = document.querySelector('.terminal');
-    const MOBILE_USER_AGENTS = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
+    const MOBILE_USER_AGENTS =
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
     const isMobile = MOBILE_USER_AGENTS.test(navigator.userAgent);
     if (terminal && isMobile) {
         setTimeout(() => optimizeTerminalForMobile(terminal), 100);
@@ -2098,7 +2099,8 @@ window.addEventListener('resize', checkOrientation);
 
 
 function fixMobileLayout() {
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const MOBILE_USER_AGENTS = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
+    const isMobile = MOBILE_USER_AGENTS.test(navigator.userAgent);
     const terminal = document.querySelector('.terminal');
     const mainContainer = document.querySelector('.main-container');
     if (isMobile && terminal) {
