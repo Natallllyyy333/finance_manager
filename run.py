@@ -1706,7 +1706,7 @@ HTML = """
         @media (max-width: 768px) {
 
         body {
-        padding: 0px;
+        padding: 2px;
         display: flex;
         justify-content: center;
         align-items: center;
@@ -1776,7 +1776,7 @@ HTML = """
     @media (max-width: 480px) {
 
      body {
-        padding: 5px;
+        padding: 2px;
         align-items: center;
         justify-content: center;
     }
@@ -1927,7 +1927,7 @@ if (isMobile) {
     body.style.justifyContent = 'center';
     body.style.alignItems = 'center';
     body.style.minHeight = '100vh';
-    body.style.padding = 5px;
+    body.style.padding = 2px;
     // Increasing the form submission timeout for mobile devices
     document.getElementById('uploadForm')
     .addEventListener('submit', function(e) {
