@@ -664,10 +664,18 @@ def write_to_month_sheet(month_name, transactions, data):
 
                 # Summary section at the top
                 expense_percentage = (
-                    (data["expenses"] / data["income"]) if data["income"] > 0 else 0
+                    (
+                        data["expenses"] / data["income"]
+                        if data["income"] > 0
+                        else 0
+                    )
                 )
                 savings_percentage = (
-                    (data["savings"] / data["income"]) if data["income"] > 0 else 0
+                    (
+                        data["savings"] / data["income"]
+                        if data["income"] > 0
+                        else 0
+                    )
                 )
 
                 summary_data = [
@@ -1097,7 +1105,11 @@ def sync_google_sheets_operation(month_name, table_data):
                     print(f"✅ Found empty column at position: {month_col}")
                     print(f"📝 Creating new column for {normalized_month}...")
                     summary_sheet.update_cell(2, month_col, normalized_month)
-                    summary_sheet.update_cell(3, month_col + 1, f"{normalized_month} %")
+                    summary_sheet.update_cell(
+                            3,
+                            month_col + 1,
+                            f"{normalized_month} %"
+                        )
                     print(
                         f"✅ Created new column for {normalized_month}  "
                         f"at position: {month_col}"
@@ -1114,7 +1126,11 @@ def sync_google_sheets_operation(month_name, table_data):
 
             print(f"📝 Adding new column at position: {month_col}")
             summary_sheet.update_cell(2, month_col, normalized_month)
-            summary_sheet.update_cell(3, month_col + 1, f"{normalized_month} %")
+            summary_sheet.update_cell(
+                3,
+                month_col + 1,
+                f"{normalized_month} %"
+            )
             print(
                 f"✅ Added new column for {normalized_month} "
                 f"at position: {month_col}"
@@ -1144,7 +1160,7 @@ def sync_google_sheets_operation(month_name, table_data):
             max_retries = 3
 
             for i in range(0, len(update_data), batch_size):
-                batch = update_data[i : i + batch_size]
+                batch = update_data[i:i + batch_size]
                 retry_count = 0
                 success = False
 
@@ -1203,7 +1219,10 @@ def write_to_target_sheet(table_data, month_name):
             for row in table_data:
                 if row[0] in ["TOTAL INCOME", "TOTAL EXPENSES", "SAVINGS"]:
                     simplified_data.append(row)
-                elif row[0] and not any(x in row[0] for x in ["CATEGORIES", ""]):
+                elif (
+                    row[0] and
+                    not any(x in row[0] for x in ["CATEGORIES", ""])
+                ):
                     simplified_data.append([row[0], row[1], 0])
             table_data = simplified_data
 
@@ -1240,7 +1259,7 @@ def load_transactions(file_path_or_object):
                     # Try other encodings if UTF-8 fails
                     try:
                         content = content.decode("latin-1")
-                    except:
+                    except Exception:
                         print("❌ Error decoding file content")
                         return [], defaultdict(lambda: defaultdict(float))
 
@@ -1253,7 +1272,9 @@ def load_transactions(file_path_or_object):
             except UnicodeDecodeError:
                 # Try other encodings
                 try:
-                    with open(file_path_or_object, "r", encoding="latin-1") as file:
+                    with open(
+                        file_path_or_object, "r", encoding="latin-1"
+                            ) as file:
                         lines = file.readlines()
                 except Exception as e:
                     print(f"❌ Error reading file: {e}")
@@ -1296,7 +1317,11 @@ def load_transactions(file_path_or_object):
                         "date": date_formatted,
                         "desc": description[:30],
                         "amount": amount,
-                        "type": "income" if transaction_type == "credit" else "expense",
+                        "type": (
+                            "income"
+                            if transaction_type == "credit"
+                            else "expense"
+                        ),
                         "category": category,
                     }
 
@@ -1319,32 +1344,63 @@ def load_transactions(file_path_or_object):
     return transactions, daily_categories
 
 
-def get_operation_status(analysis_success, month_sheet_success, summary_sheet_success):
+def get_operation_status(
+    analysis_success,
+    month_sheet_success,
+    summary_sheet_success
+):
     """Return operation status message"""
     if analysis_success and month_sheet_success and summary_sheet_success:
         return (
-            "✅ Analysis completed successfully  " "and data written to Google Sheets"
+            "✅ Analysis completed successfully. Data written to Google Sheets"
         )
-    elif analysis_success and month_sheet_success and not summary_sheet_success:
+    elif (
+        analysis_success and
+        month_sheet_success and
+        not summary_sheet_success
+    ):
         return (
             "⚠️ Analysis completed, Month sheet updated "
             "but failed to update Summary sheet"
         )
-    elif analysis_success and not month_sheet_success and summary_sheet_success:
+    elif (
+        analysis_success and
+        not month_sheet_success and
+        summary_sheet_success
+    ):
         return (
             "⚠️ Analysis completed, Summary sheet updated "
             "but failed to update Month sheet"
         )
-    elif analysis_success and not month_sheet_success and not summary_sheet_success:
-        return "⚠️ Analysis completed but failed to write data to Google Sheets"
-    elif not analysis_success and month_sheet_success and summary_sheet_success:
+    elif (
+        analysis_success and
+        not month_sheet_success and
+        not summary_sheet_success
+    ):
+        return (
+            "⚠️ Analysis completed but failed to write data "
+            "to Google Sheets"
+        )
+    elif (
+        not analysis_success and
+        month_sheet_success and
+        summary_sheet_success
+    ):
         return "⚠️ Analysis failed but Google Sheets operations completed"
-    elif not analysis_success and month_sheet_success and not summary_sheet_success:
+    elif (
+        not analysis_success and
+        month_sheet_success and
+        not summary_sheet_success
+    ):
         return (
             "⚠️ Analysis failed, Month sheet updated "
             "but failed to update Summary sheet"
         )
-    elif not analysis_success and not month_sheet_success and summary_sheet_success:
+    elif (
+        not analysis_success and
+        month_sheet_success and
+        not summary_sheet_success
+    ):
         return (
             "⚠️ Analysis failed, Summary sheet updated "
             "but failed to update Month sheet"
