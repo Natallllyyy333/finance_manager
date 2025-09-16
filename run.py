@@ -1716,7 +1716,7 @@ HTML = """
         -webkit-overflow-scrolling: touch !important;
     }
     .main-container {
-        width: 90%;
+        width: 96%;
         max-width: 100%;
         margin:  20px 0;
         border-radius: 15px;
@@ -1783,7 +1783,7 @@ HTML = """
     .main-container {
         border-radius: 10px;
         margin: 10px 0;
-        width: 90%;
+        width: 96%;
     }
 
         .terminal {
