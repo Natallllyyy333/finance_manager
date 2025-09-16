@@ -1713,7 +1713,7 @@ HTML = """
         -webkit-overflow-scrolling: touch !important;
     }
     .main-container {
-        width: 100%;
+        width: 90%;
         max-width: 100%;
         margin:  0;
         border-radius: 15px;
@@ -1766,7 +1766,7 @@ HTML = """
     }
 
         .main-container {
-            width: 100%;
+            width: 90%;
         }
     }
 
@@ -1778,7 +1778,7 @@ HTML = """
     .main-container {
         border-radius: 10px;
         margin: 0;
-        width: 100%;
+        width: 90%;
     }
 
         .terminal {
