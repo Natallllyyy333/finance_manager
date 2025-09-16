@@ -1870,7 +1870,13 @@ HTML = """
                     style="display: none; text-align: center; margin: 20px;"
                 >
     <button onclick="window.location.reload()"
-            style="padding: 12px 24px; background: #667eea; color: white; border: none; border-radius: 8px;">
+            style="
+                padding: 12px 24px;
+                background: #667eea;
+                color: white;
+                border: none;
+                border-radius: 8px;
+            "
         🔄 Retry Upload
     </button>
 </div>
@@ -1902,7 +1908,7 @@ document.getElementById('uploadForm').addEventListener('submit', function(e) {
     const submitBtn = document.getElementById('submitBtn');
     const terminalElement = document.querySelector('.terminal');
     const fileInput = document.querySelector('input[type="file"]');
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const isMobile = window.matchMedia('(max-width: 768px)').matches;
 
 if (isMobile) {
     // Increasing the form submission timeout for mobile devices
