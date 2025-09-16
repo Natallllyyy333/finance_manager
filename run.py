@@ -1696,6 +1696,9 @@ HTML = """
             margin-bottom: 20px;
             scroll-margin-top: 20px;
             transition: all 0.3s ease;
+            width: 100% !important;
+            max-width: 100% !important;
+            box-sizing: border-box;
         }
          .anchor {
             scroll-margin-top: 20px;
@@ -1747,7 +1750,7 @@ HTML = """
 
             width: 100% !important;
             max-width: 100% !important;
-            border-radius: 0;
+            border-radius: 8px;
             border-left: none;
             border-right: none;
             font-size: 12px;
@@ -1798,6 +1801,8 @@ HTML = """
         .terminal {
             height: auto;
             font-size: 11px;
+            width: 100% !important;
+            max-width: 100% !important;
         }
     }
 
@@ -2059,7 +2064,7 @@ function optimizeTerminalForMobile(terminal) {
     const availableHeight = viewportHeight - headerHeight - formHeight - 50;
     // Applying optimal dimensions
     terminal.style.width = '100%';
-    terminal.style.maxWidth = maxWidth + 'px';
+    terminal.style.maxWidth = '100%';
     terminal.style.maxHeight = Math.max(availableHeight, 300) + 'px';
     terminal.style.fontSize = viewportWidth < 400 ? '11px' : '12px';
     terminal.style.lineHeight = '1.3';
@@ -2114,8 +2119,6 @@ function fixMobileLayout() {
         terminal.style.maxWidth = '100%';
         terminal.style.marginLeft = '0';
         terminal.style.marginRight = '0';
-        terminal.style.borderRadius = '8px';
-        terminal.style.border = '2px solid #667eea';
     }
     if (isMobile && mainContainer) {
         mainContainer.style.width = '100%';
