@@ -206,7 +206,11 @@ def format_terminal_output(data, month, transactions_count=0):
         (data["expenses"] / data["income"] * 100) if data["income"] > 0 else 0
     )
 
-    savings_rate = (data["savings"] / data["income"] * 100) if data["income"] > 0 else 0
+    savings_rate = (
+        (data["savings"] / data["income"] * 100)
+        if data["income"] > 0
+        else 0
+    )
 
     centered_title = f"<u>FINANCIAL OVERVIEW: {month.upper()}</u>"
     output.append(centered_title)
@@ -283,10 +287,10 @@ def terminal_visualization(data):
     )
 
     savings_rate = (
-    (data["savings"] / data["income"] * 100) 
-    if data["income"] > 0 
-    else 0
-)
+        (data["savings"] / data["income"] * 100)
+        if data["income"] > 0
+        else 0
+    )
 
     print(
         f"Expenses: {data['expenses']:8.2f}€ "
@@ -307,7 +311,10 @@ def terminal_visualization(data):
 
     categories_with_percent = []
     max_percent = (
-        max((amount / data["expenses"] * 100) for category, amount in top_categories)
+        max(
+            (amount / data["expenses"] * 100)
+            for category, amount in top_categories
+        )
         if data["expenses"] > 0
         else 0
     )
@@ -1575,7 +1582,6 @@ HTML = """
         text-size-adjust: 100% !important;
         -webkit-overflow-scrolling: touch !important;
     }
-    
     .main-container {
         width: 100%;
         max-width: 100%;
@@ -1588,7 +1594,6 @@ HTML = """
         transform: none !important;
         will-change: auto !important;
     }
-    
     .content {
         flex: 1;
         display: flex;
@@ -1597,15 +1602,15 @@ HTML = """
 
     input[type="text"], input[type="file"] {
         font-size: 18px !important;
-        min-height: 44px !important; 
+        min-height: 44px !important;
     }
 
 
 
         .terminal {
-            max-height: 90vh; 
+            max-height: 90vh;
             height: auto;
-            min-height: 400px; 
+            min-height: 400px;
             font-size: 12px;
             line-height: 1.3;
             padding: 8px;
@@ -1903,7 +1908,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const viewportHeight = window.innerHeight;
         const terminalTop = terminal.getBoundingClientRect().top;
         const availableHeight = viewportHeight - terminalTop - 30; // 30px  bottom margin
-        
         terminal.style.maxHeight = availableHeight + 'px';
         terminal.style.fontSize = '12px';
     }
@@ -1925,12 +1929,10 @@ function optimizeTerminalForMobile(terminal) {
     
     // Calculating the maximum available width (minus the margins)
     const maxWidth = Math.min(viewportWidth - 40, 800); // 40px отступы, макс 800px
-    
     // Calculating the optimal height (80% of the screen height minus the top elements)
     const headerHeight = document.querySelector('.header')?.offsetHeight || 100;
     const formHeight = document.querySelector('.form-container')?.offsetHeight || 150;
     const availableHeight = viewportHeight - headerHeight - formHeight - 50; // 50px additional indentation
-    
     // Applying optimal dimensions
     terminal.style.width = '100%';
     terminal.style.maxWidth = maxWidth + 'px';
@@ -1940,7 +1942,6 @@ function optimizeTerminalForMobile(terminal) {
     terminal.style.overflowX = 'auto';
     terminal.style.whiteSpace = 'pre-wrap';
     terminal.style.wordBreak = 'break-word';
-    
     console.log('📱 Mobile terminal optimized:', {
         viewportWidth,
         viewportHeight,
@@ -1953,7 +1954,6 @@ function optimizeTerminalForMobile(terminal) {
 window.addEventListener('resize', function() {
     const terminal = document.querySelector('.terminal');
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    
     if (terminal && isMobile) {
         setTimeout(() => optimizeTerminalForMobile(terminal), 100);
     }
@@ -1981,7 +1981,6 @@ function fixMobileLayout() {
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     const terminal = document.querySelector('.terminal');
     const mainContainer = document.querySelector('.main-container');
-    
     if (isMobile && terminal) {
         terminal.style.width = '100%';
         terminal.style.maxWidth = '100%';
@@ -1990,7 +1989,6 @@ function fixMobileLayout() {
         terminal.style.borderRadius = '8px';
         terminal.style.border = '2px solid #667eea';
     }
-    
     if (isMobile && mainContainer) {
         mainContainer.style.width = '100%';
         mainContainer.style.maxWidth = '100%';
