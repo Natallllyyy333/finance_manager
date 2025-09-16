@@ -1782,7 +1782,7 @@ HTML = """
     }
 
         .terminal {
-            max-height: 90%;
+            max-height: 100%;
             min-height: 350px;
             font-size: 11px;
 
