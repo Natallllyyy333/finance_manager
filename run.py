@@ -320,7 +320,11 @@ def terminal_visualization(data):
     )
 
     for category, amount in top_categories:
-        percent = (amount / data["expenses"] * 100) if data["expenses"] > 0 else 0
+        percent = (
+            (amount / data["expenses"] * 100)
+            if data["expenses"] > 0
+            else 0
+        )
 
         if max_percent > 0:
             scaled_percent = max(1, int(percent / max_percent * 8))
@@ -463,10 +467,18 @@ def prepare_summary_data(data, transactions):
         if category == "TOTAL INCOME":
             table_data.append([category, data["income"], 1.0])
         elif category == "TOTAL EXPENSES":
-            percentage = data["expenses"] / data["income"] if data["income"] > 0 else 0
+            percentage = (
+                data["expenses"] / data["income"]
+                if data["income"] > 0
+                else 0
+            )
             table_data.append([category, data["expenses"], percentage])
         elif category == "SAVINGS":
-            percentage = data["savings"] / data["income"] if data["income"] > 0 else 0
+            percentage = (
+                data["savings"] / data["income"]
+                if data["income"] > 0
+                else 0
+            )
             table_data.append([category, data["savings"], percentage])
         elif category in ["", "INCOME CATEGORIES:", "EXPENSE CATEGORIES:"]:
             table_data.append([category, "", ""])
@@ -478,7 +490,11 @@ def prepare_summary_data(data, transactions):
             matched = False
             for income_cat in income_by_category:
                 amount = income_by_category[income_cat]
-                percentage = amount / data["income"] if data["income"] > 0 else 0
+                percentage = (
+                    amount / data["income"]
+                    if data["income"] > 0
+                    else 0
+                )
                 table_data.append([category, amount, percentage])
                 matched = True
                 break
@@ -492,7 +508,9 @@ def prepare_summary_data(data, transactions):
                         ):
                             amount = income_by_category[income_cat]
                             percentage = (
-                                amount / data["income"] if data["income"] > 0 else 0
+                                amount / data["income"]
+                                if data["income"] > 0
+                                else 0
                             )
                             table_data.append([category, amount, percentage])
                             matched = True
@@ -502,7 +520,11 @@ def prepare_summary_data(data, transactions):
                 table_data.append([category, 0, 0])
         elif category in expenses_by_category:
             amount = expenses_by_category[category]
-            percentage = amount / data["expenses"] if data["expenses"] > 0 else 0
+            percentage = (
+                amount / data["expenses"]
+                if data["expenses"] > 0
+                else 0
+            )
             table_data.append([category, amount, percentage])
         else:
             table_data.append([category, 0, 0])
@@ -556,7 +578,11 @@ def write_to_month_sheet(month_name, transactions, data):
             worksheet = sh.worksheet(month_name)
         except gspread.WorksheetNotFound:
             print(f"📝 Creating new worksheet '{month_name}'...")
-            worksheet = sh.add_worksheet(title=month_name, rows="100", cols="20")
+            worksheet = sh.add_worksheet(
+                title=month_name,
+                rows="100",
+                cols="20"
+            )
             print(f"✅ Worksheet '{month_name}' created")
             time.sleep(3)
 
