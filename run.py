@@ -1407,32 +1407,63 @@ def get_operation_status(
         )
 
 
-def get_operation_status(analysis_success, month_sheet_success, summary_sheet_success):
+def get_operation_status(
+    analysis_success,
+    month_sheet_success,
+    summary_sheet_success
+):
     """Return operation status message"""
     if analysis_success and month_sheet_success and summary_sheet_success:
         return (
-            "✅ Analysis completed successfully  " "and data written to Google Sheets"
+            "✅ Analysis completed successfully. Data written to Google Sheets"
         )
-    elif analysis_success and month_sheet_success and not summary_sheet_success:
+    elif (
+        analysis_success and
+        month_sheet_success and
+        not summary_sheet_success
+    ):
         return (
             "⚠️ Analysis completed, Month sheet updated "
             "but failed to update Summary sheet"
         )
-    elif analysis_success and not month_sheet_success and summary_sheet_success:
+    elif (
+        analysis_success and
+        not month_sheet_success and
+        summary_sheet_success
+    ):
         return (
             "⚠️ Analysis completed, Summary sheet updated "
             "but failed to update Month sheet"
         )
-    elif analysis_success and not month_sheet_success and not summary_sheet_success:
-        return "⚠️ Analysis completed but failed to write data to Google Sheets"
-    elif not analysis_success and month_sheet_success and summary_sheet_success:
+    elif (
+        analysis_success and
+        not month_sheet_success and
+        summary_sheet_success
+    ):
+        return (
+            "⚠️ Analysis completed but failed to write data "
+            "to Google Sheets"
+        )
+    elif (
+        analysis_success and
+        not month_sheet_success and
+        summary_sheet_success
+    ):
         return "⚠️ Analysis failed but Google Sheets operations completed"
-    elif not analysis_success and month_sheet_success and not summary_sheet_success:
+    elif (
+        analysis_success and
+        not month_sheet_success and
+        summary_sheet_success
+    ):
         return (
             "⚠️ Analysis failed, Month sheet updated "
             "but failed to update Summary sheet"
         )
-    elif not analysis_success and not month_sheet_success and summary_sheet_success:
+    elif (
+        analysis_success and
+        not month_sheet_success and
+        summary_sheet_success
+    ):
         return (
             "⚠️ Analysis failed, Summary sheet updated "
             "but failed to update Month sheet"
@@ -1455,7 +1486,8 @@ def run_full_analysis_with_file(month, file_path, temp_dir, operation_id):
 
     try:
         print(
-            f"🚀 Starting FULL background analysis " f"for {month} with uploaded file"
+            f"🚀 Starting FULL background analysis "
+            f"for {month} with uploaded file"
         )
         transactions, daily_categories = load_transactions(file_path)
 
@@ -1480,7 +1512,8 @@ def run_full_analysis_with_file(month, file_path, temp_dir, operation_id):
             )
         else:
             print(f"❌ Failed to update {month} worksheet")
-            OPERATION_STATUS[operation_id] = "❌ Failed to update Month worksheet"
+            error_message = "❌ Failed to update Month worksheet"
+            OPERATION_STATUS[operation_id] = error_message
 
         time.sleep(10)
 
@@ -1488,7 +1521,9 @@ def run_full_analysis_with_file(month, file_path, temp_dir, operation_id):
         print("⏳ Starting Google Sheets SUMMARY update...")
         table_data = prepare_summary_data(data, transactions)
         MONTH_NORMALIZED = get_month_column_name(month)
-        summary_sheet_success = write_to_target_sheet(table_data, MONTH_NORMALIZED)
+        summary_sheet_success = write_to_target_sheet(
+            table_data, MONTH_NORMALIZED
+        )
 
         if summary_sheet_success:
 
