@@ -2049,7 +2049,8 @@ function optimizeTerminalForMobile(terminal) {
     const maxWidth = Math.min(viewportWidth - 40, 800);
     const headerHeight = document.querySelector('.header')?.offsetHeight
         || 100;
-    const formHeight = document.querySelector('.form-container')?.offsetHeight || 150;
+    const formHeight = document.querySelector('.form-container')?.offsetHeight
+        || 150;
     const availableHeight = viewportHeight - headerHeight - formHeight - 50;
     // Applying optimal dimensions
     terminal.style.width = '100%';
@@ -2071,7 +2072,8 @@ function optimizeTerminalForMobile(terminal) {
 // Optimize changing the window size.
 window.addEventListener('resize', function() {
     const terminal = document.querySelector('.terminal');
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const MOBILE_USER_AGENTS = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
+    const isMobile = MOBILE_USER_AGENTS.test(navigator.userAgent);
     if (terminal && isMobile) {
         setTimeout(() => optimizeTerminalForMobile(terminal), 100);
     }
