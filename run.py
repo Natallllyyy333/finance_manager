@@ -2020,7 +2020,9 @@ document.addEventListener('DOMContentLoaded', function() {
 {% endif %}
 document.addEventListener('DOMContentLoaded', function() {
     const terminal = document.querySelector('.terminal');
-    if (terminal && /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+    if (terminal &&
+    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i
+      .test(navigator.userAgent)) {
         // Calculating the available height for the terminal
         const viewportHeight = window.innerHeight;
         const terminalTop = terminal.getBoundingClientRect().top;
