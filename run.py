@@ -1361,10 +1361,8 @@ def get_operation_status(
 ):
     """Return operation status message"""
     if analysis_success and month_sheet_success and summary_sheet_success:
-        return (
-            "✅ Analysis completed successfully  "
-            "and data written to Google Sheets"
-        )
+        return ("✅ Analysis completed successfully  "
+                "and data written to Google Sheets")
     elif (
         analysis_success
         and month_sheet_success
@@ -1383,7 +1381,8 @@ def get_operation_status(
         and not summary_sheet_success
     ):
         return (
-            "⚠️ Analysis completed but failed to write data to Google Sheets"
+            "⚠️ Analysis completed but failed to write"
+            " data to Google Sheets"
         )
     elif (
         not analysis_success and month_sheet_success and summary_sheet_success
@@ -1845,8 +1844,8 @@ document.getElementById('uploadForm').addEventListener('submit', function(e) {
     const submitBtn = document.getElementById('submitBtn');
     const terminalElement = document.querySelector('.terminal');
     const fileInput = document.querySelector('input[type="file"]');
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|
-                  IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|
+                  Opera Mini/i.test(navigator.userAgent);
 
 if (isMobile) {
     // Increasing the form submission timeout for mobile devices
