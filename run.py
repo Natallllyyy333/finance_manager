@@ -2026,14 +2026,15 @@ document.addEventListener('DOMContentLoaded', function() {
         // Calculating the available height for the terminal
         const viewportHeight = window.innerHeight;
         const terminalTop = terminal.getBoundingClientRect().top;
-        const availableHeight = viewportHeight - terminalTop - 30; // 30px  bottom margin
+        const availableHeight = viewportHeight - terminalTop - 30;
         terminal.style.maxHeight = availableHeight + 'px';
         terminal.style.fontSize = '12px';
     }
 });
 document.addEventListener('DOMContentLoaded', function() {
     const terminal = document.querySelector('.terminal');
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const MOBILE_USER_AGENTS = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
+    const isMobile = MOBILE_USER_AGENTS.test(navigator.userAgent);
     if (terminal && isMobile) {
         optimizeTerminalForMobile(terminal);
     }
