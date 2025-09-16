@@ -1320,39 +1320,34 @@ def get_operation_status(
         and month_sheet_success
         and not summary_sheet_success
     ):
-        return ("⚠️ Analysis completed, Month sheet updated "
-                "but failed to update Summary sheet")
+        return "⚠️ Analysis completed, Month sheet updated but failed to update Summary sheet"
     elif (
         analysis_success and not month_sheet_success and summary_sheet_success
     ):
-        return ("⚠️ Analysis completed, Summary sheet updated "
-                "but failed to update Month sheet")
+        return "⚠️ Analysis completed, Summary sheet updated but failed to update Month sheet"
     elif (
         analysis_success
         and not month_sheet_success
         and not summary_sheet_success
     ):
-        return (
-            "⚠️ Analysis completed but failed to write data to Google Sheets"
-        )
+        return "⚠️ Analysis completed but failed to write data to Google Sheets"
+        
     elif (
         not analysis_success and month_sheet_success and summary_sheet_success
     ):
-        return ("⚠️ Analysis failed but Google Sheets operations completed")
+        return "⚠️ Analysis failed but Google Sheets operations completed"
     elif (
         not analysis_success
         and month_sheet_success
         and not summary_sheet_success
     ):
-        return ("⚠️ Analysis failed, Month sheet updated "
-                "but failed to update Summary sheet")
+        return "⚠️ Analysis failed, Month sheet updated but failed to update Summary sheet"
     elif (
         not analysis_success
         and not month_sheet_success
         and summary_sheet_success
     ):
-        return ("⚠️ Analysis failed, Summary sheet updated "
-                "but failed to update Month sheet")
+        return "⚠️ Analysis failed, Summary sheet updated but failed to update Month sheet"
 
 
 def get_operation_status(
@@ -1366,22 +1361,18 @@ def get_operation_status(
         and month_sheet_success
         and not summary_sheet_success
     ):
-        return ("⚠️ Analysis completed, Month sheet updated "
-                "but failed to update Summary sheet")
+        return "⚠️ Analysis completed, Month sheet updated but failed to update Summary sheet"
     elif (
         analysis_success and not month_sheet_success and summary_sheet_success
     ):
-        return ("⚠️ Analysis completed, Summary sheet updated "
-                "but failed to update Month sheet")
+        return "⚠️ Analysis completed, Summary sheet updated but failed to update Month sheet"
     elif (
         analysis_success
         and not month_sheet_success
         and not summary_sheet_success
     ):
-        return (
-            "⚠️ Analysis completed but failed to write"
-            " data to Google Sheets"
-        )
+        return "⚠️ Analysis completed but failed to write data to Google Sheets"
+        
     elif (
         not analysis_success and month_sheet_success and summary_sheet_success
     ):
@@ -1391,15 +1382,13 @@ def get_operation_status(
         and month_sheet_success
         and not summary_sheet_success
     ):
-        return ("⚠️ Analysis failed, Month sheet updated "
-                "but failed to update Summary sheet")
+        return "⚠️ Analysis failed, Month sheet updated but failed to update Summary sheet"
     elif (
         not analysis_success
         and not month_sheet_success
         and summary_sheet_success
     ):
-        return ("⚠️ Analysis failed, Summary sheet updated "
-                "but failed to update Month sheet")
+        return "⚠️ Analysis failed, Summary sheet updated but failed to update Month sheet"
     else:
         return "❌ All operations failed"
 
@@ -1436,14 +1425,10 @@ def run_full_analysis_with_file(month, file_path, temp_dir, operation_id):
         print(f"📝 Writing to {month} worksheet...")
         month_sheet_success = write_to_month_sheet(month, transactions, data)
         if month_sheet_success:
-            OPERATION_STATUS[operation_id] = (
-                "⏳ Month sheet updated, updating Summary..."
-            )
+            OPERATION_STATUS[operation_id] = "⏳ Month sheet updated, updating Summary..."
         else:
             print(f"❌ Failed to update {month} worksheet")
-            OPERATION_STATUS[operation_id] = (
-                "❌ Failed to update Month worksheet"
-            )
+            OPERATION_STATUS[operation_id] = "❌ Failed to update Month worksheet"
 
         time.sleep(10)
 
@@ -1457,13 +1442,12 @@ def run_full_analysis_with_file(month, file_path, temp_dir, operation_id):
 
         if summary_sheet_success:
 
-            OPERATION_STATUS[operation_id] = ("✅ Google Sheets update completed successfully!"
-            )
+            OPERATION_STATUS[operation_id] = "✅ Google Sheets update completed successfully!"
+            
         else:
             print("❌ Failed to update Google Sheets SUMMARY")
-            OPERATION_STATUS[operation_id] = (
-                "❌ Failed to update Google Sheets"
-            )
+            OPERATION_STATUS[operation_id] = "❌ Failed to update Google Sheets"
+            
 
         # Printing status message
         status_message = get_operation_status(
@@ -1473,9 +1457,8 @@ def run_full_analysis_with_file(month, file_path, temp_dir, operation_id):
 
     except Exception as e:
         print(f"Background analysis error: {e}")
-        OPERATION_STATUS[operation_id] = (
-            f"❌ Error during processing: {str(e)}"
-        )
+        OPERATION_STATUS[operation_id] = f"❌ Error during processing: {str(e)}"
+        
         import traceback
 
         print(f"Traceback: {traceback.format_exc()}")
@@ -1838,8 +1821,7 @@ document.getElementById('uploadForm').addEventListener('submit', function(e) {
     const submitBtn = document.getElementById('submitBtn');
     const terminalElement = document.querySelector('.terminal');
     const fileInput = document.querySelector('input[type="file"]');
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|
-                  Opera Mini/i.test(navigator.userAgent);
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
 if (isMobile) {
     // Increasing the form submission timeout for mobile devices
