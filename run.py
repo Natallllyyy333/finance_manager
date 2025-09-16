@@ -2046,15 +2046,14 @@ function optimizeTerminalForMobile(terminal) {
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
     // Calculating the maximum available width (minus the margins)
-    const maxWidth = Math.min(viewportWidth - 40, 800); // 40px отступы, макс 800px
-    // Calculating the optimal height (80% of the screen height minus the top elements)
+    const maxWidth = Math.min(viewportWidth - 40, 800);
     const headerHeight = document.querySelector('.header')?.offsetHeight || 100;
     const formHeight = document.querySelector('.form-container')?.offsetHeight || 150;
-    const availableHeight = viewportHeight - headerHeight - formHeight - 50; // 50px additional indentation
+    const availableHeight = viewportHeight - headerHeight - formHeight - 50;
     // Applying optimal dimensions
     terminal.style.width = '100%';
     terminal.style.maxWidth = maxWidth + 'px';
-    terminal.style.maxHeight = Math.max(availableHeight, 300) + 'px'; // Минимум 300px
+    terminal.style.maxHeight = Math.max(availableHeight, 300) + 'px';
     terminal.style.fontSize = viewportWidth < 400 ? '11px' : '12px';
     terminal.style.lineHeight = '1.3';
     terminal.style.overflowX = 'auto';
