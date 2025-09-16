@@ -38,28 +38,32 @@ ALLOWED_EXTENSIONS = {"csv", "txt"}
 
 def allowed_file(filename):
     """
-    Checks that the file has a valid extension and name.
-    Returns True if the file is valid, False otherwise.
+    Checks that the file has a valid extension and name. Returns True if the file is valid, False otherwise.
     """
     # Checking the main conditions
     if not filename or not isinstance(filename, str):
         return False
+    
     # We prohibit hidden files (starting with a dot)
     if filename.startswith('.'):
         return False
+    
     # Checking for the presence of a dot in the filename
     if '.' not in filename:
         return False
+    
     # Checking the length of the file name (no more than 100 characters)
     if len(filename) > 100:
         return False
+    
     # Extracting the extension and checking it
     try:
         extension = filename.rsplit('.', 1)[1].lower()
     except IndexError:
         return False
+    
     # Сhecking that the extension is in the list of allowed ones
-    return extension in ALLOWED_EXTENSIONS
+    return extension in ALLOWED_EXTENSIONS  
 
 
 def get_google_credentials():
@@ -1216,6 +1220,7 @@ def load_transactions(file_path_or_object):
         if hasattr(file_path_or_object, "read"):
             # File object - rewind to beginning for mobile devices
             file_path_or_object.seek(0)
+            
             # Read content in chunks for better memory handling
             content = b''
             while True:
@@ -1223,6 +1228,7 @@ def load_transactions(file_path_or_object):
                 if not chunk:
                     break
                 content += chunk
+            
             if isinstance(content, bytes):
                 try:
                     content = content.decode("utf-8")
@@ -1230,9 +1236,10 @@ def load_transactions(file_path_or_object):
                     # Try other encodings if UTF-8 fails
                     try:
                         content = content.decode("latin-1")
-                    except UnicodeDecodeError:
+                    except:
                         print("❌ Error decoding file content")
                         return [], defaultdict(lambda: defaultdict(float))
+            
             lines = content.splitlines()
         else:
             # File path
@@ -1242,9 +1249,7 @@ def load_transactions(file_path_or_object):
             except UnicodeDecodeError:
                 # Try other encodings
                 try:
-                    with open(file_path_or_object,
-                              "r",
-                              encoding="latin-1") as file:
+                    with open(file_path_or_object, "r", encoding="latin-1") as file:
                         lines = file.readlines()
                 except Exception as e:
                     print(f"❌ Error reading file: {e}")
@@ -1263,10 +1268,12 @@ def load_transactions(file_path_or_object):
                     # Parse date (assuming format: "31 Mar 2025")
                     date_str = parts[0]
                     description = parts[1]
+                    
                     try:
                         amount = float(parts[2])
                     except ValueError:
                         continue
+                    
                     currency = parts[3]
                     transaction_type = parts[4].lower()
 
@@ -1285,8 +1292,7 @@ def load_transactions(file_path_or_object):
                         "date": date_formatted,
                         "desc": description[:30],
                         "amount": amount,
-                        "type": "income" if transaction_type == "credit"
-                                else "expense",
+                        "type": "income" if transaction_type == "credit" else "expense",
                         "category": category,
                     }
 
@@ -1308,89 +1314,102 @@ def load_transactions(file_path_or_object):
     print(f"✅ Loaded {len(transactions)} transactions")
     return transactions, daily_categories
 
+def get_operation_status(
+    analysis_success, month_sheet_success, summary_sheet_success
+):
+    """Return operation status message"""
+    if analysis_success and month_sheet_success and summary_sheet_success:
+        return ("✅ Analysis completed successfully  "
+                "and data written to Google Sheets")
+    elif (
+        analysis_success
+        and month_sheet_success
+        and not summary_sheet_success
+    ):
+        return ("⚠️ Analysis completed, Month sheet updated "
+                "but failed to update Summary sheet")
+    elif (
+        analysis_success and not month_sheet_success and summary_sheet_success
+    ):
+        return ("⚠️ Analysis completed, Summary sheet updated "
+                "but failed to update Month sheet")
+    elif (
+        analysis_success
+        and not month_sheet_success
+        and not summary_sheet_success
+    ):
+        return (
+            "⚠️ Analysis completed but failed to write data to Google Sheets"
+        )
+    elif (
+        not analysis_success and month_sheet_success and summary_sheet_success
+    ):
+        return ("⚠️ Analysis failed but Google Sheets operations completed")
+    elif (
+        not analysis_success
+        and month_sheet_success
+        and not summary_sheet_success
+    ):
+        return ("⚠️ Analysis failed, Month sheet updated "
+                "but failed to update Summary sheet")
+    elif (
+        not analysis_success
+        and not month_sheet_success
+        and summary_sheet_success
+    ):
+        return ("⚠️ Analysis failed, Summary sheet updated "
+                "but failed to update Month sheet")
+
 
 def get_operation_status(
     analysis_success, month_sheet_success, summary_sheet_success
 ):
     """Return operation status message"""
     if analysis_success and month_sheet_success and summary_sheet_success:
-        return "✅ Analysis completed successfully and data written to Google Sheets"
+        return (
+            "✅ Analysis completed successfully  "
+            "and data written to Google Sheets"
+        )
     elif (
         analysis_success
         and month_sheet_success
         and not summary_sheet_success
     ):
-        return "⚠️ Analysis completed, Month sheet updated but failed to update Summary sheet"
+        return ("⚠️ Analysis completed, Month sheet updated "
+                "but failed to update Summary sheet")
     elif (
         analysis_success and not month_sheet_success and summary_sheet_success
     ):
-        return "⚠️ Analysis completed, Summary sheet updated but failed to update Month sheet"
+        return ("⚠️ Analysis completed, Summary sheet updated "
+                "but failed to update Month sheet")
     elif (
         analysis_success
         and not month_sheet_success
         and not summary_sheet_success
     ):
-        return "⚠️ Analysis completed but failed to write data to Google Sheets"
-        
+        return (
+            "⚠️ Analysis completed but failed to write data to Google Sheets"
+        )
     elif (
         not analysis_success and month_sheet_success and summary_sheet_success
     ):
-        return "⚠️ Analysis failed but Google Sheets operations completed"
+        return ("⚠️ Analysis failed but Google Sheets operations completed")
     elif (
         not analysis_success
         and month_sheet_success
         and not summary_sheet_success
     ):
-        return "⚠️ Analysis failed, Month sheet updated but failed to update Summary sheet"
+        return ("⚠️ Analysis failed, Month sheet updated "
+                "but failed to update Summary sheet")
     elif (
         not analysis_success
         and not month_sheet_success
         and summary_sheet_success
     ):
-        return "⚠️ Analysis failed, Summary sheet updated but failed to update Month sheet"
-
-
-# def get_operation_status(
-#     analysis_success, month_sheet_success, summary_sheet_success
-# ):
-#     """Return operation status message"""
-#     if analysis_success and month_sheet_success and summary_sheet_success:
-#         return ("✅ Analysis completed successfully and data written to Google Sheets")
-#     elif (
-#         analysis_success
-#         and month_sheet_success
-#         and not summary_sheet_success
-#     ):
-#         return "⚠️ Analysis completed, Month sheet updated but failed to update Summary sheet"
-#     elif (
-#         analysis_success and not month_sheet_success and summary_sheet_success
-#     ):
-#         return "⚠️ Analysis completed, Summary sheet updated but failed to update Month sheet"
-#     elif (
-#         analysis_success
-#         and not month_sheet_success
-#         and not summary_sheet_success
-#     ):
-#         return "⚠️ Analysis completed but failed to write data to Google Sheets"
-        
-#     elif (
-#         not analysis_success and month_sheet_success and summary_sheet_success
-#     ):
-#         return ("⚠️ Analysis failed but Google Sheets operations completed")
-#     elif (
-#         not analysis_success
-#         and month_sheet_success
-#         and not summary_sheet_success
-#     ):
-#         return "⚠️ Analysis failed, Month sheet updated but failed to update Summary sheet"
-#     elif (
-#         not analysis_success
-#         and not month_sheet_success
-#         and summary_sheet_success
-#     ):
-#         return "⚠️ Analysis failed, Summary sheet updated but failed to update Month sheet"
-#     else:
-#         return "❌ All operations failed"
+        return ("⚠️ Analysis failed, Summary sheet updated "
+                "but failed to update Month sheet")
+    else:
+        return "❌ All operations failed"
 
 
 def run_full_analysis_with_file(month, file_path, temp_dir, operation_id):
@@ -1401,11 +1420,14 @@ def run_full_analysis_with_file(month, file_path, temp_dir, operation_id):
     month_sheet_success = False
     summary_sheet_success = False
 
-    OPERATION_STATUS[operation_id] = "⏳ Processing started... Google Sheets update in background"
-    
+    OPERATION_STATUS[operation_id] = (
+        "⏳ Processing started... Google Sheets update in background"
+    )
 
     try:
-        print(f"🚀 Starting FULL background analysis for {month} with uploaded file"
+        print(
+            f"🚀 Starting FULL background analysis "
+            f"for {month} with uploaded file"
         )
         transactions, daily_categories = load_transactions(file_path)
 
@@ -1425,10 +1447,14 @@ def run_full_analysis_with_file(month, file_path, temp_dir, operation_id):
         print(f"📝 Writing to {month} worksheet...")
         month_sheet_success = write_to_month_sheet(month, transactions, data)
         if month_sheet_success:
-            OPERATION_STATUS[operation_id] = "⏳ Month sheet updated, updating Summary..."
+            OPERATION_STATUS[operation_id] = (
+                "⏳ Month sheet updated, updating Summary..."
+            )
         else:
             print(f"❌ Failed to update {month} worksheet")
-            OPERATION_STATUS[operation_id] = "❌ Failed to update Month worksheet"
+            OPERATION_STATUS[operation_id] = (
+                "❌ Failed to update Month worksheet"
+            )
 
         time.sleep(10)
 
@@ -1442,12 +1468,14 @@ def run_full_analysis_with_file(month, file_path, temp_dir, operation_id):
 
         if summary_sheet_success:
 
-            OPERATION_STATUS[operation_id] = "✅ Google Sheets update completed successfully!"
-            
+            OPERATION_STATUS[operation_id] = (
+                "✅ Google Sheets update completed successfully!"
+            )
         else:
             print("❌ Failed to update Google Sheets SUMMARY")
-            OPERATION_STATUS[operation_id] = "❌ Failed to update Google Sheets"
-            
+            OPERATION_STATUS[operation_id] = (
+                "❌ Failed to update Google Sheets"
+            )
 
         # Printing status message
         status_message = get_operation_status(
@@ -1457,8 +1485,9 @@ def run_full_analysis_with_file(month, file_path, temp_dir, operation_id):
 
     except Exception as e:
         print(f"Background analysis error: {e}")
-        OPERATION_STATUS[operation_id] = f"❌ Error during processing: {str(e)}"
-        
+        OPERATION_STATUS[operation_id] = (
+            f"❌ Error during processing: {str(e)}"
+        )
         import traceback
 
         print(f"Traceback: {traceback.format_exc()}")
@@ -1480,13 +1509,9 @@ HTML = """
 <html>
 <head>
      <title>Finance Analyzer</title>
-    <meta name="viewport" content="width=device-width,
-                               initial-scale=1.0,
-                               maximum-scale=1.0,
-                               user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style"
-          content="black-translucent">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <style>
         html {
                 scroll-behavior: smooth;
@@ -1619,6 +1644,7 @@ HTML = """
         text-size-adjust: 100% !important;
         -webkit-overflow-scrolling: touch !important;
     }
+    
     .main-container {
         width: 100%;
         max-width: 100%;
@@ -1631,6 +1657,7 @@ HTML = """
         transform: none !important;
         will-change: auto !important;
     }
+    
     .content {
         flex: 1;
         display: flex;
@@ -1639,40 +1666,47 @@ HTML = """
 
     input[type="text"], input[type="file"] {
         font-size: 18px !important;
-        min-height: 44px !important;
+        min-height: 44px !important; 
     }
 
 
 
         .terminal {
-            max-height: 90vh;
+            max-height: 90vh; 
             height: auto;
-            min-height: 400px;
+            min-height: 400px; 
             font-size: 12px;
             line-height: 1.3;
             padding: 8px;
 
             width: 100% !important;
             max-width: 100% !important;
+           
             border-radius: 0;
             border-left: none;
             border-right: none;
+            
             font-size: 12px;
             line-height: 1.3;
         }
+              
         .content {
             padding: 5px;
         }
+        
         .main-container {
             overflow-x: hidden;
         }
+        
         .content {
             padding-left: 0;
             padding-right: 0;
         }
+         
     }
 
         .main-container {
+           
             width: 100%;
         }
     }
@@ -1682,27 +1716,34 @@ HTML = """
      body {
         padding: 0;
     }
+    
     .main-container {
         border-radius: 10px;
         margin: 0;
         width: 100%;
     }
 
+     
         .terminal {
             max-height: 90%;
             min-height: 350px;
             font-size: 11px;
 
+            
             padding: 10px;
+           
         }
+        
         input[type="text"], input[type="file"] {
-            font-size: 14px;
+            font-size: 14px; 
         }
+        
     }
 
     /* For horizontal orientation */
     @media (max-width: 768px) and (orientation: landscape) {
         .terminal {
+            
             height: auto;
             font-size: 11px;
         }
@@ -1757,6 +1798,7 @@ HTML = """
             align-items: center;
             margin: 15px 0;
         }
+       
     </style>
 </head>
 <body>
@@ -1770,6 +1812,7 @@ HTML = """
                 <form method="POST"
                 enctype="multipart/form-data"
                 id="uploadForm">
+                
                     <div class="input-group">
                         <input type="text" name="month"
                         placeholder="Enter month (e.g. March, April)" required>
@@ -1777,19 +1820,9 @@ HTML = """
                         <button type="submit" id="submitBtn">Analyze</button>
                     </div>
                 </form>
-                <div id="mobileRetry" style="
-                     display: none;
-                     text-align: center;
-                     margin: 20px;
-                     ">
-    <button onclick="window.location.reload()"
-    style="
-    padding: 12px 24px;
-    background: #667eea;
-    color: white;
-    border: none;
-    border-radius: 8px;
-"
+                <div id="mobileRetry" style="display: none; text-align: center; margin: 20px;">
+    <button onclick="window.location.reload()" 
+            style="padding: 12px 24px; background: #667eea; color: white; border: none; border-radius: 8px;">
         🔄 Retry Upload
     </button>
 </div>
@@ -1825,9 +1858,9 @@ document.getElementById('uploadForm').addEventListener('submit', function(e) {
 
 if (isMobile) {
     // Increasing the form submission timeout for mobile devices
-    document.getElementById('uploadForm')
-            .addEventListener('submit', function(e) {
+    document.getElementById('uploadForm').addEventListener('submit', function(e) {
         setTimeout(function() {
+            
         }, 1000);
     });
 }
@@ -1882,8 +1915,8 @@ document.addEventListener('DOMContentLoaded', function() {
 {% if operation_id %}
 
 function scrollToFileInfo() {
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|
-                    IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+       
     const fileInfoSection = document.getElementById('fileInfoSection');
     if (fileInfoSection) {
         setTimeout(() => {
@@ -1934,24 +1967,22 @@ document.addEventListener('DOMContentLoaded', function() {
 {% endif %}
 document.addEventListener('DOMContentLoaded', function() {
     const terminal = document.querySelector('.terminal');
-   if (terminal &&
-    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-        navigator.userAgent
-    )) {
+    if (terminal && /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
         // Calculating the available height for the terminal
         const viewportHeight = window.innerHeight;
         const terminalTop = terminal.getBoundingClientRect().top;
-        const availableHeight = viewportHeight - terminalTop - 30;
+        const availableHeight = viewportHeight - terminalTop - 30; // 30px  bottom margin
+        
         terminal.style.maxHeight = availableHeight + 'px';
         terminal.style.fontSize = '12px';
     }
 });
 document.addEventListener('DOMContentLoaded', function() {
     const terminal = document.querySelector('.terminal');
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|
-                 BlackBerry|IEMobile|Opera Mini/i
-    .test(navigator.userAgent);
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
     if (terminal && isMobile) {
+        
         optimizeTerminalForMobile(terminal);
     }
 });
@@ -1960,24 +1991,25 @@ function optimizeTerminalForMobile(terminal) {
     // getting viewport sizes
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
+    
     // Calculating the maximum available width (minus the margins)
-    const maxWidth = Math.min(viewportWidth - 40, 800);
-    // Calculating the optimal height
-    //(80% of the screen height minus the top elements)
-    const headerHeight = document.querySelector('.header')
-    ?.offsetHeight || 100;
-    const formHeight = document.querySelector('.form-container')
-    ?.offsetHeight || 150;
-    const availableHeight = viewportHeight - headerHeight - formHeight - 50;
+    const maxWidth = Math.min(viewportWidth - 40, 800); // 40px отступы, макс 800px
+    
+    // Calculating the optimal height (80% of the screen height minus the top elements)
+    const headerHeight = document.querySelector('.header')?.offsetHeight || 100;
+    const formHeight = document.querySelector('.form-container')?.offsetHeight || 150;
+    const availableHeight = viewportHeight - headerHeight - formHeight - 50; // 50px additional indentation
+    
     // Applying optimal dimensions
     terminal.style.width = '100%';
     terminal.style.maxWidth = maxWidth + 'px';
-    terminal.style.maxHeight = Math.max(availableHeight, 300) + 'px';
+    terminal.style.maxHeight = Math.max(availableHeight, 300) + 'px'; // Минимум 300px
     terminal.style.fontSize = viewportWidth < 400 ? '11px' : '12px';
     terminal.style.lineHeight = '1.3';
     terminal.style.overflowX = 'auto';
     terminal.style.whiteSpace = 'pre-wrap';
     terminal.style.wordBreak = 'break-word';
+    
     console.log('📱 Mobile terminal optimized:', {
         viewportWidth,
         viewportHeight,
@@ -1989,9 +2021,8 @@ function optimizeTerminalForMobile(terminal) {
 // Optimize changing the window size.
 window.addEventListener('resize', function() {
     const terminal = document.querySelector('.terminal');
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|
-                 BlackBerry|IEMobile|Opera Mini/i
-    .test(navigator.userAgent);
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
     if (terminal && isMobile) {
         setTimeout(() => optimizeTerminalForMobile(terminal), 100);
     }
@@ -2016,11 +2047,10 @@ window.addEventListener('resize', checkOrientation);
 
 
 function fixMobileLayout() {
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|
-    IEMobile|Opera Mini/i
-    .test(navigator.userAgent);
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     const terminal = document.querySelector('.terminal');
     const mainContainer = document.querySelector('.main-container');
+    
     if (isMobile && terminal) {
         terminal.style.width = '100%';
         terminal.style.maxWidth = '100%';
@@ -2029,6 +2059,7 @@ function fixMobileLayout() {
         terminal.style.borderRadius = '8px';
         terminal.style.border = '2px solid #667eea';
     }
+    
     if (isMobile && mainContainer) {
         mainContainer.style.width = '100%';
         mainContainer.style.maxWidth = '100%';
@@ -2060,47 +2091,48 @@ def index():
     try:
         if request.method == "POST":
             print("📨 POST request received")
+
+            
             # Mobile device detection and delay
             user_agent = request.headers.get('User-Agent', '').lower()
             if 'android' in user_agent or 'mobile' in user_agent:
                 print("📱 Mobile device detected - adding delay")
                 time.sleep(3)  # 3 second delay for mobile devices
+            
             month = request.form.get("month", "").strip().lower()
+            
             if not month:
                 return render_template_string(
-                        HTML,
-                        result="Month is required",
-                        status_message="❌ Please enter a month"
-                    )
+                    HTML, result="Month is required", status_message="❌ Please enter a month"
+                )
 
             print(f"📅 Month: {month}")
 
             if "file" not in request.files:
                 return render_template_string(
-                    HTML,
-                    result="No file uploaded",
-                    status_message="❌ No file selected"
+                    HTML, result="No file uploaded", status_message="❌ No file selected"
                 )
 
             file = request.files["file"]
             if file.filename == "":
                 return render_template_string(
-                        HTML, result="No file selected",
-                        status_message="❌ Please select a file"
+                    HTML, result="No file selected", status_message="❌ Please select a file"
                 )
 
             # Enhanced file validation
             if not file or not allowed_file(file.filename):
                 return render_template_string(
-                    HTML,
-                    result="Invalid file type. Please upload a CSV file.",
+                    HTML, 
+                    result="Invalid file type. Please upload a CSV file.", 
                     status_message="❌ Invalid file type"
                 )
+            
 
             # Check file size (max 10MB)
             file.seek(0, 2)  # Seek to end to get size
             file_size = file.tell()
             file.seek(0)  # Reset to beginning
+            
             if file_size > 10 * 1024 * 1024:  # 10MB limit
                 return render_template_string(
                     HTML,
@@ -2112,15 +2144,18 @@ def index():
             print(f"📄 Content type: {file.content_type}")
             print(f"✅ Allowed check: {allowed_file(file.filename)}")
 
-            if file and (allowed_file(file.filename) or
-                         file.filename.lower().endswith('.csv') or
-                         file.content_type in ['text/csv',
-                         'application/vnd.ms-excel', 'text/plain']):
+            if file and (allowed_file(file.filename) or 
+                        file.filename.lower().endswith('.csv') or 
+                        file.content_type in ['text/csv', 'application/vnd.ms-excel', 'text/plain']):
                 print("✅ File accepted for processing")
             if file and allowed_file(file.filename):
+                
                 print(f"📁 File received: {file.filename}")
                 print(f"📏 File size: {file_size} bytes")
                 print(f"🔍 File content type: {file.content_type}")
+
+
+                
                 try:
                     filename = secure_filename(file.filename)
                     # Create temporary file for processing
@@ -2181,6 +2216,7 @@ def index():
             filename=filename,
             status_message=status_message,
             operation_id=operation_id,
+            
         )
 
     except Exception as e:
