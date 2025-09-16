@@ -2302,7 +2302,9 @@ def main():
     else:
         # Local mode
         print(f"PERSONAL FINANCE ANALYZER")
-        MONTH = input("Enter the month (e.g. 'March, April, May'): ").strip().lower()
+        MONTH = input(
+            "Enter the month (e.g. 'March, April, May'): "
+        ).strip().lower()
         FILE = f"hsbc_{MONTH}.csv"
         print(f"Loading file: {FILE}")
 
