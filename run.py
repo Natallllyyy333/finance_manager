@@ -2223,11 +2223,17 @@ def index():
                     file.save(temp_file_path)
 
                     # Load transactions for immediate display
-                    transactions, daily_categories = load_transactions(temp_file_path)
+                    transactions, daily_categories = load_transactions(
+                            temp_file_path
+                        )
 
                     if transactions:
                         data = analyze(transactions, daily_categories, month)
-                        result = format_terminal_output(data, month, len(transactions))
+                        result = format_terminal_output(
+                                    data,
+                                    month,
+                                    len(transactions)
+                                )
 
                         # Generate unique operation ID
                         operation_id = f"{month}_{
