@@ -2033,7 +2033,8 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 document.addEventListener('DOMContentLoaded', function() {
     const terminal = document.querySelector('.terminal');
-    const MOBILE_USER_AGENTS = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
+    const MOBILE_USER_AGENTS =
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
     const isMobile = MOBILE_USER_AGENTS.test(navigator.userAgent);
     if (terminal && isMobile) {
         optimizeTerminalForMobile(terminal);
