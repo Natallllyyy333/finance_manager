@@ -1715,6 +1715,10 @@ def index():
         )
 
 
+@app.route('/')
+def index():
+    return "Home Page"
+
 @app.errorhandler(404)
 def not_found(error):
     return render_template('404.html'), 404
