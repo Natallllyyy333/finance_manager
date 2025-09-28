@@ -18,8 +18,8 @@ from werkzeug.utils import secure_filename
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 app = Flask(__name__,
-            template_folder='views',
-            static_folder='static')
+           template_folder='views',
+           static_folder='static')
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret-key-123")
 
 OPERATION_STATUS = {}
@@ -1559,6 +1559,7 @@ def run_full_analysis_with_file(month, file_path, temp_dir, operation_id):
             print(f"Error cleaning up temporary files: {cleanup_error}")
 
     return analysis_success, month_sheet_success, summary_sheet_success
+
 
 
 @app.route("/", methods=["GET", "POST"])
