@@ -1,20 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>404 Not Found</title>
+    <title>Page Not Found - 404</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
-
 <body>
-    <div class="error404-container">
-        <h1 class="error404title">Error 404</h1>
-        <p class="error404p">Page not found. Return to the <a href="./index.html">homepage</a></p>
+    <nav class="navbar">
+        <ul>
+            <li><a href="{{ url_for('index') }}">Home</a></li>
+            <li><a href="{{ url_for('about') }}">About</a></li>
+        </ul>
+    </nav>
+    
+    <div class="container">
+        <div class="card" style="text-align: center;">
+            <h1>404 - Page Not Found</h1>
+            <p>Sorry, the requested page does not exist.</p>
+            <div style="font-size: 4rem; margin: 2rem 0;">😕</div>
+            <a href="{{ url_for('index') }}" class="btn">Return to Homepage</a>
+        </div>
     </div>
 </body>
-
 </html>
