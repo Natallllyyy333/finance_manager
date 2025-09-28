@@ -184,6 +184,30 @@ button:hover {
     margin: 15px 0;
 }
 
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Стили для полей ввода */
+.input-field {
+    margin-bottom: 15px;
+}
+
+.input-field label:not(.sr-only) {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+    color: #2c3e50;
+}
+
 /* Mobile Styles */
 @media (max-width: 768px) {
     body {

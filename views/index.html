@@ -19,8 +19,14 @@
             <div class="form-container">
                 <form method="POST" enctype="multipart/form-data" id="uploadForm">
                     <div class="input-group">
-                        <input type="text" name="month" placeholder="Enter month (e.g. March, April)" required>
-                        <input type="file" name="file" accept=".csv" required>
+                        <div class="input-field">
+                <label for="monthInput" class="sr-only">Month</label>
+                <input type="text" id="monthInput" name="month" placeholder="Enter month (e.g. March, April)" required>
+            </div>
+                        <div class="input-field">
+                <label for="fileInput" class="sr-only">CSV File</label>
+                <input type="file" id="fileInput" name="file" accept=".csv" required>
+            </div>
                         <button type="submit" id="submitBtn">Analyze</button>
                     </div>
                 </form>
