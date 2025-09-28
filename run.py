@@ -13,11 +13,13 @@ from datetime import datetime
 from gspread_formatting import *
 from gspread.utils import rowcol_to_a1
 from google.oauth2 import service_account
-from flask import Flask, request, render_template_string
+from flask import Flask, request, render_template
 from werkzeug.utils import secure_filename
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)
-app = Flask(__name__)
+app = Flask(__name__,
+           template_folder='views',
+           static_folder='static')
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret-key-123")
 
 OPERATION_STATUS = {}
@@ -1559,584 +1561,6 @@ def run_full_analysis_with_file(month, file_path, temp_dir, operation_id):
     return analysis_success, month_sheet_success, summary_sheet_success
 
 
-HTML = """
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Finance Analyzer</title>
-    <style>
-    *{
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    }
-        html {
-                scroll-behavior: smooth;
-            }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 100% !important;
-            overflow-x: hidden !important;
-            position: relative !important;
-            transform: none !important;
-        }
-        .main-container {
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            overflow: hidden;
-            width: 80%;
-            max-width: 95%;
-        }
-
-        input[type="text"], input[type="file"] {
-    font-size: 16px !important; /* Важно для iOS */
-    transform: scale(1) !important;
-    transform-origin: center !important;
-}
-        .header {
-            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-            padding: 25px;
-            text-align: center;
-            color: white;
-        }
-        .header h1 {
-            margin: 0;
-            font-size: 28px;
-            font-weight: 600;
-            letter-spacing: 1px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-        }
-        .header p {
-            margin: 10px 0 0 0;
-            font-size: 14px;
-            opacity: 0.9;
-        }
-        .content {
-            padding: 30px;
-        }
-        .form-container {
-            text-align: center;
-            margin-bottom: 25px;
-        }
-        .input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        input[type="text"], input[type="file"] {
-            padding: 14px 20px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 16px;
-            width: 300px;
-            transition: all 0.3s ease;
-            background: #f8f9fa;
-        }
-        input[type="text"]:focus, input[type="file"]:focus {
-            outline: none;
-            border-color: #667eea;
-            background: white;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-        input[type="file"] {
-            padding: 12px;
-            cursor: pointer;
-        }
-        button {
-            padding: 14px 30px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-        }
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-        }
-        .terminal {
-            background: #2d3748;
-            color: #e2e8f0;
-            border: 2px solid #667eea;
-            padding: 10px;
-            border-radius: 8px;
-            font-family: 'Courier New', monospace;
-            font-size: 14px;
-            line-height: 1.4;
-            overflow: auto;
-            white-space: pre-wrap;
-            max-height: 700px;
-            margin-bottom: 20px;
-            scroll-margin-top: 20px;
-            transition: all 0.3s ease;
-            width: 100% !important;
-            max-width: 100% !important;
-            box-sizing: border-box;
-        }
-         .anchor {
-            scroll-margin-top: 20px;
-        }
-        @media (max-width: 768px) {
-
-        body {
-        padding: 0px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        min-height: 100vh;
-        -webkit-text-size-adjust: 100% !important;
-        text-size-adjust: 100% !important;
-        -webkit-overflow-scrolling: touch !important;
-    }
-    .main-container {
-        width: 90%;
-        max-width: 100%;
-        margin:  20px 0;
-        border-radius: 15px;
-        min-height: auto;
-        display: flex;
-        flex-direction: column;
-
-        transform: none !important;
-        will-change: auto !important;
-    }
-    .content {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-    }
-
-    input[type="text"], input[type="file"] {
-        font-size: 18px !important;
-        min-height: 44px !important;
-    }
-
-
-
-        .terminal {
-            max-height: 90vh;
-            height: auto;
-            min-height: 400px;
-            font-size: 12px;
-            line-height: 1.3;
-            padding: 8px;
-
-            width: 100% !important;
-            max-width: 100% !important;
-            border-radius: 8px;
-            border-left: none;
-            border-right: none;
-            font-size: 12px;
-            line-height: 1.3;
-        }
-        .content {
-            padding: 5px;
-        }
-        .main-container {
-            overflow-x: hidden;
-        }
-        .content {
-            padding-left: 0;
-            padding-right: 0;
-        }
-    }
-
-        .main-container {
-            width: 90%;
-        }
-    }
-
-    @media (max-width: 480px) {
-
-     body {
-        padding: 10px;
-        align-items: center;
-        justify-content: center;
-    }
-    .main-container {
-        border-radius: 10px;
-        margin: 10px 0;
-        width: 90%;
-    }
-
-        .terminal {
-            max-height: 100%;
-            min-height: 350px;
-            font-size: 11px;
-
-            padding: 10px;
-        }
-        input[type="text"], input[type="file"] {
-            font-size: 14px;
-        }
-    }
-
-    /* For horizontal orientation */
-    @media (max-width: 768px) and (orientation: landscape) {
-        .terminal {
-            height: auto;
-            font-size: 11px;
-            width: 100% !important;
-            max-width: 100% !important;
-        }
-    }
-
-        .terminal:empty {
-            display: none !important;
-        }
-        .status {
-            text-align: center;
-            padding: 15px;
-            border-radius: 25px;
-            font-weight: 500;
-            margin: 10px 0;
-            font-size: 16px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
-        }
-        .hidden { display: none !important; }
-        .status-loading {
-            background: #fff3cd;
-            color: #856404;
-            border: 2px solid #ffeaa7;
-        }
-        .status-success {
-            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
-            color: #155724;
-            border: 2px solid #b8d8be;
-            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
-        }
-        .status-warning {
-            background: #fff3cd;
-            color: #856404;
-            border: 2px solid #ffeaa7;
-        }
-        .status-error {
-            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
-            color: #721c24;
-            border: 2px solid #f1b0b7;
-            box-shadow: 0 4px 15px rgba(244, 67, 54, 0.3);
-        }
-        .file-info {
-            margin-top: 10px;
-            padding: 10px;
-            background: #e8f4f8;
-            border-radius: 6px;
-            border-left: 4px solid #2196F3;
-        }
-        .status-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 15px 0;
-        }
-    </style>
-</head>
-<body>
-    <div class="main-container">
-        <div class="header">
-            <h1>💰 PERSONAL FINANCE ANALYZER</h1>
-            <p>Upload your CSV file and analyze your finances</p>
-        </div>
-        <div class="content">
-            <div class="form-container">
-                <form method="POST"
-                enctype="multipart/form-data"
-                id="uploadForm">
-                    <div class="input-group">
-                        <input type="text" name="month"
-                        placeholder="Enter month (e.g. March, April)" required>
-                        <input type="file" name="file" accept=".csv" required>
-                        <button type="submit" id="submitBtn">Analyze</button>
-                    </div>
-                </form>
-               <div
-                    id="mobileRetry"
-                    style="display: none; text-align: center; margin: 20px;"
-                >
-    <button onclick="window.location.reload()"
-            style="
-                padding: 12px 24px;
-                background: #667eea;
-                color: white;
-                border: none;
-                border-radius: 8px;
-            "
-        🔄 Retry Upload
-    </button>
-</div>
-                {% if filename %}
-                <div class="file-info anchor" id="fileInfoSection">
-                    📁 Using file: <strong>{{ filename }}</strong>
-                </div>
-                {% endif %}
-            </div>
-
-            {% if result %}
-            <div class="terminal" id="resultsSection">
-                {{ result|safe }}
-            </div>
-            {% endif %}
-
-            <div class="status-container">
-                <div class="status hidden" id="statusMessage">
-                    Processing your financial data...
-                    Google Sheets update in progress
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-document.getElementById('uploadForm').addEventListener('submit', function(e) {
-    const statusElement = document.getElementById('statusMessage');
-    const submitBtn = document.getElementById('submitBtn');
-    const terminalElement = document.querySelector('.terminal');
-    const fileInput = document.querySelector('input[type="file"]');
-    const isMobile = window.matchMedia('(max-width: 768px)').matches;
-
-if (isMobile) {
-    body.style.display = 'flex';
-        body.style.justifyContent = 'center';
-        body.style.alignItems = 'center';
-        body.style.minHeight = '100vh';
-    // Increasing the form submission timeout for mobile devices
-    document.getElementById('uploadForm')
-    .addEventListener('submit', function(e) {
-        setTimeout(function() {
-        }, 1000);
-    });
-}
-
-    if (terminalElement) {
-        terminalElement.innerHTML = '';
-        terminalElement.style.display = 'none';
-    }
-
-    if (fileInput.files.length > 0) {
-        const fileName = fileInput.files[0].name;
-        let fileInfoElement = document.querySelector('.file-info');
-
-        if (!fileInfoElement) {
-            fileInfoElement = document.createElement('div');
-            fileInfoElement.className = 'file-info';
-            document.querySelector('.input-group').after(fileInfoElement);
-        }
-
-        fileInfoElement.innerHTML = `📁 Using : <strong>${fileName}</strong>`;
-        fileInfoElement.style.display = 'block';
-    }
-
-    statusElement.classList.remove('hidden');
-    statusElement.classList.remove('status-success','status-error','status-warning');
-    statusElement.classList.add('status-loading');
-    statusElement.textContent = '⏳ Google Sheets update in progress';
-
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Processing...';
-    submitBtn.style.opacity = '0.7';
-});
-
-{% if status_message %}
-document.addEventListener('DOMContentLoaded', function() {
-    const statusElement = document.getElementById('statusMessage');
-    statusElement.classList.remove('hidden');
-    statusElement.textContent = '{{ status_message }}';
-
-    {% if 'success' in status_message %}
-    statusElement.classList.add('status-success');
-    {% elif 'failed' in status_message %}
-    statusElement.classList.add('status-error');
-    {% elif 'warning' in status_message %}
-    statusElement.classList.add('status-warning');
-    {% else %}
-    statusElement.classList.add('status-loading');
-    {% endif %}
-});
-{% endif %}
-
-{% if operation_id %}
-
-function scrollToFileInfo() {
-    const isMobile = window.matchMedia('(max-width: 768px)').matches;
-    const fileInfoSection = document.getElementById('fileInfoSection');
-    if (fileInfoSection) {
-        setTimeout(() => {
-            fileInfoSection.scrollIntoView({
-                behavior: 'smooth',
-                block: 'start'
-            });
-        }, 300);
-    }
-}
-document.addEventListener('DOMContentLoaded', function() {
-    {% if result %}
-    scrollToFileInfo();
-    {% endif %}
-});
-// Function to check the status of the operation
-function checkOperationStatus(operationId) {
-    fetch('/status/' + operationId)
-        .then(response => response.json())
-        .then(data => {
-            const statusElement = document.getElementById('statusMessage');
-            if (statusElement) {
-                statusElement.textContent = data.status;
-
-                // Updating classes based on status
-                if (data.status.includes('✅')) {
-                    statusElement.className = 'status status-success';
-                } else if (data.status.includes('❌')) {
-                    statusElement.className = 'status status-error';
-                } else if (data.status.includes('⏳')) {
-                    statusElement.className = 'status status-loading';
-                    // We continue to check the status every 5 seconds.
-                    setTimeout(() => checkOperationStatus(operationId), 5000);
-                } else if (data.status.includes('⚠️')) {
-                    statusElement.className = 'status status-warning';
-                }
-            }
-        })
-        .catch(error => {
-            console.error('Error checking status:', error);
-        });
-}
-
-// Initiating a status check when the page loads.
-document.addEventListener('DOMContentLoaded', function() {
-    checkOperationStatus('{{ operation_id }}');
-});
-{% endif %}
-document.addEventListener('DOMContentLoaded', function() {
-    const terminal = document.querySelector('.terminal');
-    if (terminal &&
-    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i
-      .test(navigator.userAgent)) {
-        // Calculating the available height for the terminal
-        const viewportHeight = window.innerHeight;
-        const terminalTop = terminal.getBoundingClientRect().top;
-        const availableHeight = viewportHeight - terminalTop - 30;
-        terminal.style.maxHeight = availableHeight + 'px';
-        terminal.style.fontSize = '12px';
-    }
-});
-document.addEventListener('DOMContentLoaded', function() {
-    const terminal = document.querySelector('.terminal');
-    const MOBILE_USER_AGENTS =
-        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
-    const isMobile = MOBILE_USER_AGENTS.test(navigator.userAgent);
-    if (terminal && isMobile) {
-        optimizeTerminalForMobile(terminal);
-    }
-});
-
-function optimizeTerminalForMobile(terminal) {
-    // getting viewport sizes
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
-    // Calculating the maximum available width (minus the margins)
-    const maxWidth = Math.min(viewportWidth - 40, 800);
-    const headerHeight = document.querySelector('.header')?.offsetHeight
-        || 100;
-    const formHeight = document.querySelector('.form-container')?.offsetHeight
-        || 150;
-    const availableHeight = viewportHeight - headerHeight - formHeight - 50;
-    // Applying optimal dimensions
-    terminal.style.width = '100%';
-    terminal.style.maxWidth = '100%';
-    terminal.style.maxHeight = Math.max(availableHeight, 300) + 'px';
-    terminal.style.fontSize = viewportWidth < 400 ? '11px' : '12px';
-    terminal.style.lineHeight = '1.3';
-    terminal.style.overflowX = 'auto';
-    terminal.style.whiteSpace = 'pre-wrap';
-    terminal.style.wordBreak = 'break-word';
-    console.log('📱 Mobile terminal optimized:', {
-        viewportWidth,
-        viewportHeight,
-        maxWidth,
-        availableHeight
-    });
-}
-
-// Optimize changing the window size.
-window.addEventListener('resize', function() {
-    const terminal = document.querySelector('.terminal');
-    const MOBILE_USER_AGENTS =
-        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
-    const isMobile = MOBILE_USER_AGENTS.test(navigator.userAgent);
-    if (terminal && isMobile) {
-        setTimeout(() => optimizeTerminalForMobile(terminal), 100);
-    }
-});
-
-// Optimization for horizontal orientation
-function checkOrientation() {
-    const terminal = document.querySelector('.terminal');
-    if (terminal && window.innerWidth > window.innerHeight) {
-        // landscape mode - use more width
-        terminal.style.maxWidth = '90vw';
-        terminal.style.maxHeight = '80vh';
-    }
-}
-
-// Checking orientation during loading and changing
-checkOrientation();
-window.addEventListener('orientationchange', checkOrientation);
-window.addEventListener('resize', checkOrientation);
-
-
-
-
-function fixMobileLayout() {
-    const MOBILE_USER_AGENTS =
-        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
-    const isMobile = MOBILE_USER_AGENTS.test(navigator.userAgent);
-    const terminal = document.querySelector('.terminal');
-    const mainContainer = document.querySelector('.main-container');
-    if (isMobile && terminal) {
-        terminal.style.width = '100%';
-        terminal.style.maxWidth = '100%';
-        terminal.style.marginLeft = '0';
-        terminal.style.marginRight = '0';
-    }
-    if (isMobile && mainContainer) {
-        mainContainer.style.width = '100%';
-        mainContainer.style.maxWidth = '100%';
-    }
-}
-
-// Called on load and resize
-document.addEventListener('DOMContentLoaded', fixMobileLayout);
-window.addEventListener('resize', fixMobileLayout);
-window.addEventListener('orientationchange', fixMobileLayout);
-
-
-
-</script>
-
-</body>
-</html>
-"""
-
 
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -2159,8 +1583,8 @@ def index():
             month = request.form.get("month", "").strip().lower()
 
             if not month:
-                return render_template_string(
-                    HTML,
+                return render_template(
+                    'index.html',
                     result="Month is required",
                     status_message="❌ Please enter a month",
                 )
@@ -2168,24 +1592,24 @@ def index():
             print(f"📅 Month: {month}")
 
             if "file" not in request.files:
-                return render_template_string(
-                    HTML,
+                return render_template(
+                    'index.html',
                     result="No file uploaded",
                     status_message="❌ No file selected",
                 )
 
             file = request.files["file"]
             if file.filename == "":
-                return render_template_string(
-                    HTML,
+                return render_template(
+                    'index.html',
                     result="No file selected",
                     status_message="❌ Please select a file",
                 )
 
             # Enhanced file validation
             if not file or not allowed_file(file.filename):
-                return render_template_string(
-                    HTML,
+                return render_template(
+                    'index.html',
                     result="Invalid file type. Please upload a CSV file.",
                     status_message="❌ Invalid file type",
                 )
@@ -2196,8 +1620,8 @@ def index():
             file.seek(0)  # Reset to beginning
 
             if file_size > 10 * 1024 * 1024:  # 10MB limit
-                return render_template_string(
-                    HTML,
+                return render_template(
+                    'index.html',
                     result="File too large. Maximum size is 10MB.",
                     status_message="❌ File too large",
                 )
@@ -2274,8 +1698,8 @@ def index():
                 result = "Invalid file type. Please upload a CSV file."
                 status_message = "❌ Invalid file type"
 
-        return render_template_string(
-            HTML,
+        return render_template(
+            'index.html',
             result=result,
             month=month,
             filename=filename,
@@ -2285,8 +1709,8 @@ def index():
 
     except Exception as e:
         print(f"Error in index function: {e}")
-        return render_template_string(
-            HTML,
+        return render_template(
+            'index.html',
             result=f"Error: {str(e)}",
             status_message="❌ System error occurred",
         )
