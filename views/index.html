@@ -43,6 +43,9 @@
                     Processing your financial data... Google Sheets update in progress
                 </div>
             </div>
+            {% if operation_id %}
+            <div data-operation-id="{{ operation_id }}" class="hidden"></div>
+            {% endif %}
         </div>
     </div>
 
