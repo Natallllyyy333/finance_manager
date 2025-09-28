@@ -1,3 +1,4 @@
+/* jshint esversion: 11, browser: true */
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('uploadForm');
     
