@@ -139,6 +139,7 @@ button:hover {
     background: #e8f4f8;
     border-radius: 6px;
     border-left: 4px solid #2196F3;
+    scroll-margin-top: 20px;
 }
 
 .status {

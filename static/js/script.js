@@ -20,8 +20,13 @@ document.addEventListener('DOMContentLoaded', function() {
             submitBtn.disabled = true;
             submitBtn.textContent = 'Processing...';
             submitBtn.style.opacity = '0.7';
+
+            setTimeout(() => {
+                scrollToFileInfo();
+            }, 500);
         });
     }
+    
     
     // Mobile optimization
     optimizeForMobile();
@@ -32,7 +37,25 @@ document.addEventListener('DOMContentLoaded', function() {
         const operationId = operationIdElement.getAttribute('data-operation-id');
         checkOperationStatus(operationId);
     }
+
+    if (document.getElementById('resultsSection') && document.getElementById('fileInfoSection')) {
+        setTimeout(() => {
+            scrollToFileInfo();
+        }, 300);
+    }
 });
+
+
+function scrollToFileInfo() {
+    const fileInfoSection = document.getElementById('fileInfoSection');
+    if (fileInfoSection) {
+        fileInfoSection.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+        });
+    }
+}
+
 
 function optimizeForMobile() {
     const terminal = document.querySelector('.terminal');
