@@ -1561,20 +1561,13 @@ def run_full_analysis_with_file(month, file_path, temp_dir, operation_id):
 
 HTML = """
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-     <title>Finance Analyzer</title>
-   <meta name="viewport" content="
-    width=device-width,
-    initial-scale=1.0,
-    maximum-scale=1.0,
-    user-scalable=no
-">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-   <meta
-    name="apple-mobile-web-app-status-bar-style"
-    content="black-translucent"
->
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Finance Analyzer</title>
     <style>
     *{
     margin: 0;
@@ -1593,7 +1586,6 @@ HTML = """
             display: flex;
             justify-content: center;
             align-items: center;
-
             width: 100% !important;
             overflow-x: hidden !important;
             position: relative !important;

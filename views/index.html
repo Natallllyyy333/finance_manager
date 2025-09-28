@@ -1,4 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Finance Analyzer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
 <body>
+    <div class="main-container">
+        <div class="header">
+            <h1>💰 PERSONAL FINANCE ANALYZER</h1>
+            <p>Upload your CSV file and analyze your finances</p>
+        </div>
+        
+        <div class="content">
+            <div class="form-container">
+                <form method="POST" enctype="multipart/form-data" id="uploadForm">
+                    <div class="input-group">
+                        <input type="text" name="month" placeholder="Enter month (e.g. March, April)" required>
+                        <input type="file" name="file" accept=".csv" required>
+                        <button type="submit" id="submitBtn">Analyze</button>
+                    </div>
+                </form>
+                
+                {% if filename %}
+                <div class="file-info anchor" id="fileInfoSection">
+                    📁 Using file: <strong>{{ filename }}</strong>
+                </div>
+                {% endif %}
+            </div>
+
+            {% if result %}
+            <div class="terminal" id="resultsSection">
+                {{ result|safe }}
+            </div>
+            {% endif %}
+
+            <div class="status-container">
+                <div class="status hidden" id="statusMessage">
+                    Processing your financial data... Google Sheets update in progress
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
+<!-- <body>
     <button onclick="window.location.reload()">Run Program</button>
     <div id="terminal"></div>
 
@@ -24,4 +75,4 @@
         // Set focus in the terminal
         document.getElementsByClassName("xterm-helper-textarea")[0].focus();
     </script>
-</body>
+</body> -->
