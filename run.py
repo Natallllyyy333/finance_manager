@@ -1715,11 +1715,6 @@ def index():
         )
 
 
-@app.route('/about')
-def about():
-    return "About page - Financial Analysis Tool"
-
-
 @app.errorhandler(404)
 def not_found(error):
     try:
