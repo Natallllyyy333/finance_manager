@@ -1717,7 +1717,15 @@ def index():
 
 @app.errorhandler(404)
 def not_found(error):
-    return render_template('404.html'), 404
+    try:
+        return render_template('404.html'), 404
+    except Exception as e:
+        print(f"❌ Error rendering 404 page: {e}")
+        return f"Page not found - 404 Error: {str(e)}", 404
+
+@app.errorhandler(500)
+def internal_error(error):
+    return "Internal server error", 500
 
 @app.route("/status/<operation_id>")
 def check_status(operation_id):
