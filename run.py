@@ -1714,9 +1714,6 @@ def index():
             status_message="❌ System error occurred",
         )
 
-@app.route('/')
-def index():
-    return render_template('index.html')
 
 @app.route('/about')
 def about():
