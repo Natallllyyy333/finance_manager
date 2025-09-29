@@ -18,7 +18,7 @@ from werkzeug.utils import secure_filename
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 app = Flask(__name__,
-            template_folder='views',
+            template_folder='templates',
             static_folder='static')
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret-key-123")
 
