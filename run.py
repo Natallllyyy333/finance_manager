@@ -1714,6 +1714,14 @@ def index():
             status_message="❌ System error occurred",
         )
 
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/about')
+def about():
+    return "About page - Financial Analysis Tool"
+
 
 @app.errorhandler(404)
 def not_found(error):
