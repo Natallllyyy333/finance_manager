@@ -26,6 +26,12 @@ The application features both terminal-based visualization and Google Sheets int
     - [Site Owner](#site-owner)
   - [Technical Design](#technical-design)
     - [Flowchart](#flowchart)
+  - [Design](#design)
+    - [Design Choices](#design-choices)
+    - [Colour](#colours)
+    - [Fonts](#fonts)
+    - [Structure](#structure)
+    - [Wireframes](#wireframes)
   - [Technologies Used](#technologies-used)
     - [Languages](#languages)
     - [Frameworks & Tools](#frameworks--tools)
@@ -151,7 +157,7 @@ The following flowchart summarises the structure and logic of the application.
 ## Design
 
 ### Design Choices
-The app was designed to have an engaging effect on the user. The idea was to let the user check analize their personal finances.
+The app was designed to have an engaging effect on the user. The idea was to let the user check and analize their personal finances.
 
 ### Colour
 The color palette was chosen to match purple, blue colours of the background. A color picker was used to pick colors from the background image, these colors were then further adjusted to meet accessibility criteria. 
@@ -174,10 +180,10 @@ For the terminal fonts, Courier New monospace font-family stack was used.
 <details><summary>Start screen</summary>
 <img src="./docs/wireframes_1.jpg">
 </details>
-<details><summary>Start screen</summary>
+<details><summary>Terminal financial analysis results screen</summary>
 <img src="./docs/wireframes_2.jpg">
 </details>
-<details><summary>Start screen</summary>
+<details><summary>404 page screen</summary>
 <img src="./docs/wireframes_404_page.jpg">
 </details>
 
@@ -416,7 +422,7 @@ The W3C Markup Validation Service was used to validate the HTML of the website. 
 </details>
 
 <details><summary>404</summary>
-<img src="./docs/validation/validation-html-404-page.jpg>
+<img src="./docs/validation/validation-html-404.jpg">
 </details>
 
 ### CSS Validation
@@ -460,7 +466,7 @@ Google Lighthouse in Google Chrome Developer Tools was used to test the performa
 
 [PEP8 Validation Service](http://pep8online.com/) was used to check the code for PEP8 requirements. All the code passes with no errors and no warnings to show.
 
-<details><summary>PEP3 check for run.py</summary>
+<details><summary>PEP8 check for run.py</summary>
 <img src="docs/validation/validator_pep8_testing.jpg">
 </details>
 
